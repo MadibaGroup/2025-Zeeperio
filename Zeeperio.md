@@ -64,8 +64,6 @@ Finally we will describe Zeeperio as an interactive protocol however it can be m
 [^1]: This technique—employed and popularized in Sonic by Maller, Bowe, Kohlweiss & Meiklejohn (2019)—lacks a standard name, variously referred to in the literature by variants on blinders, vanishing-polynomial blinding, the $Z_H$-mask trick, and off-domain masking. We propose calling it the MBKM heuristic.
 [^2]: We refer the interested reader to zk-learning.org or plonkbook.org
 
-
-
 ### Spoiled Ballots
 
 Before given an example, we quickly discuss spoiled ballots. There is no canonical way of dealing of spoiled ballots in the literature. Scantegrity II suggests adding a "spoil" option as a candidate to the ballot which gives voters who spoil their ballots a way to check correct inclusion, as opposed to simply undervoting the ballot which means voters to not receive any confirmation code.
@@ -132,10 +130,6 @@ Zeeperio is an argument that all the columns of both tables are correctly formed
    2. Print audit check
    3. Dispute resolution check
 
-
-
-
-
 #### Notation
 
 An election is setup with $\mathcal{B}$ printed ballots and $\mathcal{C}$ candidates on each ballot. This results in $\mathcal{P}=\mathcal{B}\cdot\mathcal{C}$ unique ballot positions and thus $\mathcal{P}$ confirmation codes. 
@@ -155,8 +149,6 @@ The final size of the column ($n=2^{\lfloor\log_2{\mathcal{P}}\rfloor}$) will be
 | k             | counter over positions within a ballot (0 to $\mathcal{C}$)  |
 |               |                                                              |
 |               |                                                              |
-
-
 
 ## Constraint 1: Audit Column
 
@@ -187,7 +179,7 @@ As a last remark, all relations checked by the verifier can be batched into a si
 
 #### c1.2: Audit column is binary
 
-A succinct agruemnt that $A(X)$ is binary is a subcomponent of the Poly-IOP range argument given by Boneh et al. However we will not actually need to explicitly prove this for $A(X)$ because later we will see that constraint 3 ends up subsuming this constraint. So we will return to this when discussing constraint 3. 
+A succinct agruemnt that $A(X)$ is binary is a subcomponent of the Poly-IOP range argument given by Boneh et al and is $\mathtt{range}$ in Plonkbook. If $A(X)$ contains only 0 and 1 on the domain, then $(A(X)-0)(A(X)-1)$ will only contain 0 on the domain and is a vanishing polynomial. The EA will argue this polynomial vanishes with the vanishing heuristic.
 
 #### c1.3: Audit column contains 1's in a block
 
@@ -214,18 +206,18 @@ Next the EA will prove that if a ballot is print audited, all of its indices are
 
 The strategy will be as follows:
 
-* We will create a new column where each index is the sum of itself with the $\mathcal{C}$ indices that follow it
-* Because the indices that follow the last indices "wraps" to the start of the column, we will ensure the tail end of the column is zeroed out
-* We will then apply a selector vector that zero's out all indices except the first index of each ballot (where the index is congruent to $0 \bmod \mathcal{C}$)
-* Finally we will show that this vector only contains the value 0 or the value $\mathcal{C}$
+* The EA will create a new column where each index is the sum of itself with the $\mathcal{C}$ indices that follow it
+* Because the indices that follow the last indices "wraps" to the start of the column, the EA will ensure the tail end of the column is zeroed out
+* The EA will then apply a selector vector that zero's out all indices except the first index of each ballot (where the index is congruent to $0 \bmod \mathcal{C}$)
+* Finally the EA will show that this vector only contains the value 0 or the value $\mathcal{C}$
 
 First we define a block-sum polynomial such that:
 
 $S_\mathsf{blk}(X)=A(X)+A(\omega X)+\ldots+A(\omega^{\mathcal{C}-1})=\sum_{k=0}^{\mathcal{C}-1}A\bigl(\omega^k X\bigr)$. 
 
-If ballot $j$ contains a print audit block of 1's, then $S_\mathsf{blk}(\omega^{j\cdot\mathcal{C}})=1+1+\ldots+1=\mathcal{C}$. If it is not audited, it will contain 0. If it contains any other number, the Audit column is ill-formed.
+If the first index for ballot $j$ contains a print audit block of 1's, then $S_\mathsf{blk}(\omega^{j\cdot\mathcal{C}})=1+1+\ldots+1=\mathcal{C}$. If it is not audited, it will contain 0. Since by c1.2, $A(X)$ is binary, it is constrained to a value in $[0,\mathcal{C}]$. If it contains any other number between 0 and $\mathcal{C}$, the Audit column is ill-formed. 
 
-Next we want to create a column that preserves the values at $X = \omega^{j\cdot C}$ for every ballot $0\leq j \leq \mathcal{B}-1$ and zero's out every other value on the domain. We can construct a binary vector that is 1 at each position we want to keep and zero elsewhere on the domain by using a sum of Lagrange bases. Recall a Lagrange basis is defined as:
+Next the EA creates a column that preserves the values at $X = \omega^{j\cdot C}$ for every ballot $0\leq j \leq \mathcal{B}-1$ and zero's out every other value on the domain. The EA can construct a binary vector that is 1 at each position it wants to keep and zero elsewhere on the domain by using a sum of Lagrange bases. Recall a Lagrange basis is defined as:
 
  $L_i(X)=\prod_{\substack{0\le j<n \\ j\ne i}}
 \frac{X - \omega^j}{\omega^i - \omega^j}$ .
@@ -238,15 +230,13 @@ $L_i(\omega^k)=
 0, & k \neq i.
 \end{cases}$
 
-We can build a binary selector polynomial simply by adding together the Lagrange basis at every $\mathcal{C}$-th index. Call it $F_\mathsf{blk}(X)$ for filter by block. 
+The EA can build a binary selector polynomial simply by adding together the Lagrange basis at every $\mathcal{C}$-th index. Call it $F_\mathsf{blk}(X)$ for filter by block. 
 
-$F_{\rm blk}(X)
-\;=\;
-\sum_{j=0}^{\lfloor n/\mathcal{C}\rfloor -1}L_{\,j\mathcal{C}}(X),$
+$F_\mathsf{blk}(X)=\sum_{j=0}^{\lfloor n/\mathcal{C}\rfloor -1} L_{j\mathcal{C}}(X)$
 
-This is a faster to construct ($O(n)$) than specifying the selector as a vector and interpolating a polynomial through it with FFT ($O(n\log{n})$). Because the sum stops at $\lfloor n/\mathcal{C}\rfloor -1$, we leave the tail of $F_\mathsf{blk}(X)$ as 0.
+This is a faster to construct ($O(n)$) than specifying the selector as a vector and interpolating a polynomial through it with FFT ($O(n\log{n})$). Because the sum stops at $\lfloor n/\mathcal{C}\rfloor -1$, the tail of $F_\mathsf{blk}(X)$ is left as 0 which will zero out any tailing irregularities due to the wrap. 
 
-We apply the filter by forming $S_\mathsf{blk}(X)\cdot F_\mathsf{blk}(X)$ and the EA proves the filtered column only contains the value 0 or the value $\mathcal{C}$ by forming the polynomial: $(S_\mathsf{blk}(X)\cdot F_\mathsf{blk}(X)-0)(S_\mathsf{blk}(X)\cdot F_\mathsf{blk}(X)-\mathcal{C})$. If and only if the print audit is well formed, this polynomial will be vanishing. 
+We apply the filter by forming $S_\mathsf{blk}(X)\cdot F_\mathsf{blk}(X)$ and the EA proves the filtered column only contains the value 0 or the value $\mathcal{C}$. This subprotocol is common in PolyIOP protocols (called $\mathtt{lookup1}$ in Plonkbook). The EA forms the polynomial: $(S_\mathsf{blk}(X)\cdot F_\mathsf{blk}(X)-0)(S_\mathsf{blk}(X)\cdot F_\mathsf{blk}(X)-\mathcal{C})$. If and only if the print audit is well formed, this polynomial will be vanishing. 
 
 We will not review the vanishing argument again (see c1.1 above) but we follow the same process, just with the above polynomial as the numerator. The final step of this process is to check a quotient polynomial $Q_{c1.3}$ satisfies at random point $\zeta$ the following relationship:
 
@@ -254,8 +244,75 @@ $[S_\mathsf{blk}(\zeta)\cdot F_\mathsf{blk}(\zeta)-0][(S_\mathsf{blk}(\zeta)\cdo
 
 Additonaly the verifier needs to check $S_\mathsf{blk}(X)$ and $F_\mathsf{blk}(X)$ are correctly formed. For $S_\mathsf{blk}(X)$, the verifier computes $S_{\rm blk}(\zeta)=\sum_{k=0}^{C-1}A(\zeta\,\omega^k)$ by summing the $\mathcal{C}$ opened values of $A(X)$ which costs $O(\mathcal{C})$ field additions (after the $\mathcal{C}$ KZG openings). 
 
-For $F_\mathsf{blk}(X)$, this polynomial is public and does not depend on voter choices. It can be pre-computed before the election (but after the number of ballots and candidates is known) and checked by the verifier as a precomputed sparse sum over $\lfloor n/\mathcal{C}\rfloor$ points.
+For $F_\mathsf{blk}(X)$, this polynomial is public and does not depend on voter choices. It can be pre-computed before the election (but after the number of ballots and candidates is known) and checked by the verifier as a sparse sum over $\lfloor n/\mathcal{C}\rfloor$ points.
 
 > [!Note]  
 >
 > - For the MBKM heuristic, $A(X)$ is opened at $\mathcal{C}$ points so the randomizing polynomial must be degree $\mathcal{C}-1$. $S_\mathsf{blk}$ and $Q_{c1.3}(X)$ are only opened once.
+> - Check if $F_\mathsf{blk}(X)$ as a closed form like $\frac{X^u-1}{X^s-1}$
+
+#### c1.4: Audit column matches public audit count
+
+The EA will assert the number of print audits in the election as the integer $\mathsf{Sum}_\mathsf{A}$. Since each print audit ballot contains a block of $\mathcal{C}$ 1's per constraint c1.3, the number of 1's in $A(X)$ must be $\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}=\mathsf{Sum}_\mathsf{A}\cdot\mathcal{C}$. 
+
+Arguing the sum of a column is a common PolyIOP protocol (called $\mathtt{add2}$ in Plonkbook). The EA will sum $A(X)$ from the end of the column toward the start of the column and place the running sum values into a new helper polynomial called $\mathsf{Acc}_\mathsf{A}(X)$ for accumulator. If constructed correctly, $\mathsf{Acc}_\mathsf{A}(\omega^0)=\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}.$ The EA will argue the following constraints.
+
+1. For $X=\omega^{k-1}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)=0$
+2. For all $X$ except $X=\omega^{k-1}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X)=0$
+3. For $X=\omega^{0}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}=0$
+
+The first two argue the construction of $\mathsf{Acc}_\mathsf{A}(X)$ is correct, while the third argues the sum is correct. The first is that the starting value is correct: $\mathsf{Acc}_\mathsf{A}(\omega^{n-1})=\mathsf{A}(\omega^{n-1})$. The second is that each index in the running tally is correct: $\mathsf{Acc}_\mathsf{A}(X)=\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X)$, recalling that $\mathsf{Acc}_\mathsf{A}(\omega X)$ is the value below $\mathsf{Acc}_\mathsf{A}(X)$ in a column (equivalently $\mathsf{Acc}_\mathsf{A}(\omega X)$ is column $\mathsf{Acc}_\mathsf{A}(X)$ rotated upward once). A corner case of the second constraint is that it is not true for the last value in the column which is overridden by the first constraint.
+
+The remaining question is how to enforce the qualifiers on $X$. For the first and last constraint, we can open the polynomial at the point of interest however we prefer to prove a polynomial vanishes rather than opening it (even at a single point) because the verifier can batch check constraints of the same format. Instead we use well-known vanishing masks (called $\mathtt{zero1}$ in Plonkbook) that zero out portions of a polynomial.
+
+| Operation          | Input Polynomial | Output Polynomial                           | Output Array                            |
+| ------------------ | ---------------- | ------------------------------------------- | --------------------------------------- |
+| Zero all           | $P(X)$           | $P(X)\cdot(X^n-1)$                          | $\langle 0,0,0,0,0 \rangle$             |
+| Zero first         | $P(X)$           | $P(X)\cdot(X-\omega^0)$                     | $\langle 0,\bot,\bot,\bot,\bot \rangle$ |
+| Zero last          | $P(X)$           | $P(X)\cdot(X-\omega^{n-1})$                 | $\langle \bot,\bot,\bot,\bot,0 \rangle$ |
+| Zero all but first | $P(X)$           | $P(X)\cdot\frac{(X^n-1)}{(X-\omega^0)}$     | $\langle \bot,0,0,0,0 \rangle$          |
+| Zero all but last  | $P(X)$           | $P(X)\cdot\frac{(X^n-1)}{(X-\omega^{n-1})}$ | $\langle 0,0,0,0,\bot \rangle$          |
+
+ The constraints become the following on all values of the domain.
+
+1. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X))\cdot\frac{(X^\kappa-1)}{(X-\omega^{\kappa-1})}=0$
+2. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X))\cdot (X-\omega^{\kappa-1})=0$
+3. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}})\cdot \frac{(X^\kappa-1)}{(X-\omega^0)}=0$
+
+The EA will then argue these three polynomials are vanishing using the same technique from the previous constraints. 
+
+## Constraint 2: Mark Column
+
+The mark column indicates which ballots were voted. This is denoted by the flag value $1$ in the column. The set of constraints enforce similar properties to constraint 1:
+
+* c2.1 Any padding is done with the value 0
+* c2.2 The column only contains 0 and 1
+* c2.3 No ballot contains more than one 1 value (no over-voted ballots)
+* c2.4 The number of voted ballots is the sum of the column
+
+Indeed since the constraints are so similar, we can reuse the same arguments from constraint 1 with only minor modifications. 
+
+#### c2.1: Mark column is zero padded
+
+The argument here is equivalent to constraint c1.1. As an optimization, the EA could combine $A(X)$ and $M(X)$ using a random linear combination and prove the padding is correct on the combined column. However for simplicity, we will leave it as rerunning c1.1 on $M(X)$ in addition to $A(X)$.
+
+#### c2.2: Mark column is binary
+
+This constraint is the same as c1.2.
+
+#### c2.3: Mark column contains no overvotes
+
+This constraint is the same as c1.3 except the start of each ballot must contain a single 1 rather than $\mathcal{C}$ 1's. Making this substitution, the argument otherwise follows c1.3.
+
+#### c2.4: Mark column matches public mark count
+
+The EA will assert the number of voted ballot in the election as the integer $\mathsf{Sum}_\mathsf{M}$. Thus the number of 1's in $M(X)$ must be $\mathsf{Sum}_\mathsf{M}$. The EA will construct the same argument as constraint c1.4 for $M(X)$ and $\mathsf{Sum}_\mathsf{M}$ replacing $A(X)$ and $\mathsf{Sum}_\mathsf{A}\cdot\mathcal{C}$.
+
+## Constraint 4: Audit and Mark Column Exclusions
+
+In constraint 4, we consider the audit and mark columns together. The EA will argue that no ballot is both audited and voted. Given all the constraints c1.1--1.4 and c2.1--c2.4, there is already a lot of structure enforced about the audit and mark columns. It is sufficient to merely argue that any row in the audit column with a 1 must have a 0 in the mark column, and vice versa, any row in the mark column with a 1 must have a 0 in the audit column. Rows may have 0 in both but never a 1 in both. The idea is to multiply the columns which is binary AND and argue the product of the columns only contains the value 0 (and thus is a vanishing polynomial).
+
+Proving a polynomial is the product of two polynomials is common in PolyIOP arguments (called $\mathtt{mult1}$ in Plonkbook), where multiplication is the element-wise multiplication (aka Hadamard product) of each element of the columns. The EA will commit to the product polynomial $A(X)\cdot M(X)$ and argue (using the same technique as the other constraints) that the following polynomial is vanishing $\mathsf{Vanish}_\mathsf{c4}(X)=A(X)\cdot M(X)$ if there exists a $Q_\mathsf{c4}(X)$ such that $\mathsf{Zero}(X)=\mathsf{Vanish}_\mathsf{4}(X)-Q_\mathsf{c4}(X)\cdot(X^{n-1}-1)$ is the zero polynomial. 
+
+
+
