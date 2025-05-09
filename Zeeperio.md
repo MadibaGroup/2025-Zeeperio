@@ -134,7 +134,7 @@ Zeeperio is an argument that all the columns of both tables are correctly formed
 
 An election is setup with $\mathcal{B}$ printed ballots and $\mathcal{C}$ candidates on each ballot. This results in $\mathcal{P}=\mathcal{B}\cdot\mathcal{C}$ unique ballot positions and thus $\mathcal{P}$ confirmation codes. 
 
-Those familiar with the Poly-IOP model will know that prover efficiency is improved by encoding column elements at polynomial indices that iterate over a multiplicative subgroup (this enables interpolation via FFT) and that elliptic curve parameters are often chosen to ensure many options for such subgroups are available. The most common approach in curve design is ensuring subgroups of sizes ${2,2^2,2^3,\ldots,2^\kappa}$ for a reasonably large $\kappa$ ($\kappa=28$ for alt_bls and $\kappa=32$ for BLS12-384). The bottom line is to commit to a column of, say, size 1000, you need to actually commit to a column of size 1024 (the size rounded up to the nearest power of 2). 
+Those familiar with the Poly-IOP model will know that prover efficiency is improved by encoding column elements at polynomial indices that iterate over a multiplicative subgroup (this enables interpolation via FFT) and that elliptic curve parameters are often chosen to ensure many options for such subgroups are available. The most common approach in curve design is ensuring subgroups of sizes ${2,2^2,2^3,\ldots,2^n}$ for a reasonably large $n$ ($n=28$ for alt_bls and $n=32$ for BLS12-384). The bottom line is to commit to a column of, say, size 1000, you need to actually commit to a column of size 1024 (the size rounded up to the nearest power of 2). 
 
 The final size of the column ($n=2^{\lfloor\log_2{\mathcal{P}}\rfloor}$) will be $\mathcal{P}$ rounded up to the nearest power of two. Columns will have content in the first $\mathcal{P}$ indices and then 0's as padding in any remaining indices. 
 
@@ -257,11 +257,11 @@ The EA will assert the number of print audits in the election as the integer $\m
 
 Arguing the sum of a column is a common PolyIOP protocol (called $\mathtt{add2}$ in Plonkbook). The EA will sum $A(X)$ from the end of the column toward the start of the column and place the running sum values into a new helper polynomial called $\mathsf{Acc}_\mathsf{A}(X)$ for accumulator. If constructed correctly, $\mathsf{Acc}_\mathsf{A}(\omega^0)=\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}.$ The EA will argue the following constraints.
 
-1. For $X=\omega^{k-1}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)=0$
-2. For all $X$ except $X=\omega^{k-1}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X)=0$
+1. For $X=\omega^{n-1}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)=0$
+2. For all $X$ except $X=\omega^{n-1}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X)=0$
 3. For $X=\omega^{0}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}=0$
 
-The first two argue the construction of $\mathsf{Acc}_\mathsf{A}(X)$ is correct, while the third argues the sum is correct. The first is that the starting value is correct: $\mathsf{Acc}_\mathsf{A}(\omega^{n-1})=\mathsf{A}(\omega^{n-1})$. The second is that each index in the running tally is correct: $\mathsf{Acc}_\mathsf{A}(X)=\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X)$, recalling that $\mathsf{Acc}_\mathsf{A}(\omega X)$ is the value below $\mathsf{Acc}_\mathsf{A}(X)$ in a column (equivalently $\mathsf{Acc}_\mathsf{A}(\omega X)$ is column $\mathsf{Acc}_\mathsf{A}(X)$ rotated upward once). A corner case of the second constraint is that it is not true for the last value in the column which is overridden by the first constraint.
+The first two argue the construction of $\mathsf{Acc}_\mathsf{A}(X)$ is correct, while the third argues the sum is correct. The first is that the starting value is correct: $\mathsf{Acc}_\mathsf{A}(\omega^{n-1})=\mathsf{A}(\omega^{n-1})$. Note that because of constraint c1.1, we can run the tally over the padding values which are all 0. The second is that each index in the running tally is correct: $\mathsf{Acc}_\mathsf{A}(X)=\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X)$, recalling that $\mathsf{Acc}_\mathsf{A}(\omega X)$ is the value below $\mathsf{Acc}_\mathsf{A}(X)$ in a column (equivalently $\mathsf{Acc}_\mathsf{A}(\omega X)$ is column $\mathsf{Acc}_\mathsf{A}(X)$ rotated upward once). A corner case of the second constraint is that it is not true for the last value in the column which is overridden by the first constraint.
 
 The remaining question is how to enforce the qualifiers on $X$. For the first and last constraint, we can open the polynomial at the point of interest however we prefer to prove a polynomial vanishes rather than opening it (even at a single point) because the verifier can batch check constraints of the same format. Instead we use well-known vanishing masks (called $\mathtt{zero1}$ in Plonkbook) that zero out portions of a polynomial.
 
@@ -275,9 +275,9 @@ The remaining question is how to enforce the qualifiers on $X$. For the first an
 
  The constraints become the following on all values of the domain.
 
-1. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X))\cdot\frac{(X^\kappa-1)}{(X-\omega^{\kappa-1})}=0$
-2. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X))\cdot (X-\omega^{\kappa-1})=0$
-3. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}})\cdot \frac{(X^\kappa-1)}{(X-\omega^0)}=0$
+1. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X))\cdot\frac{(X^n-1)}{(X-\omega^{n-1})}=0$
+2. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X))\cdot (X-\omega^{n-1})=0$
+3. $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}})\cdot \frac{(X^n-1)}{(X-\omega^0)}=0$
 
 The EA will then argue these three polynomials are vanishing using the same technique from the previous constraints. 
 
@@ -308,11 +308,45 @@ This constraint is the same as c1.3 except the start of each ballot must contain
 
 The EA will assert the number of voted ballot in the election as the integer $\mathsf{Sum}_\mathsf{M}$. Thus the number of 1's in $M(X)$ must be $\mathsf{Sum}_\mathsf{M}$. The EA will construct the same argument as constraint c1.4 for $M(X)$ and $\mathsf{Sum}_\mathsf{M}$ replacing $A(X)$ and $\mathsf{Sum}_\mathsf{A}\cdot\mathcal{C}$.
 
-## Constraint 4: Audit and Mark Column Exclusions
+## Constraint 3: Audit and Mark Column Exclusions
 
-In constraint 4, we consider the audit and mark columns together. The EA will argue that no ballot is both audited and voted. Given all the constraints c1.1--1.4 and c2.1--c2.4, there is already a lot of structure enforced about the audit and mark columns. It is sufficient to merely argue that any row in the audit column with a 1 must have a 0 in the mark column, and vice versa, any row in the mark column with a 1 must have a 0 in the audit column. Rows may have 0 in both but never a 1 in both. The idea is to multiply the columns which is binary AND and argue the product of the columns only contains the value 0 (and thus is a vanishing polynomial).
+In constraint 3, we consider the audit and mark columns together. The EA will argue that no ballot is both audited and voted. Given all the constraints c1.1--1.4 and c2.1--c2.4, there is already a lot of structure enforced about the audit and mark columns. It is sufficient to merely argue that any row in the audit column with a 1 must have a 0 in the mark column, and vice versa, any row in the mark column with a 1 must have a 0 in the audit column. Rows may have 0 in both but never a 1 in both. The idea is to multiply the columns which is binary AND and argue the product of the columns only contains the value 0 (and thus is a vanishing polynomial).
 
-Proving a polynomial is the product of two polynomials is common in PolyIOP arguments (called $\mathtt{mult1}$ in Plonkbook), where multiplication is the element-wise multiplication (aka Hadamard product) of each element of the columns. The EA will commit to the product polynomial $A(X)\cdot M(X)$ and argue (using the same technique as the other constraints) that the following polynomial is vanishing $\mathsf{Vanish}_\mathsf{c4}(X)=A(X)\cdot M(X)$ if there exists a $Q_\mathsf{c4}(X)$ such that $\mathsf{Zero}(X)=\mathsf{Vanish}_\mathsf{4}(X)-Q_\mathsf{c4}(X)\cdot(X^{n-1}-1)$ is the zero polynomial. 
+Proving a polynomial is the product of two polynomials is common in PolyIOP arguments (called $\mathtt{mult1}$ in Plonkbook), where multiplication is the element-wise multiplication (aka Hadamard product) of each element of the columns. The EA will commit to the product polynomial $A(X)\cdot M(X)$ and argue (using the same technique as the other constraints) that the following polynomial is vanishing $\mathsf{Vanish}_\mathsf{c3}(X)=A(X)\cdot M(X)$ if there exists a $Q_\mathsf{c3}(X)$ such that $\mathsf{Zero}(X)=\mathsf{Vanish}_\mathsf{4}(X)-Q_\mathsf{c3}(X)\cdot(X^{n-1}-1)$ is the zero polynomial. 
+
+## Constraint 4: Tally is Correct
+
+The next constraint is proving the tally---the number of votes received for each candidate---is correct. The tally is fully contained in the Marks column and thus $M(X)$. The Candidates column is a convenience but since it is canonical order, the index of any mark in $M(X)$ implies which candidate was voted for. We remark that if Pret a Voter ballots were used instead, this would not be true. Making Zeeperio work with Pret a Voter requires (at least) a modification to this constraint.
+
+Before detailing the constraints, consider again the data layout of the mark column (and $M(X)$) in order to develop some terminology. The length of the column is $n$ which is parameterized to be a perfect power of 2. The first $\mathcal{C}$ indices belong to the first ballot, the next $\mathcal{C}$ to the next ballot, and so forth. We call these *blocks*. The data portion of the mark column contains $\mathcal{B}$ ballots/blocks. After the data portion ends, the remaining indices are padded with 0's (constraint c2.1). Consider continuing to treat the padding in blocks of $\mathcal{C}$ padding bits. We will call these *padding blocks*. If $n$ is not divisible by $\mathcal{C}$, there will be some number of full padding blocks and then there will be some remaining padding bits at the end of the column that do not form a full block. We call these residual bits the *padding tail*.
+
+The votes for the first candidate will start at index 0 and be located at each $\mathcal{C}$-th position in the mark column until the end of the data portion. We will use the term *stride* for skipping ahead $\mathcal{C}$ indices in the table and *stream* for the sequence of marks in every $\mathcal{C}$-th position. The constraint will be very similar to constraint c2.4 where we will accumulate the sum of all the marks, where the key constraint adding the current index to the previous index's accumulated value. Instead of adding it to the previous index, we add it to the index one stride $\mathcal{C}$. 
+
+In a normal sum: $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega X))\cdot (X-\omega^{n-1})=0$
+
+In a strided sum: $(\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega^\mathcal{C} X))\cdot \mathrm{mask}=0$
+
+The second change is the "mask" value at the end. In a normal sum, the last index is the starting value and thus the constraint does not hold there, so we zero the index out in this constraint and add another constraint to deal with that index specifically. The tally can include the padding bits because the padding value is zero and do not change the tally. 
+
+In a strided sum, we can do the same thing but we need to zero out the last $\mathcal{C}$ indices. This means some streams start from the padding tail and other start from the last padding block, but this does not cause any issues, the former streams will just be longer by one zeroed value.
+
+1.  For $\omega^{n-1-\mathcal{C}}\leq X\leq \omega^{n-1}$: $\mathsf{Acc}_\mathsf{A}(T)-\mathsf{A}(X)=0$
+2. For all $X$ except $\omega^{n-1-\mathcal{C}}\leq X\leq \omega^{n-1}$: $\mathsf{Acc}_\mathsf{A}(X)-\mathsf{A}(X)+\mathsf{Acc}_\mathsf{A}(\omega^\mathcal{C} X)=0$
+3. Tally check
+   1. For $X=\omega^{0}$: $\mathsf{Acc}_\mathsf{Vote}(X)-\mathsf{Tally}_\mathsf{c_0}=0$
+   2. For $X=\omega^{1}$: $\mathsf{Acc}_\mathsf{Vote}(X)-\mathsf{Tally}_\mathsf{c_1}=0$
+   3. $\ldots$
+   4. For $X=\omega^{\mathcal{C}-1}$: $\mathsf{Acc}_\mathsf{Vote}(X)-\mathsf{Tally}_\mathsf{c_{(\mathcal{C}-1)}}=0$ 
+
+The constraints become the following on all values of the domain. 
+
+3. $(\mathsf{Acc}_\mathsf{Vote}(X)-\mathsf{M}(X)) \cdot \prod_{i=0}^{\mathcal{C}-1} (X - \omega^{n-1 - i}) = 0$
+2. $(\mathsf{Acc}_\mathsf{Vote}(X) - \mathsf{M}(X) + \mathsf{Acc}_\mathsf{Vote}(\omega^\mathcal{C} X)) \cdot \left(\prod_{i=0}^{\mathcal{C}-1} \frac{X^n - 1}{X - \omega^{n-1 - i}} \right) = 0$
+
+3. For each $c \in \{0, \ldots, \mathcal{C}-1\}$:
+   $(\mathsf{Acc}_\mathsf{Vote}(X) - \mathsf{Tally}_{c}) \cdot \frac{X^n - 1}{X - \omega^{c}} = 0$
+
+The EA will then argue these three polynomials are vanishing using the same technique from the previous constraints. 
 
 
 
