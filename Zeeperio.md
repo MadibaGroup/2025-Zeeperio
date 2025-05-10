@@ -348,5 +348,24 @@ The constraints become the following on all values of the domain.
 
 The EA will then argue these three polynomials are vanishing using the same technique from the previous constraints. 
 
+## Constraint 5: Voter Checks
 
+We now turn to various checks done by the voter. The two checks are checking a print audit ballot and checking a voted ballot. If the EA returns the wrong confirmation code for a ballot, the voter can challenge the confirmation code by providing another confirmation code. The EA can then prove (if it is true) that the voter's purported confirmation code is not one that was committed to be printed on the ballot. This stops spurious disputes that might try to derail or cast doubt on the tally. Also, as Scantegrity II ballots are employed, if disputes are credible, the ballot can be recovered and audited. All these measures can be augmented with standard risk limit audits of the paper ballots.
 
+#### c5.1 Print Audit
+
+The voter provides a ballot ID. This is mapped to the block of $\mathcal{C}$ indices corresponding to the ballot. The EA opens $A(X)$ and $M(X)$ at the indices (using a KZG batch opening). 
+
+#### c5.2 Receipt Check
+
+The receipt check cannot be accomplished the same way as constraint c5.1. If a voter asks for their confirmation code and the EA reveals it at index $i$, the map between $i$ and which candidate was voted for is known. Such a receipt-free gives the voter proof of how they voted.
+
+Instead the EA needs to show the confirmation code and ballot mark are in one of the indices associated with ballot $j$ but not which index. This is less straight-forward than the other constraints in Zeeperio but it is still accomplishable. In fact, we designed 3 techniques that each accomplish the goal using different gadgets.
+
+1. Shuffles: as in the original Eperio, the EA could create a ballot ID column and commit to it. It can then shuffle the Ballot, Code, and Mark columns with the same permutation and prove they are correct. Then the EA just opens the shuffled columns at the same index where the receipt ends up, showing voter mark for that ballot number has that code. Because of constraint c2.3, it does not have to open the locations of the unmarked positions on the ballot. The ballot ID column and the shuffled columns can be reused for each receipt check, so the marginal prover cost for the EA is three openings per check.
+2. Selector vector: the EA could create a ballot ID column and commit to it. Then it can create a selector vector that is contains all 0 with a single 1 at the location of the voter's mark, commit to it, and prove it is correct (it is binary and sums to 1). It can then multiply the selector with the Ballot, Code, and Mark columns to zero out all other data, and then to hid the index, it can prove the sum of these columns match the ballot id, the code, and the fact that this code was marked.
+3. Lookups: the EA could treat the Ballot, Code, and Mark columns as a lookup table. It could take the values it asserted to the voter {Ballot, Code, 1} and prove this appears in the lookup table.
+
+All three have expensive subprotocols: permutations, interpolation (or constructing via Lagrange bases) for the selection vector, and again permutations for the third (as plookup, a look argument, uses permutations under the hood). The major distinction is that the first requires 1 permutation that can be shared by all voters, while the second requires a selection vector per voter and the third requires a lookup (and thus permutation) per voter. 
+
+#### c5.3 Dispute Resolution 
