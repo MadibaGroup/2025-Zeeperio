@@ -310,7 +310,7 @@ The EA will assert the number of voted ballot in the election as the integer $\m
 
 ## Constraint 3: Audit and Mark Column Exclusions
 
-In constraint 3, we consider the audit and mark columns together. The EA will argue that no ballot is both audited and voted. Given all the constraints c1.1--1.4 and c2.1--c2.4, there is already a lot of structure enforced about the audit and mark columns. It is sufficient to merely argue that any row in the audit column with a 1 must have a 0 in the mark column, and vice versa, any row in the mark column with a 1 must have a 0 in the audit column. Rows may have 0 in both but never a 1 in both. The idea is to multiply the columns which is binary AND and argue the product of the columns only contains the value 0 (and thus is a vanishing polynomial).
+In constraint 3, we consider the relationship between the audit and mark columns. The EA will argue that no ballot is both audited and voted. Given all the constraints c1.1--1.4 and c2.1--c2.4, there is already a lot of structure enforced about the audit and mark columns. It is sufficient to merely argue that any row in the audit column with a 1 must have a 0 in the mark column, and vice versa, any row in the mark column with a 1 must have a 0 in the audit column. Rows may have 0 in both but never a 1 in both. The idea is to multiply the columns which is binary AND and argue the product of the columns only contains the value 0 (and thus is a vanishing polynomial).
 
 Proving a polynomial is the product of two polynomials is common in PolyIOP arguments (called $\mathtt{mult1}$ in Plonkbook), where multiplication is the element-wise multiplication (aka Hadamard product) of each element of the columns. The EA will commit to the product polynomial $A(X)\cdot M(X)$ and argue (using the same technique as the other constraints) that the following polynomial is vanishing $\mathsf{Vanish}_\mathsf{c3}(X)=A(X)\cdot M(X)$ if there exists a $Q_\mathsf{c3}(X)$ such that $\mathsf{Zero}(X)=\mathsf{Vanish}_\mathsf{4}(X)-Q_\mathsf{c3}(X)\cdot(X^{n-1}-1)$ is the zero polynomial. 
 
@@ -350,22 +350,64 @@ The EA will then argue these three polynomials are vanishing using the same tech
 
 ## Constraint 5: Voter Checks
 
-We now turn to various checks done by the voter. The two checks are checking a print audit ballot and checking a voted ballot. If the EA returns the wrong confirmation code for a ballot, the voter can challenge the confirmation code by providing another confirmation code. The EA can then prove (if it is true) that the voter's purported confirmation code is not one that was committed to be printed on the ballot. This stops spurious disputes that might try to derail or cast doubt on the tally. Also, as Scantegrity II ballots are employed, if disputes are credible, the ballot can be recovered and audited. All these measures can be augmented with standard risk limit audits of the paper ballots.
+We now turn to various checks done by the voter. The first two are checking a print audit ballot and checking a voted ballot. The third happens if the EA is alleged to have returned the wrong confirmation code for a ballot. The voter can challenge the confirmation code by providing what they believe is the correct confirmation code. If this is in fact a valid confirmation code on the ballot, it is indicative on an error or attack. If it does not match any code on the ballot, it may be a voter error or a spurious dispute attempting to cast doubt the election outcome. Recall also that Scantegrity II ballots have a human readable paper audit trail so disputes can also be investigated manually. Finally, all these measures should be augmented with standard risk limit audits of the paper ballots.
 
 #### c5.1 Print Audit
 
-The voter provides a ballot ID. This is mapped to the block of $\mathcal{C}$ indices corresponding to the ballot. The EA opens $A(X)$ and $M(X)$ at the indices (using a KZG batch opening). 
+The voter provides a ballot ID. This is mapped to the block of $\mathcal{C}$ indices corresponding to the ballot. The EA opens $A(X)$ and $M(X)$ at each index associated with the ballot ID using a KZG batch opening. 
 
 #### c5.2 Receipt Check
 
-The receipt check cannot be accomplished the same way as constraint c5.1. If a voter asks for their confirmation code and the EA reveals it at index $i$, the map between $i$ and which candidate was voted for is known. Such a receipt-free gives the voter proof of how they voted.
+The receipt check cannot be accomplished the same way as constraint c5.1. If a voter asks for their confirmation code and the EA reveals it at index $i$, the map between $i$ and which candidate they voted for is made public. A naive approach is not receipt-free.
 
-Instead the EA needs to show the confirmation code and ballot mark are in one of the indices associated with ballot $j$ but not which index. This is less straight-forward than the other constraints in Zeeperio but it is still accomplishable. In fact, we designed 3 techniques that each accomplish the goal using different gadgets.
+Instead the EA needs to show the confirmation code and ballot mark are within one of the indices associated with ballot $j$ but not which specific index. This is less straight-forward than the other constraints in Zeeperio but it is still accomplishable. In fact, we developed and compared 3 techniques that each accomplish the goal using different advanced Poly-IOP gadgets.
 
-1. Shuffles: as in the original Eperio, the EA could create a ballot ID column and commit to it. It can then shuffle the Ballot, Code, and Mark columns with the same permutation and prove they are correct. Then the EA just opens the shuffled columns at the same index where the receipt ends up, showing voter mark for that ballot number has that code. Because of constraint c2.3, it does not have to open the locations of the unmarked positions on the ballot. The ballot ID column and the shuffled columns can be reused for each receipt check, so the marginal prover cost for the EA is three openings per check.
-2. Selector vector: the EA could create a ballot ID column and commit to it. Then it can create a selector vector that is contains all 0 with a single 1 at the location of the voter's mark, commit to it, and prove it is correct (it is binary and sums to 1). It can then multiply the selector with the Ballot, Code, and Mark columns to zero out all other data, and then to hid the index, it can prove the sum of these columns match the ballot id, the code, and the fact that this code was marked.
+1. Shuffles: as in the original Eperio, the EA could create a ballot ID column and commit to it. It can then shuffle the Ballot, Code, and Mark columns with the same permutation and prove they are correct. Then the EA opens the shuffled columns at the same index where the receipt ends up, showing voter mark for that ballot number has that code. Because of constraint c2.3, it does not have to open the locations of the unmarked positions on the ballot. The ballot ID column and the shuffled columns can be reused for each receipt check, so the marginal prover cost for the EA is three openings per check.
+2. Selector vector: the EA could create a ballot ID column and commit to it. Then it can create a selector vector that is contains all 0 with a single 1 at the location of the voter's mark, commit to it, and prove it is correct (it is binary and sums to 1). It can then multiply the selector with the Ballot, Code, and Mark columns to zero out all other data. Finally to hid the index, it can prove the sum of these columns are, respectively, the ballot id, the code, and 1 (the fact that this code was marked).
 3. Lookups: the EA could treat the Ballot, Code, and Mark columns as a lookup table. It could take the values it asserted to the voter {Ballot, Code, 1} and prove this appears in the lookup table.
 
-All three have expensive subprotocols: permutations, interpolation (or constructing via Lagrange bases) for the selection vector, and again permutations for the third (as plookup, a look argument, uses permutations under the hood). The major distinction is that the first requires 1 permutation that can be shared by all voters, while the second requires a selection vector per voter and the third requires a lookup (and thus permutation) per voter. 
+All three have expensive subprotocols: (1) a permutations argument, (2) creating a custom selector vector for each checking voter via interpolation or multiplying Lagrange bases, and (3) again a permutation argument as look argument (e.g., plookup) use permutations under the hood. The major distinction is that (1) requires only a single permutation that can be reused for each voter check, while (2) requires a custom selection vector per voter and (3) requires a custom lookup (and thus custom permutation) per voter. For these reasons, we settle on (1) as the ideal protocol. 
 
-#### c5.3 Dispute Resolution 
+The shuffle argument is adapted from the permutation argument in Plonk. There, a single vector is proven to be a permutation of another by comparing products over $(r - v_i)$ terms for a random challenge $r$. In Zeeperio, we extend this to a joint shuffle of multiple columns. We first reduce each row $(b_i, c_i, m_i)$ to a single field element using a random linear combination:
+
+$$
+v_i = b_i + \alpha \cdot c_i + \alpha^2 \cdot m_i
+$$
+
+and likewise for the shuffled version $v'_i$. We then prove that the multisets $\{v_i\}$ and $\{v'_i\}$ are equal by showing that the product over $(r - v_i)$ matches that of $(r - v'_i)$. The commitments to the original and permuted columns are hiding, and the challenge values $\alpha$ and $r$ are drawn after the commitments are published, ensuring soundness and zero-knowledge. The EA proves the product argument using a grand product polynomial with suitable boundary and transition constraints. Since this argument reveals nothing about the permutation $\pi$, it preserves voter privacy and receipt-freeness.
+
+#### c5.3 Dispute Resolution
+
+If a voter believes their confirmation code is incorrect—for example, the code printed on their paper ballot does not match what was returned online—they may raise a dispute. The EA must then prove that the disputed code does not appear on the ballot associated with the voter's serial number.
+
+In Zeeperio, this is accomplished without revealing any of the codes on the ballot. The voter provides:
+
+- Their ballot ID $b$
+- The disputed confirmation code $c$
+- A selector vector $S(X)$ indicating the $\mathcal{C}$ indices corresponding to their ballot
+
+Since ballots are laid out in canonical order, the EA verifies that $S(X)$ is a binary vector with 1’s exactly at indices $b \cdot \mathcal{C},\ b \cdot \mathcal{C} + 1,\ \dots,\ b \cdot \mathcal{C} + (\mathcal{C} - 1)$ and 0’s elsewhere. This check is public and does not require a proof—the selector vector is simply validated against the ballot ID.
+
+The EA then constructs a new helper vector $D(X)$ of size $n$, which flags whether each committed code $C_i$ matches the disputed code $c$. For each $i \in \{0, \dots, n-1\}$, the EA sets:
+$$
+D_i = 1 - (C_i - c)^{q - 1}
+$$
+
+This equality test is done entirely within the prover's workspace. It relies on Fermat’s little theorem: if $C_i = c$, then $(C_i - c) = 0$ and the expression becomes $1$; otherwise, $(C_i - c)^{q - 1} = 1$ and the expression becomes $0$. This operation does not reveal any of the $C_i$ values and can be computed without committing to $D(X)$.
+
+To ensure that $D(X)$ is computed correctly from the committed code column $C(X)$ and the disputed code $c$, the EA commits to $D(X)$ and proves that each $D_i$ satisfies the pointwise relation:
+$$
+D_i = 1 - (C_i - c)^{q - 1}
+$$
+This is done via a standard polynomial identity check. After committing to $D(X)$, the EA receives a random challenge point $\zeta$ generated using the Fiat-Shamir heuristic. The EA then opens both $C(\zeta)$ and $D(\zeta)$, and the verifier checks:
+$$
+D(\zeta) \stackrel{?}{=} 1 - (C(\zeta) - c)^{q - 1}
+$$
+If the identity holds at $\zeta$, then by the Schwartz-Zippel lemma, the relation holds across the entire domain with high probability. This ensures the correctness of $D(X)$ without leaking which entries equal the disputed code or how many matches occurred.
+
+To prove the disputed code does not appear on the ballot, the EA computes the scalar inner product:
+$$
+z = \sum_{i = 0}^{n - 1} S_i \cdot D_i
+$$
+
+This dot product isolates any equality matches between $c$ and the ballot codes. The EA commits to $z$ and proves that $z = 0$ using a simple opening. This confirms that $c$ does not appear in the selected indices without revealing which codes were on the ballot.
