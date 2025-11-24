@@ -1,0 +1,355 @@
+\documentclass{llncs}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usepackage{algorithm}
+
+\begin{document}
+\title{Zeeperio: Verifying Elections using Poly-IOP Gadgets and On-Chain Verification}
+\titlerunning{Zeeperio}
+
+
+
+\keywords{verifiable voting, zero-knowledge proofs, SNARKs, polynomial interactive oracle proofs, KZG commitments, blockchain}
+
+\begin{abstract}
+\end{abstract}
+
+
+\section{Introduction}
+
+The legitimacy of any democratic election relies on its governing structure to provide trust, which is done by observing the counting process. 
+As noted by \_\_, the transparency of the counting process is not just a preference, rather a requirement: \emph{"The counting of ballots
+and determination of the results of voting must be a transparent process that is open to observation"}. Without independent scrutiny, the voters cannnot maintain confidence in the security of their ballots, or the accuracy of the tallies.
+
+Despite these clear requirements, modern election administrations have moved away from observability. 
+In jurisdictions such as Canada, municipal and provincial elections increasingly rely on \emph{optical scanners} for paper ballots and \emph{remote online voting systems}. 
+
+In both scenarios, the counting process is performed by proprietary software running on closed hardware. 
+A voter casting a ballot online, or a voter feeding a paper ballot into a tabulator both face the same problem: 
+They must blindly trust the vendor's software is free of any bugs, has not been tempered with, and the counting process is done accurately.
+This \emph{black box} nature means individual voters have little to no ability to independently verify their own ballot was recorded and tallied correctly.
+
+
+\section{Background and Related Work}
+
+\subsection{E2E verifiable voting}
+
+End-to-end verifiable (E2E) voting protcols were developed to address this gap by providing the following properties.
+\begin{description}
+  \item \textbf{Cast-as-intended:} The voter can verify their vote was correctly captured by the system.
+  \item \textbf{Recorded-as-cast:} The voter can verify their vote was included in the final tally.
+  \item \textbf{Tallied-as-recorded:} Any observer can verify the announced outcome is consistent w.r.t. the ballots.
+\end{description}
+
+These voting systems typically offer a public \emph{bulletin board} where all the cryptographic artifacts from the election are posted.
+Voters then obtain some form of \emph{receipt} that allows them to locate their ballot data on the board and check that it has not been altered.
+Finally, observers can use proofs or audits to check that the final tally is consistent with the posted artifacts.
+
+Paper-based systems such as Pr{\^e}t-\`a-Voter and Scantegrity add additional constraints to the paper ballot by adding random candidate permutations and confirmation codes.
+These schemes rely on mix-nets, homomorphic tallying and zero-knowledge proofs to show the final tally corresponds to the posted data, without revealing how any individual voted.
+
+Online systems such as Helios encrypt each ballot under a public key and use homomorphic encryption for tallying.
+Voters receive a hash for their encrypted ballot, which they can later check on the bulletin board.
+Helios also uses mix-nets and decryption proofs to ensure the outcome matches the encrypted ballots.
+
+Civitas and other coercion-resistant systems add further layers of cryptographic security to allow voters to deny coercion. These schemes provide strong guarantees but are complex to implement and verify in practice.
+
+\subsection{Eperio}
+
+Eperio is an audit-focused protocol that aims to minimize the cryptographic verification on auditors.
+Instead of heavy zero-knowledge proofs, it organizes election data into collections of files that can be checked with simple cryptography and spreadsheets.
+Zeeperio follows Eperio's philosophy of keeping verification simple for the verifier, but uses succinct proofs instead of spreadsheets.
+
+\subsection{Succinct proofs and Poly-IOPs}
+
+Modern SNARK systems such as PLONK, Groth16, and Marlin are all based on the Polynomial Interactive Oracle Proof (Poly-IOP) model.
+In a Poly-IOP, the prover commits to low-degree polynomials representing the witness. Then, the verifier issues queries to check the resulting evaluations satisfy a system of polynomial identities.
+Polynomial commitment schemes allow these evaluations to be proven succinctly.
+
+\subsection{Zeeperio: A succinct, On-Chain Approach}
+Zeeperio shifts from statistical audits to cryptographic arguments of knowledge. 
+At a high level, Zeeperio uses the Poly-IOP model to encodes the entire state of an election as a small set of polynomials. 
+Instead of writing a generic arithmetic circuit, Zeeperio works directly at the polynomial level to design custom constraints for ballot structure, sums over ballots, and tallies.
+Then, using the KZG commitment scheme, Zeeperio allows the Election Authority (EA) to generate a single, succinct proof that the election outcome is correct.
+This proof is constant in size and verification time, regardless of how many voters cast their ballots.
+
+This efficiency allows for the verification logic to be encoded into an
+Ethereum smart contract. Instead of requiring observers to download data and
+run software, the \emph{public audit} becomes a transaction on a the blockchain. 
+If the smart contract accepts the proof, the election tally is mathematically guaranteed to be consistent with the committed ballots. 
+This lowers the barrier to verification from running complex cryptographic software to checking a simple status flag on the Ethereum block explorer.
+
+\section{Threat Model and Contributions}
+
+Before detailing the protocol mechanics, we formalize the operational environment and the specific contributions of this work relative to the state of the art.
+
+\subsection{The RealCryptik Threat Model}
+Zeeprio adopts the \textit{RealCryptik} threat model. 
+Traditional E2E literature often models the EA as a powerful adversary that must be prevented from learning individual votes at all costs. 
+However, this model often ignores the reality of elections. In many scenarios, the EA has the full capability to deanonymize votes.
+
+The RealCryptik model explicitly assumes that the EA \textbf{has access to who voted for whom}. Under this assumption, the primary security goal shifts from absolute privacy to absolute \textbf{integrity}. 
+The system must guarantee that even an EA with full view of voter choices cannot manipulate an election without detection. This model reflects the reality of \emph{black box} vendors while enforcing the verification constraints necessary for public trust. 
+While public privacy is maintained through zero-knowledge proofs, the protocol also prevents the EA from manipulating the outcome based on their knowledge.
+
+\subsection{Contributions}
+This work presents the following contributions.
+
+\begin{description} 
+\item \textbf{Succinct universal verification:} All election constraints are encoded as a single Poly-IOP relation and proven via a zkSNARK proof, independent of the number of voters.
+\item \textbf{Enhanced privacy and dispute resolution:}
+  Confirmation codes are committed to a single polynomial and are only selectively opened when needed.
+  After a voter has cast their ballot, they receives a receipt containing a confirmation code to which they can check it appears in the public bulletin board. 
+ This is done in a way that prevents the receipt from being used as a proof of how the voter voted.
+  \item \textbf{On-chain verification:}
+  The final proof is verified by an Ethereum smart contract. This removes the need for a proprietary verifier software and anchors the election result in a public, tamper-evident ledger.
+\end{description}
+
+
+\section{Preliminaries}
+
+We now introduce the cryptographic tools used in Zeeperio.
+
+\subsection{Polynomial interactive oracle proofs}
+
+A polynomial interactive oracle proof (Poly-IOP) is an interactive proof where the prover sends commitments to polynomials and the verifier has oracle access to these polynomials through evaluation queries.
+Formally, a Poly-IOP protocol for a relation $\mathcal{R}$ between public input $x$ and witness $w$ follows:
+\begin{enumerate}[label=(\roman*)]
+  \item The prover, given $x$ and $w$, computes polynomials $f_1,\dots,f_m$ and sends commitments to them.
+  \item The verifier sends random challenges $r_1,\dots,r_\ell$.
+  \item The prover answers with evaluations $f(r_\ell)$ and proofs of correct evaluation.
+  \item The verifier checks the evaluations satisfy a system of polynomial identities and the evaluation proofs are valid.
+\end{enumerate}
+If all checks pass, the verifier accepts the statement \emph{there exists $w$ such that $(x,w) \in \mathcal{R}$}.
+
+\subsection{KZG polynomial commitments}
+
+Zeeperio uses the KZG (Kate-Zaverucha-Goldberg) polynomial commitment scheme.
+We recall its interface at a high level.
+A trusted setup is used to produces a structured reference string (SRS) consisting of group elements
+\[
+  \{g, g^\tau, g^{\tau^2}, g^{\tau^d}\} \in G_1, \qquad \{h, h^\tau\} \in G_2,
+\]
+for a secret $\tau$.
+
+Given a polynomial $f(X) = \sum_{i=0}^d f_i X^i$, the commitment is
+\[
+  \mathsf{Com}(f) = \sum_{i=0}^d f_i [\tau^i] \in G_1.
+\]
+To open $\mathsf{Com}(f)$ at a point $z \in \mathbb{F}$, the prover computes $y = f(z)$ and the quotient
+\[
+  q(X) = \frac{f(X) - y}{X - z}
+\]
+and returns an opening proof $\pi = \mathsf{Com}(q)$.
+The verifier checks that
+\[
+  e(\mathsf{Com}(f) - y, h) = e(\pi, [h^\tau - z]),
+\]
+where $e : G_1 \times G_2 \to G_T$ is a bilinear pairing.
+
+In Zeeperio we use KZG both to commit to the election polynomials.
+We combine multiple constraints into a single quotient polynomial using random coefficients and prove that it vanishes on $\Omega$ by checking a single evaluation.
+
+\subsection{Zero-knowledge and Fiat--Shamir}
+
+We can apply the Fiat-Shamir heuristic to the Poly-IOP to make the protcol non-interactive.
+This can be done by replacing the verifier's random challenges by outputs of a hash function on the transcript.
+To achieve zero-knowledge, we add random blinding polynomials to all witness polynomials before committing, and we ensure that any information opened to the verifier is public.
+Therefore, the only meaningful information revealed by the proof is that the constraints are satisfied, while keeping the underlying ballot structure and confirmation codes hidden.
+
+\subsection{Ethereum verification model}
+
+Finally, we briefly outline the on-chain verification model.
+Ethereum provides precompiled contracts for the BN254 pairing and scalar multiplication.
+The verification contract uses the SRS and the structure of the combined pairing equation corresponding to the KZG openings.
+Given the public input and the proof, the contract performs a simple pairing check.
+If the check passes, the election result has been cryptographically verified.
+
+\section{The Zeeperio Protocol}
+
+We now describe the Zeeperio protocol in detail, focusing on the data representation and the polynomial gadgets used to enforce election integrity.
+
+\subsection{Election Data Representation}
+We consider an election with $\mathcal{B}$ ballots and $\mathcal{C}$ candidates. There are $\mathsf{P} = \mathcal{B} \cdot \mathcal{C}$ unique ballot-candidate positions listed in canonical order. Let $j \in \{0, \dots, \mathcal{B}-1\}$ denote the ballot index and $k \in \{0, \dots, \mathcal{C}-1\}$ the candidate index within a ballot. Then $i = j \cdot \mathcal{C} + k$ iterates over each ballot-candidate position $P_i$.
+
+Each position is associated with four data columns:
+\begin{enumerate}
+    \item \textbf{Ballot Column ($\mathsf{B}_\text{ID}$):} Identifies the unique ballot $\mathcal{B}_j$.
+    \item \textbf{Confirmation Code Column ($\mathsf{C}_\text{confirm}$):} A unique confirmation code issued to each position. The voter receives the code corresponding to their selection.
+    \item \textbf{Mark Column ($\mathsf{M}$):} Indicates if the position was selected as the cast vote.
+    \item \textbf{Audit Column ($\mathsf{A}$):} Indicates if the ballot $\mathcal{B}_j$ was selected for audit.
+\end{enumerate}
+
+For efficient Fast Fourier Transform (FFT) operations, we require an evaluation domain size $n$ that is a power of two. 
+We set $n = 2^t$ where $t = \lceil \log_2 \mathsf{P} \rceil$. 
+We pad the columns with zeros for indices $i$ where $\mathsf{P} \le i < n$. 
+The columns are interpolated into polynomials $\mathsf{B}_\text{ID}(X), \mathsf{C}_\text{confirm}(X), \mathsf{M}(X), \mathsf{A}(X)$ over the domain $\Omega = \{1, \omega, \dots, \omega^{n-1}\}$ where $\omega$ is a primitive $n$th root of unity in $\mathbb{F}_q$.
+
+\subsection{Setup}
+
+\begin{definition}[q-strong Diffie--Hellman (q-sDH)]
+Given a tuple 
+\(
+(g, g^x, g^{x^2}, \ldots, g^{x^q}) \in \mathbb{G}^{q+1}
+\),
+where \(x \gets_{\$} \mathbb{Z}_q\), q-sDH expects a pair
+\(
+(g^{\frac{1}{x+c}}, c) \in \mathbb{G} \times \mathbb{Z}_q
+\).
+q-sDH is believed to be intractable, that is, for any PPT adversary
+\(\mathcal{A}\), it is hard to find such a \(c\). Formally,
+\begin{equation}
+  \Pr\bigl[
+    O = g^{\frac{1}{x+c}}
+    \,\bigm|\,
+    (O,c) \gets \mathcal{A}(g, g^x, g^{x^2}, \ldots, g^{x^q})
+  \bigr]
+  \leq \mathsf{negl}(\lambda).
+  \label{eq:q-sdh}
+\end{equation}
+\end{definition}
+
+In the setup phase, the election authority (EA) performs the following steps.
+\begin{enumerate}[label=(S\arabic*)]
+  \item Obtains KZG SRS from publicly run Ethereum Powers-of-Tau ceremony.
+  \item Fixes the finite field $\mathbb{F}_q$, root-of-unity domain $\Omega$ of size $n$, and encoding of election data into polynomials as in Section~3.
+  \item Generates a set of unique confirmation codes and assigns each $\mathsf{C}_confirm$ code to each position on the ballot.
+  \item Deploys an Ethereum smart contract that uses the SRS and the verification logic for the Zeeperio proof.
+\end{enumerate}
+
+\subsection{Voting phase}
+
+In the voting phase, voters receive a paper ballot $B_j$ with a unique serial number.  Voters mark the position corresponding to their chosen candidate and cast their ballots. They receive the confirmation code associated with the candidate they chose.
+At the end of the voting phase, the EA holds the full table of positions with their ballot IDs, audit flags, mark bits, and confirmation codes.
+
+
+\subsection{Post-election}
+
+After the polls close, the EA constructs the polynomials $\mathsf{A}(X)$, $\mathsf{M}(X)$, $\mathsf{B}_\mathsf{ID}(X)$, $\mathsf{C}_{\mathsf{confirm}}(X)$ and produces a succinct proof that satisfies the election constraints.
+
+\subsection{Constraint Enforcement with Vanishing Polynomials}
+We enforce constraints over the domain $\Omega$ using a vanishing polynomial $Z_\Omega(X) = X^n - 1$. 
+A constraint $C(X) = 0$ holdsover $\Omega$ iff $C(X)$ is divisible by $Z_\Omega(X)$. 
+In the Poly-IOP model, the prover computes the quotient polynomial $Q(X) = C(X) / Z_\Omega(X)$, commits to it, and the verifier checks the identity at a random point.
+For constraints that apply only to specific subsets of the domain, we use specialized vanishing polynomials. 
+
+\subsection{Audit Column Constraints}
+The Audit Column $\mathsf{A}$ must satisfy the following properties to ensure the integrity of the audit process.
+
+\subsubsection{Padding Consistency}
+We must ensure that the padded values in the Audit Column are zero. We define a constraint specific vanishing polynomial $Z(X)$ with roots at the valid indices $\{\omega^0, \dots, \omega^{\mathsf{P}-1}\}$:
+\begin{equation}
+    Z(X) = \prod_{i=0}^{\mathsf{P}-1} (X - \omega^i)
+\end{equation}
+The constraint requires $\mathsf{A}(X)$ is zero wherever $Z(X)$ is non-zero. This is enforced via the domain vanishing polynomial:
+\begin{equation}
+    \mathsf{P}_\text{vanish1}(X) = \mathsf{A}(X) \cdot Z(X) = 0 \quad \forall X \in \Omega
+\end{equation}
+
+\subsubsection{Binary Values}
+Every entry in $\mathsf{A}$ must be binary (0 or 1). This is enforced via the domain vanishing polynomial:
+\begin{equation}
+    \mathsf{P}_\text{vanish2}(X) = \mathsf{A}(X) \cdot (\mathsf{A}(X) - 1) \quad \forall X \in \Omega
+\end{equation}
+\subsection{Mark Column Constraints}
+
+
+\section{Security Analysis}
+
+\subsection{Completeness}
+
+\begin{theorem}[Completeness]
+    If an honest Prover $\mathcal{P}$ computes the accumulators $Acc_{T_1}(X)$ and $Acc_{T_2}(X)$ according to the backward accumulation rule defined in the protocol, then the Verifier $\mathcal{V}$ accepts with probability 1.
+\end{theorem}
+
+\begin{proof}
+    The honest prover constructs the backward accumulator such that $Acc_{T_1}(\omega^i) = \prod_{j=i}^{n-1} T_1(\omega^j)$. The protocol enforces constraints via a batched vanishing polynomial $P_{vanish}(X)$.
+    \begin{enumerate}
+        \item \textbf{Boundary Consistency:} At the last element $X = \omega^{n-1}$, the accumulator is defined as $Acc_{T_1}(\omega^{n-1}) = T_1(\omega^{n-1})$. Consequently, the term $(Acc_{T_1}(X) - T_1(X))$ is zero at this point, satisfying the boundary constraint $P_{vanish1}$.
+        \item \textbf{Recursive Consistency:} For all $X \in \Omega$ except $X=\omega^{n-1}$, the recursive definition holds: $Acc_{T_1}(\omega^i) = T_1(\omega^i) \cdot Acc_{T_1}(\omega^{i+1})$. This ensures the constraint $P_{vanish3}$ evaluates to zero on the relevant domain.
+        \item \textbf{Product Equality:} Since the tuples are permutations, the total products over $\Omega$ are equal. Thus, $Acc_{T_1}(1) = \prod_{x \in \Omega} T_1(x) = \prod_{x \in \Omega} T_2(x) = Acc_{T_2}(1)$, satisfying the equality constraint $P_{vanish5}$.
+    \end{enumerate}
+    Since all individual constraint polynomials vanish on $\Omega$, $P_{vanish}(X)$ is divisible by the vanishing polynomial $Z_H(X) = X^n - 1$. Therefore, the quotient check $P_{vanish}(\zeta) - Q(\zeta)Z_H(\zeta) \stackrel{?}{=} 0$ holds for any $\zeta \in \mathbb{F}_q$.
+    \qed
+\end{proof}
+
+\subsection{Knowledge Soundness}
+
+\begin{theorem}[Knowledge Soundness]
+    The protocol satisfies knowledge soundness in the Algebraic Group Model. If a malicious prover ${\mathcal{P}}$ convinces $\mathcal{V}$ with non-negligible probability $\epsilon$, there exists an efficient Extractor $\mathcal{E}$ that outputs polynomials $T(X)$ and $T'(X)$ such that the set of their evaluations on $\Omega$ are permutations of each other.
+\end{theorem}
+
+\begin{proof}
+    In the AGM, the Extractor $\mathcal{E}$ observes the commitments sent by ${\mathcal{P}}$. Since ${\mathcal{P}}$ outputs valid commitments $[Acc_{T_1}], [Acc_{T_2}]$, it must know the underlying polynomials.
+    
+    If $\mathcal{V}$ accepts, the equation $P_{vanish}(\zeta) = 0$ holds at a random challenge $\zeta \leftarrow \mathbb{F}_q$. By the Schwartz-Zippel Lemma, this implies that $P_{vanish}(X)$ is divisible by $Z_H(X)$ with overwhelming probability. 
+    We unroll these constraints to prove the validity of the statement:
+
+    \begin{enumerate}
+        \item \textbf{Unrolling the Accumulator:}
+        From the boundary constraint ($P_{vanish1} \equiv 0$), we have $Acc_{T_1}(\omega^{n-1}) = T_1(\omega^{n-1})$.
+        From the constraint ($P_{vanish3} \equiv 0$), for any $x \in \Omega$ except $X= \omega^{n-1}$, $Acc_{T_1}(x) = T_1(x) \cdot Acc_{T_1}(\omega x)$.
+        With this backwards accumulation, we determine that $Acc_{T_1}(1)$ stores the complete product:
+        \begin{equation}
+            Acc_{T_1}(1) = \prod_{i=0}^{n-1} T_1(\omega^i)
+        \end{equation}
+        Similarly, we derive $Acc_{T_2}(1) = \prod_{i=0}^{n-1} T_2(\omega^i)$.
+
+        \item \textbf{Equality of Multisets:}
+        The final constraint ($P_{vanish5} \equiv 0$) ensures $Acc_{T_1}(1) = Acc_{T_2}(1)$. Substituting the definitions of $T_1$ and $T_2$:
+        \begin{equation}
+            \prod_{x \in \Omega} (r - T(x)) = \prod_{x \in \Omega} (r - T'(x))
+        \end{equation}
+        This equation implies equality between two polynomials in the variable $r$. Since $r$ is chosen uniformly at random by the verifier \emph{after} the commitments to $T(X)$ and $T'(X)$, the equality holds identically with overwhelming probability. 
+        Therefore, these polynomials are considered to be \emph{set equal}. Thus, $T'$ is a valid permutation of $T$.
+    \end{enumerate}
+    \qed
+\end{proof}
+
+\subsection{Honest-Verifier Zero-Knowledge}
+
+\begin{theorem}[HVZK]
+    The protocol is Honest-Verifier Zero-Knowledge. There exists a Simulator $\mathcal{S}$ that outputs a transcript indistinguishable from a real prover's trace.
+\end{theorem}
+
+\begin{proof}
+   The Simulator $\mathcal{S}$ operates as follows:
+
+\begin{enumerate}
+    \item \textbf{Challenge Sampling:} $\mathcal{S}$ samples random challenges $r, \beta, \zeta \leftarrow \mathbb{F}_q$ exactly as the honest verifier would.
+    
+    \item \textbf{Simulate Commitments:} $\mathcal{S}$ outputs random group elements for $[Acc_{T_1}], [Acc_{T_2}], [T_1], [T_2]$. Due to the hiding property of KZG (with blinding), these are indistinguishable from real commitments.
+    
+    \item \textbf{Simulate Evaluations:}
+    \begin{itemize}
+        \item $\mathcal{S}$ chooses random values for evaluations $\bar{T}_1, \bar{T}_2, \overline{Acc}_{T_1}, \overline{Acc}_{T_2}$ at $\zeta$ and required shifted points (e.g., $\omega\zeta$). This is valid because the blinded polynomials act as One-Time Pads at any point $\zeta \notin \Omega$.
+        
+        \item $\mathcal{S}$ must ensure the verification equation holds: $P_{vanish}(\zeta) - Q(\zeta)Z_H(\zeta) = 0$.
+        
+        \item $\mathcal{S}$ computes the value of $P_{vanish}(\zeta)$ using the randomly sampled evaluations and the formulas for $Z_1, Z_2, Z_3$ evaluated at $\zeta$.
+        
+        \item $\mathcal{S}$ then \textit{sets} the evaluation of the quotient polynomial $\bar{Q} = Q(\zeta)$ specifically to satisfy the equation:
+        \[
+        \bar{Q} = \frac{P_{vanish}(\zeta)}{Z_H(\zeta)}
+        \]
+        Since $\zeta$ is random, $Z_H(\zeta) \neq 0$, making this division valid.
+    \end{itemize}
+    
+    \item \textbf{Transcript Consistency:} The tuple of commitments, challenges, and evaluations $(\dots, \bar{Q})$ satisfies the algebraic verification check by construction. Because the evaluations of blinded polynomials are uniformly distributed, the simulated transcript is statistically indistinguishable from a real transcript. 
+\end{enumerate}
+\end{proof}
+
+\section{Implementation}
+
+\section{Future Work}
+
+We conclude with several directions for extending and deploying Zeeperio.
+
+\paragraph{Integration with optical scanners}
+
+\paragraph{Online voting}
+
+\end{document}
