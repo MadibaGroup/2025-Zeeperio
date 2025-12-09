@@ -1,21 +1,4 @@
-\documentclass{llncs}
-
-\usepackage{amsmath,amssymb,amsfonts}
-\usepackage{mathtools}
-\usepackage{tikz}
-\usepackage{enumitem}
-\usepackage{algorithm}
-
-\begin{document}
-\title{Zeeperio: Verifying Elections using Poly-IOP Gadgets and On-Chain Verification}
-\titlerunning{Zeeperio}
-
-
-
-\keywords{verifiable voting, zero-knowledge proofs, SNARKs, polynomial interactive oracle proofs, KZG commitments, blockchain}
-
-\begin{abstract}
-\end{abstract}
+% !TEX root = ../main.tex
 
 
 \section{Introduction}
@@ -48,7 +31,7 @@ These voting systems typically offer a public \emph{bulletin board} where all th
 Voters then obtain some form of \emph{receipt} that allows them to locate their ballot data on the board and check that it has not been altered.
 Finally, observers can use proofs or audits to check that the final tally is consistent with the posted artifacts.
 
-Paper-based systems such as Pr{\^e}t-\`a-Voter and Scantegrity add additional constraints to the paper ballot by adding random candidate permutations and confirmation codes.
+Paper-based systems such as Pr{\^e}t-\`a-Voter and Scantegrity~\cite{CCC+08} add additional constraints to the paper ballot by adding random candidate permutations and confirmation codes.
 These schemes rely on mix-nets, homomorphic tallying and zero-knowledge proofs to show the final tally corresponds to the posted data, without revealing how any individual voted.
 
 Online systems such as Helios encrypt each ballot under a public key and use homomorphic encryption for tallying.
@@ -403,4 +386,4 @@ We conclude with several directions for extending and deploying Zeeperio.
 
 \paragraph{Online voting}
 
-\end{document}
+
