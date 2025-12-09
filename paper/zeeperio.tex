@@ -170,92 +170,143 @@ If the check passes, the election result has been cryptographically verified.
 
 \section{The Zeeperio Protocol}
 
-We now describe the Zeeperio protocol in detail, focusing on the data representation and the polynomial gadgets used to enforce election integrity.
-
-\subsection{Election Data Representation}
-We consider an election with $\mathcal{B}$ ballots and $\mathcal{C}$ candidates. There are $\mathsf{P} = \mathcal{B} \cdot \mathcal{C}$ unique ballot-candidate positions listed in canonical order. Let $j \in \{0, \dots, \mathcal{B}-1\}$ denote the ballot index and $k \in \{0, \dots, \mathcal{C}-1\}$ the candidate index within a ballot. Then $i = j \cdot \mathcal{C} + k$ iterates over each ballot-candidate position $P_i$.
-
-Each position is associated with four data columns:
+\paragraph{Election data and domain.}
+We consider an election with $\mathcal{B}$ ballots and $\mathcal{C}$ candidates, with $\mathcal{P}=\mathcal{B}\cdot \mathcal{C}$ ballot-candidate positions listed in canonical order. 
+Let $i=j\cdot \mathcal{C}+k$ for ballot index $j\in\{0,\dots,\mathcal{B}-1\}$ and candidate index $k\in\{0,\dots,\mathcal{C}-1\}$. 
+The EA forms the following columns, each of length $\mathcal{P}$.
 \begin{enumerate}
-    \item \textbf{Ballot Column ($\mathsf{B}_\text{ID}$):} Identifies the unique ballot $\mathcal{B}_j$.
+    \item \textbf{Ballot Column ($\mathsf{B_{ID}}$):} Identifies the unique ballot $\mathcal{B}_j$.
     \item \textbf{Confirmation Code Column ($\mathsf{C}_\text{confirm}$):} A unique confirmation code issued to each position. The voter receives the code corresponding to their selection.
-    \item \textbf{Mark Column ($\mathsf{M}$):} Indicates if the position was selected as the cast vote.
-    \item \textbf{Audit Column ($\mathsf{A}$):} Indicates if the ballot $\mathcal{B}_j$ was selected for audit.
+    \item \textbf{Mark Column ($\mathsf{M_{ark}}$):} Indicates if the position was selected for vote.
+    \item \textbf{Audit Column ($\mathsf{A_{udit}}$):} Indicates if the ballot $\mathcal{B}_j$ was selected for audit.
 \end{enumerate}
 
-For efficient Fast Fourier Transform (FFT) operations, we require an evaluation domain size $n$ that is a power of two. 
-We set $n = 2^t$ where $t = \lceil \log_2 \mathsf{P} \rceil$. 
-We pad the columns with zeros for indices $i$ where $\mathsf{P} \le i < n$. 
-The columns are interpolated into polynomials $\mathsf{B}_\text{ID}(X), \mathsf{C}_\text{confirm}(X), \mathsf{M}(X), \mathsf{A}(X)$ over the domain $\Omega = \{1, \omega, \dots, \omega^{n-1}\}$ where $\omega$ is a primitive $n$th root of unity in $\mathbb{F}_q$.
+For efficient FFT operations, we require an evaluation domain size $n$ that is a power of two. 
+We set $n = 2^t$ where $t = \lceil \log_2 \mathcal{P} \rceil$. 
+The EA pads the columns with zeros for indices $i$ where $\mathcal{P} \le i < n$. 
+The columns $\mathsf{M_{ark}}$ and $\mathsf{C}_{\mathsf{confirm}}$ are witness data and are not published. 
+
+Let $\mathbb{F}$ be the prime field used by the commitment scheme and let $\Omega=\{\omega^0,\dots,\omega^{n-1}\}$
+be an evaluation domain with primitive $n$th root $\omega$. Each column is interpolated into a polynomial
+$F(X)\in \mathbb{F}[X]_{<n}$ satisfying $F(\omega^i)=F[i]$ on $\Omega$.
+
+\paragraph{Commitments and Fiat-Shamir.}
+Zeeperio bases itself as a Poly-IOP using the KZG polynomial commitments with
+$\mathsf{KZG.Commit}(F)$, $\mathsf{KZG.Open}(F,z)$, and $\mathsf{KZG.Verify}(C,z,y,\pi)$, and derives all verifier challenges via Fiat-Shamir.  
+
+\paragraph{Zero-knowledge.}
+We use the hiding variant of KZG commitments (commit as $g^{F(\tau)}h^r$), and
+off-domain masking (randomize $F'(X)=F(X)+\rho\cdot Z_H(X)$ where $Z_H(X)=X^n-1$ vanishes on $\Omega$),
+so commitments and openings do not leak vote or receipt information.  
 
 \subsection{Setup}
-
-\begin{definition}[q-strong Diffie--Hellman (q-sDH)]
-Given a tuple 
-\(
-(g, g^x, g^{x^2}, \ldots, g^{x^q}) \in \mathbb{G}^{q+1}
-\),
-where \(x \gets_{\$} \mathbb{Z}_q\), q-sDH expects a pair
-\(
-(g^{\frac{1}{x+c}}, c) \in \mathbb{G} \times \mathbb{Z}_q
-\).
-q-sDH is believed to be intractable, that is, for any PPT adversary
-\(\mathcal{A}\), it is hard to find such a \(c\). Formally,
-\begin{equation}
-  \Pr\bigl[
-    O = g^{\frac{1}{x+c}}
-    \,\bigm|\,
-    (O,c) \gets \mathcal{A}(g, g^x, g^{x^2}, \ldots, g^{x^q})
-  \bigr]
-  \leq \mathsf{negl}(\lambda).
-  \label{eq:q-sdh}
-\end{equation}
-\end{definition}
-
-In the setup phase, the election authority (EA) performs the following steps.
+In the setup phase, the EA performs the following steps.
 \begin{enumerate}[label=(S\arabic*)]
-  \item Obtains KZG SRS from publicly run Ethereum Powers-of-Tau ceremony.
-  \item Fixes the finite field $\mathbb{F}_q$, root-of-unity domain $\Omega$ of size $n$, and encoding of election data into polynomials as in Section~3.
+  \item Obtains KZG SRS from a publicly run Ethereum Powers-of-Tau ceremony $\mathsf{SRS}=(g,g^\tau,g^{\tau^2},\dots,g^{\tau^d})$, supporting degree $\le d$ commitments. 
+  \item Fixes the finite field $\mathbb{F}_q$, root-of-unity domain $\Omega$ of size $n$, and encoding of election data into polynomials.
   \item Generates a set of unique confirmation codes and assigns each $\mathsf{C}_confirm$ code to each position on the ballot.
   \item Deploys an Ethereum smart contract that uses the SRS and the verification logic for the Zeeperio proof.
 \end{enumerate}
+The protocol uses a universal SRS from a Powers-of-Tau ceremony,
+ 
 
-\subsection{Voting phase}
+\subsection{Main Election Proof}
+\paragraph{Goal.}
+The EA proves in zero-knowledge that the committed election columns satisfy:
+\begin{itemize}
+\item well-formed audit marks
+\item well-formed cast marks
+\item audit/mark exclusion
+\item published tally is consistent with the mark column
+\end{itemize}
 
-In the voting phase, voters receive a paper ballot $B_j$ with a unique serial number.  Voters mark the position corresponding to their chosen candidate and cast their ballots. They receive the confirmation code associated with the candidate they chose.
-At the end of the voting phase, the EA holds the full table of positions with their ballot IDs, audit flags, mark bits, and confirmation codes.
 
+\paragraph{Constraint family as vanishing checks.}
+We define a family of low-degree polynomials $\{P_i(X)\}$ such that the election is valid iff
+\begin{equation*}
+P_i(\omega^t)=0 \quad \forall \omega^t\in\Omega \text{ and for all } i.
+\end{equation*}
+These constraints encode the following, each as a polynomial identity that vanishes on $\Omega$:
 
-\subsection{Post-election}
+\noindent\textbf{Audit column $\mathsf{A_{udit}}$:}
+\begin{enumerate}
+  \item The padded values must be set to $\mathsf{A_{udit}}[i]=0$ for $i\ge P$.
+  \item All values should either be set to 1, or 0 $\mathsf{A_{udit}}[i]\in\{0,1\}$.
+  \item For each ballot $j$, the $\mathcal{C}$ entries $\mathsf{A_{udit}}[j\mathcal{C}],\dots,\mathsf{A_{udit}}[j\mathcal{C}+\mathcal{C}-1]$ are equal.
+  Additionally, the block-sum for each $\mathsf{A_{udit}}$ block is $\in\{0,C\}$.
+  \item The number of 1s in $\mathsf{A_{udit}}$ is equal to the published number of audited ballots $\mathsf{Sum_A}\cdot \mathcal{C}$ using an accumulator constraint.
+\end{enumerate}
 
-After the polls close, the EA constructs the polynomials $\mathsf{A}(X)$, $\mathsf{M}(X)$, $\mathsf{B}_\mathsf{ID}(X)$, $\mathsf{C}_{\mathsf{confirm}}(X)$ and produces a succinct proof that satisfies the election constraints.
+\noindent\textbf{Mark column $\mathsf{M_{ark}}$:}
+\begin{enumerate}
+  \item The padded values must be set to $\mathsf{M_{ark}}[i]=0$ for $i\ge P$.
+  \item All values should either be set to 1, or 0 $\mathsf{M_{ark}}[i]\in\{0,1\}$.
+  \item The block-sum for each $\mathsf{M_{ark}}$ block is $\in\{0,C\}$.
+  \item The total number of marks is equal to the published number of ballots cast $\mathsf{Sum_M}$, enforcing one mark per cast ballot using an accumulator.
+\end{enumerate}
 
-\subsection{Constraint Enforcement with Vanishing Polynomials}
-We enforce constraints over the domain $\Omega$ using a vanishing polynomial $Z_\Omega(X) = X^n - 1$. 
-A constraint $C(X) = 0$ holdsover $\Omega$ iff $C(X)$ is divisible by $Z_\Omega(X)$. 
-In the Poly-IOP model, the prover computes the quotient polynomial $Q(X) = C(X) / Z_\Omega(X)$, commits to it, and the verifier checks the identity at a random point.
-For constraints that apply only to specific subsets of the domain, we use specialized vanishing polynomials. 
+\noindent\textbf{Audit and Mark Exclusion:}
+No ballot must be both audited and cast $\mathsf{A_{udit}}[i]\cdot \mathsf{M_{ark}}[i]=0$ for all $i < n$.
 
-\subsection{Audit Column Constraints}
-The Audit Column $\mathsf{A}$ must satisfy the following properties to ensure the integrity of the audit process.
+\noindent\textbf{Tally correctness:}
+For each candidate $c\in\{0,\dots,\mathcal{C}-1\}$, the published tally $\mathsf{Sum}_c$ is equal to the sum of $\mathsf{M_{ark}}[i]$ over the
+stream $\{c, c+\mathcal{C}, c+2\mathcal{C},\dots\}$, enforced by a strided accumulator (shift by $\omega^\mathcal{C}$) with boundary conditions
+for the first/last stream elements.
 
-\subsubsection{Padding Consistency}
-We must ensure that the padded values in the Audit Column are zero. We define a constraint specific vanishing polynomial $Z(X)$ with roots at the valid indices $\{\omega^0, \dots, \omega^{\mathsf{P}-1}\}$:
-\begin{equation}
-    Z(X) = \prod_{i=0}^{\mathsf{P}-1} (X - \omega^i)
-\end{equation}
-The constraint requires $\mathsf{A}(X)$ is zero wherever $Z(X)$ is non-zero. This is enforced via the domain vanishing polynomial:
-\begin{equation}
-    \mathsf{P}_\text{vanish1}(X) = \mathsf{A}(X) \cdot Z(X) = 0 \quad \forall X \in \Omega
-\end{equation}
+\paragraph{Batched quotient argument.}
+Let $k=17+\mathcal{C}$ be the number of vanishing polynomials. 
+Using Fiat-Shamir, derive $\alpha \stackrel{\$}{\leftarrow} \mathbb{F}$ and define the batched vanishing polynomial
+\begin{equation*}
+P_{\mathsf{vanish}}(X)=\sum_{i=1}^{k}\alpha^{i-1}\,P_i(X).
+\end{equation*}
 
-\subsubsection{Binary Values}
-Every entry in $\mathsf{A}$ must be binary (0 or 1). This is enforced via the domain vanishing polynomial:
-\begin{equation}
-    \mathsf{P}_\text{vanish2}(X) = \mathsf{A}(X) \cdot (\mathsf{A}(X) - 1) \quad \forall X \in \Omega
-\end{equation}
-\subsection{Mark Column Constraints}
+Then form the quotient
+\[
+Q(X)=\frac{P_{\mathsf{vanish}}(X)}{Z_H(X)} \quad \text{where } Z_H(X)=X^n-1.
+\]
+If all constraints hold on $\Omega$, $Q(X)$ exists as a polynomial.  
 
+\paragraph{Proof.}
+The EA commits to the masked witness and auxiliary polynomials required by the constraints
+($\mathsf{A_{udit}},\mathsf{M_{ark}}$ and the block-sum/accumulator polynomials) and to $Q$,
+then opens them at a single Fiat-Shamir point $\zeta\in\mathbb{F}$.  
+
+\paragraph{Verification.}
+From the opened values at $\zeta$, the verifier reconstructs $P_{\mathsf{vanish}}(\zeta)$ and checks
+\begin{equation*}
+P_{\mathsf{van}}(\zeta) \stackrel{?}{=} Q(\zeta)\cdot(\zeta^n-1),
+\end{equation*}
+accepting iff the check passes under $\mathsf{KZG.Verify}$.  
+
+\subsection{Voter Verification Proofs}
+Voter verification is a \emph{separate} zero-knowledge proof from the main election proof, but it reuses the same setup and the same committed election polynomials.  
+
+\paragraph{Print audit (spoiled ballots).}
+Given a spoiled ballot $\mathcal{B}_j$, the EA opens the commitments for the corresponding index block $\{j\mathcal{C},\dots,j\mathcal{C}+\mathcal{C}-1\}$ to show the ballot was audited and not cast.
+There is no need to satisfy the receipt-freeness requirement for audited ballots.
+
+\paragraph{Ballot inclusion (receipt check without revealing the choice).}
+To show a voter’s receipt code corresponds to a marked position without revealing which candidate was marked, the EA proves a permutation relation over tuples.
+For each $i$, form $(b_i,c_i,m_i)=(\mathsf{B_{ID}}[i],\mathsf{C}_{\mathsf{confirm}}[i],\mathsf{M_{ark}}[i])$ and a shuffled copy
+$(b'_i,c'_i,m'_i)=(b_{\sigma(i)},c_{\sigma(i)},m_{\sigma(i)})$ for a secret shuffle $\sigma$.
+Using Fiat-Shamir, sample $\alpha,r\stackrel{\$}{\leftarrow} \mathbb{F}$, encode tuples into scalars
+$v_i=b_i+\alpha c_i+\alpha^2 m_i$ and $v'_i=b'_i+\alpha c'_i+\alpha^2 m'_i$, define
+$V_1[i]=r-v_i$ and $V_2[i]=r-v'_i$, and enforce multiset equality via a grand product accumulator argument.
+All resulting checks are expressed as a small set of vanishing polynomials, batched with
+a random $\beta$, and verified with a single quotient test exactly as in the main proof.  
+
+After the permutation proof, the EA reveals the $mathcal{C}$ tuples in the shuffled list whose ballot ID equals $\mathcal{B}_j$ via $\mathsf{KZG.Open}$.
+Exactly one tuple has $m'=1$, establishing inclusion while the shuffle hides which candidate position was marked.
+
+\paragraph{Receipt correctness (prove a disputed code is \emph{not} on ballot $\mathcal{B}_j$).}
+Let the disputed code be $C$. The EA defines a helper indicator polynomial $D(X)$ whose evaluations satisfy
+$D(\omega^i)=1$ iff $\mathsf{C}_{\mathsf{confirm}}[i]=C$ using \emph{Fermat's Little Theorem}.
+Let $\mathsf{Sel}_j(X)$ be the public selector that is $1$ on indices $\{j\mathcal{C},\dots,j\mathcal{C}+\mathcal{C}-1\}$ and $0$ elsewhere.
+The EA proves
+\[
+z \;=\; \sum_{i=0}^{n-1}\mathsf{Sel}_j(\omega^i)\cdot D(\omega^i) \;=\; 0.
+\]
+This implies no confirmation code on ballot $\mathcal{B}_j$ is equal to the disputed code $C$ without revealing any of the ballot’s codes.
 
 \section{Security Analysis}
 
