@@ -12,9 +12,11 @@ We propose a different compromise in this paper: let EAs and their vendors see t
 
 The research question of this paper is how to modify the cryptography of an E2E-V voting system to provide integrity, without the need to maintain ballot secrecy from the EA (but still provide receipt-freeness otherwise). The simpler threat model means we can streamline the cryptography, in particular we can prove that encrypted (or committed in our case) ballots are tallied correctly rather than computing the tally under encryption. This shifts the protocol away from multiparty computation and threshold cryptography to essentially an all encompassing zero knowledge proof (ZKP). While ZKPs have been used in voting systems from almost their invention in 1980s and onward, we focus on modern succinct ZKPs called zk-SNARKs.
 
-We apply this modification to an existing E2E-V back-end called Eperio~\cite{ECHA10}. Eperio is a simplification of Scantegrity II's backend (known as a switchboard) and is design to be simple enough that a non-expert validator can audit the election using a spreadsheet, such as MS Excel. Eperio's security was studied in detail using formal methods at CCS 2021 paper~\cite{BDGR21}. By replacing Eperio's cut-and-choose based proof with a zk-SNARK, it obviously is no longer verifiable by hand. However this is a deliberate choice. Traditionally voters would either have to verify an election themselves or rely on a trusted entity (political party, watchdog) to perform this verification---hence the need to simplify elections to a spreadsheet. Today we have systems like Ethereum that provide a peer-to-peer network that is effectively validating that computational outputs of arbitrary code, called smart contracts, are correct. Ethereum protects assets with a market capitalization of \$100+B USD and it can protect election results too, as long as the results are verifiable within its very restricted limits (known as gas consumption). If the verification task can be reduced to a succinct (zk-SNARK) proof, voters do not need check the proof at all. 
+\paragraph{Zeeperio.}
 
-Our contribution is designing a custom succinct argument for Eperio that we call Zeeprio. Our protocol uses polynomial interactive oracle proofs (PIOPs), which have been used to build zk-SNARKs for any arithmetic circuit (and thus any computation), the best known system being Plonk~\cite{GWC19}. In practice, zk-SNARKs for a specific computation can be deployed in different ways: (a) written in a high-level language and compiled to VM instructions, (b) written in special markup languages and compiled into arithmetic circuits, or (c) written as a custom arithmetic circuit. In each case, these representations are fed into a general purpose proof system for circuits or zkVMs. Each level of abstraction adds overhead and costs to the prover. Our approach is `closer to the metal.' We do not use circuits or Plonk itself. We instead go underneath what Plonk provides and use the same kind of building blocks it uses to make a custom PIOP argument for Zeeperio.
+We apply this modification to an existing E2E-V back-end called Eperio~\cite{ECHA10}. Eperio is a simplification of Scantegrity II's backend (known as a switchboard) and is design to be simple enough that a non-expert validator can audit the election using a spreadsheet, such as MS Excel. Eperio's security was studied in detail using formal methods at CCS 2021 paper~\cite{BDGR21}. By replacing Eperio's cut-and-choose based proof with a zk-SNARK, it obviously is no longer verifiable by hand. However this is a deliberate choice. Traditionally voters would either have to verify an election themselves or rely on a trusted entity (political party, watchdog) to perform this verification---hence the need to simplify elections to a spreadsheet. Today we have systems like Ethereum that provide a peer-to-peer network that is effectively validating that computational outputs of arbitrary code, called smart contracts, are correct. Ethereum protects assets with a market capitalization of \$100+B USD and it can protect election results too, as long as the results are verifiable within its very restricted limits (known as gas consumption). If the verification task can be reduced to a succinct (zk-SNARK) proof, voters do not need check the proof at all.
+
+Our contribution is designing a custom succinct argument for Eperio that we call Zeeprio. Our protocol uses polynomial interactive oracle proofs (PIOPs), which have been used to build zk-SNARKs for any arithmetic circuit (and thus any computation), the best known system being Plonk~\cite{GWC19}. The size of a Zeeperio proof is constant in the number of ballots and voters in an election, as is the time to verify it. It is compact enough for autonomous verification by a smart contract on a blockchain, such as Ethereum. Zeeperio proofs are linear (as opposed to constant) in the number of candidates, but this seems acceptable as reading the final tally or checking an audited ballot is linear in the number of candidates. 
 
 \section{Background and Related Work}
 
@@ -22,19 +24,43 @@ Our contribution is designing a custom succinct argument for Eperio that we call
 
 We assume the reader is already familiar with end-to-end verifiable (E2E-V) voting protocols which allow for: (i) an election authority to prove an election tally is computed correctly without learning individual voter choices, and for (ii) voters to check their individual ballots are included unmodified in the tally without being able to reveal how they voted to anyone else. Eperio is an E2E-V tallying protocol (or `backend') that composes with several styles of paper ballots, including Pret a Voter and Scantegrity I. A brief description of Eperio is provided in Figure~\ref{fig:eperio} with a Pret a Voter style ballot.
 
-Zeeperio replaces Eperio's proof with a zk-SNARK. Proof size and verifier time are constant in the number of voters. , independent of the number 
+In addition to succinctness, we also clean up a few issues that were not fully resolved in Scantegrity II and Eperio:
+
+\begin{itemize}
+
+\item As pointed about by Basin et al, Eperio does not prove ballots were not overvoted~\cite{BDGR21}; Zeeperio does (\S\ref{sec:tk}).
+\item As acknowledged by Essex et al, Eperio does not support Scantegrity II ballots~\cite{ECHA10}; Zeeperio does (\S\ref{sec:tk}).
+\item As acknowledged by Chaum et al, Scantegrity II supports dispute resolution but it requires all confirmation codes on the ballot to be revealed~\cite{CCC+08,CCC+09}. Zeeprio offers a simple proof of incorrect code without revealing information about all codes (\S\ref{sec:tk}).
+
+\end{itemize}
+
+A remaining issue, pointed out by Basin et al~\cite{BDGR21}, are clash attacks~\cite{KTV12} which are not explicitly addressed by Eperio. However they are applicable to all major E2E-V voting systems and are addressed through strict polling place policies that denote which ballot is given to which voter.
+
+\subsection{Succinct Proofs}
+
+While zero knowledge proofs/arguments (ZKPs) date back to the 1980s~\cite{GMW86,BCC88}, classic ZKPs produce proofs that are at least linear in the size of the statement being proven. By contrast, succinct zero knowledge arguments (SNARKs) are sublinear, typically with a logarithmic or constant proof size. A Polynomial Interactive Oracle Proof (PIOPs) is a pattern that a number of SNARKs have in common~\cite{CHM+20,BFS20}. In this pattern, the prover specifies polynomials and verifiers challenge the prover to open these polynomials at random points. PIOP does not say \textit{how} to make a SNARK, it is just a general pattern. 
+
+To realize a PIOP, the prover must send a succinct representation of each polynomial from the prover to the verifier, which commits the prover to those polynomials. When opening a polynomial, the verifier must be certain it is the opening of the same polynomial that was committed to. PIOPs rely on a cryptographic primitive called a polynomial commitment scheme (PCS) to handle this. The rest of a PIOP protocol does not use any cryptography. A number of PCSs have been proposed, the most prominent are KZG (very short, based on bilinear pairings, requires a trusted setup) and (DEEP-)FRI (longer, based on hash functions, conjectured to be post-quantum secure, no trusted setup). In Zeeperio, we use KZG because it integrates well with Ethereum. 
+
+KZG uses a universal trusted setup: a secret value $\tau$ is chosen at random, used to compute a structured reference string (SRS) $\tuple{g^\tau, g^{\tau^2},g^{\tau^3},\ldots}$ in a pairing-friendly group defined by generator $g$, and then erased. Knowledge of $\tau$ after the setup is sufficient to fake KZG openings and thus forge false ZKP transcripts. However the setup can be run as an open participation multiparty computation where participants prove their contribution is correct and only one honest participant must forget $\tau$ for the SRS to be secure. Ethereum ran an open trusted setup in 2023, accepting 100K contributions over 208 days. A single SRS, such as this, can be shared by everyone wanting to do a KZG commitment (known a universal trusted setup). 
+
+In practice, zk-SNARKs for a specific computation can be deployed in different ways: (a) written in a high-level language and compiled to VM instructions, (b) written in special markup languages and compiled into arithmetic circuits, or (c) written as a custom arithmetic circuit. In each case, these representations are fed into a general purpose proof system for circuits or zkVMs. Each level of abstraction adds overhead and costs to the prover. Our approach is `closer to the metal.' We do not use circuits or Plonk itself. We instead go underneath what Plonk provides and use the same kind of building blocks it uses to make a custom PIOP argument for Zeeperio.
+
+\subsection{Smart Contracts}
+
+Since smart contracts can implement arbitrary code, they can support cryptographic operations however this approach is usually prohibitively expensive. Ethereum offers cheaper `pre-compiles' for pairing-based operations on the elliptic curve \altbn. On Ethereum's testnet, support for curve \bls has been staged for future deployment, as well as KZG-specific operations over \bls, using the fore-mentioned SRS. Zeeperio on \altbn or \bls 
+
+ be added as well KZG opening proofs. 
+
+ in the future, 
+
+ BN128 
 
 
 
- number of paper ballots. 
 
- provide E2E-V  that pro
 
-\subsection{Succinct proofs and Poly-IOPs}
 
-Modern SNARK systems such as PLONK, Groth16, and Marlin are all based on the Polynomial Interactive Oracle Proof (Poly-IOP) model.
-In a Poly-IOP, the prover commits to low-degree polynomials representing the witness. Then, the verifier issues queries to check the resulting evaluations satisfy a system of polynomial identities.
-Polynomial commitment schemes allow these evaluations to be proven succinctly.
 
 \subsection{Zeeperio: A succinct, On-Chain Approach}
 Zeeperio shifts from statistical audits to cryptographic arguments of knowledge. 

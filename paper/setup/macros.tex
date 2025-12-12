@@ -31,9 +31,43 @@
 \newcommand{\Comm}[1]{\mathsf{Comm}(#1)}
 \newcommand{\Open}[1]{\mathsf{Open}(#1)}
 
+% notation
+\newcommand{\prv}{\mathcal{P}} % prover
+\newcommand{\vrf}{\mathcal{V}} % verifier
+\newcommand{\assets}{\textbf{A}} % Assets
+\newcommand{\liab}{\textbf{L}} % the whole liability
+\newcommand{\gl}{\mathfrak{t}} % the group liability
+\newcommand{\gs}{g_s} % the generator in secp256k1 group
+\newcommand{\hs}{h_s} % another generator in secp256k1
+\newcommand{\gb}{g_b} % the generator in BLS12-381 group
+\newcommand{\hb}{h_b} % another generator in BLS12-381
+\newcommand{\cm}{\mathcal{C}} % polynomial commitment
+\newcommand{\bal}{\mathfrak{bal}} % balance
+\newcommand{\uid}{\mathfrak{uid}} % user identifier
+\newcommand{\hash}{\mathcal{H}} % hash function
+\newcommand{\ppt}{\text{p.p.t}} % probabilistic polynomial time
+\newcommand{\ps}{\textbf{C}_\texttt{secp}} % Pedersen commitment in secp256k1
+\newcommand{\pb}{\textbf{C}_\texttt{bls}} % Pedersen commitment in BLS12-381
+\newcommand{\orproof}{\lor} % OR proof
+\newcommand{\nkeys}{\kappa}
+\newcommand{\nusers}{\mu}
+\newcommand{\kzgzk}{\mathsf{KZG}_{zk}}
+\newcommand{\kzgzkprove}{\kzgzk.\mathsf{Prove}}
+\newcommand{\kzgzkverify}{\kzgzk.\mathsf{Verify}}
+\newcommand{\kzgcm}{\mathsf{KZG}_{cm}}
+\newcommand{\kzgcmprove}{\kzgcm.\mathsf{Prove}}
+\newcommand{\kzgcmverify}{\kzgcm.\mathsf{Verify}}
+
+\newcommand{\bls}{\texttt{bls12-381}\xspace}
+\newcommand{\altbn}{\texttt{alt-bn128}\xspace}
+\newcommand{\secp}{\texttt{secp256k1}\xspace}
+
+
 % = = = Systems
 \newcommand{\kw}[1]{\textsf{#1}}
 \newcommand{\Name}{\textsf{System Name}\xspace}
+
+
 
 
 
