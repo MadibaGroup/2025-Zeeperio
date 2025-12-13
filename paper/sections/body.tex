@@ -28,9 +28,9 @@ In addition to succinctness, we also clean up a few issues that were not fully r
 
 \begin{itemize}
 
-\item As pointed about by Basin et al, Eperio does not prove ballots were not overvoted~\cite{BDGR21}; Zeeperio does (\S\ref{sec:tk}).
-\item As acknowledged by Essex et al, Eperio does not support Scantegrity II ballots~\cite{ECHA10}; Zeeperio does (\S\ref{sec:tk}).
-\item As acknowledged by Chaum et al, Scantegrity II supports dispute resolution but it requires all confirmation codes on the ballot to be revealed~\cite{CCC+08,CCC+09}. Zeeprio offers a simple proof of incorrect code without revealing information about all codes (\S\ref{sec:tk}).
+\item As pointed about by Basin \etal~\cite{BDGR21}, Eperio does not prove ballots were not overvoted; Zeeperio does (\S\ref{sec:tally}).
+\item As acknowledged by Essex \etal~\cite{ECHA10}, Eperio does not support Scantegrity II ballots; Zeeperio does (\S\ref{sec:receipt}).
+\item As acknowledged by Chaum \etal~\cite{CCC+08,CCC+09}, Scantegrity II supports dispute resolution but it requires all confirmation codes on the ballot to be revealed. Zeeprio offers a simple proof of incorrect code without revealing information about all codes (\S\ref{sec:dispute}).
 
 \end{itemize}
 
@@ -51,13 +51,10 @@ In practice, zk-SNARKs for a specific computation can be deployed in different w
 Smart contracts are programs deployed on a blockchain, such as Ethereum. They only execute when a user calls a function. The blockchain's consensus enforces the function call executes correctly and the state of the code is updated accordingly. In Zeeprio, a smart contract will accept an election proof and run the verification of it, reporting if it is correct or incorrect. Since smart contracts can implement arbitrary code, they can support cryptographic operations however this approach is usually prohibitively expensive. Ethereum offers cheaper `pre-compiles' for pairing-based operations on the elliptic curve \altbn. On Ethereum's testnet, support for curve \bls has been staged for future deployment, as well as KZG-specific operations over \bls, using the fore-mentioned SRS. Zeeperio on \altbn or \bls 
 
 \section{Zeeperio}
+\label{sec:constraints} 
 
 \paragraph{Parameters.}
-Let $\mathcal{B}$ be the number of printed ballots and $\mathcal{C}$ the number of candidates per ballot. Let $\mathcal{P}=\mathcal{B}\mathcal{C}$ be the number of ballot positions. Let $n$ be the padded column length (a power of two) with $n\ge \mathcal{P}$ (the need is explained below). Let $\mathbb{F}_q$ be a finite field of size $q$. A ballot has ID $b\in\{0,\dots,\mathcal{B}-1\}$ and occupies the \emph{ballot block}:
-
-\[
-I_b=\{\,b\mathcal{C},\,b\mathcal{C}+1,\,\dots,\,b\mathcal{C}+(\mathcal{C}-1)\,\}\subseteq\{0,\dots,n-1\}.
-\]
+Let $\mathcal{B}$ be the number of printed ballots and $\mathcal{C}$ the number of candidates per ballot. Let $\mathcal{P}=\mathcal{B}\mathcal{C}$ be the number of ballot positions. Let $n$ be the padded column length (a power of two) with $n\ge \mathcal{P}$ (the need is explained below). Let $\mathbb{F}_q$ be a finite field of size $q$. A ballot has ID $b\in\{0,\dots,\mathcal{B}-1\}$ and occupies a \emph{block}: $I_b=\{\,b\mathcal{C},\,b\mathcal{C}+1,\,\dots,\,b\mathcal{C}+(\mathcal{C}-1)\,\}\subseteq\{0,\dots,n-1\}.$
 
 \paragraph{Walkthrough of a constraint.} 
 
@@ -115,6 +112,7 @@ Across all the constraints, we will use an additional 5 `helper' polynomials. We
 %\input{figures/constraints.tex}
 
 \subsection{Audit Constraints}
+\label{sec:audit}
 
 Due to limited space in the paper, we cannot fully explain each of the \constraints constraints. Instead we provide some intuition for them.
 
@@ -145,11 +143,85 @@ $$
 Constraint c1.4 and c1.5 check each line of this recurrance respectively, guarenting that $\mathsf{Acc}_{\mathsf{Audit}}(X)$ is formed correctly. The first value in $\mathsf{Acc}_{\mathsf{Audit}}(X)$ holds the sum, so c1.6 ensures this value is equal to $\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}$. 
 
 \subsection{Mark Constraints}
+\label{sec:mark}
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{c2.1}(X)\ &:=\ \mathsf{Mark}(X)\,\mathsf{Z}_{\mathsf{head}}(X)\\
+V_{c2.2}(X)\ &:=\ \mathsf{Mark}(X)\bigl(\mathsf{Mark}(X)-1\bigr)\\
+V_{c2.3}(X)\ &:=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Mark}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Mark}}(X)-1\bigr)\\
+V_{c2.4}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Mark}}(\omega X)\bigr)\cdot(X-\omega^{n-1})\\
+V_{c2.5}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Mark}(X)\bigr)\cdot \mathsf{Mask}_{n-1}(X)\\
+V_{c2.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Sum}_{\mathsf{Mark}}\bigr)\cdot \mathsf{Mask}_{0}(X)\\
+\end{aligned}
+\]
+\end{mdframed}
+
+The constraints on the mark column parallel the constraints on the audit column. Padding is zero (c2.1), the column is binary (c2.2), and the total number of votes match the sum announced by the election authority $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). Since it is binary (c2.2), the EA can demonstrate the sum of each ballot block is either 0 or 1 which is c2.3.
 
 \subsection{Cross-Column Constraints}
 
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{c3.1}(X)\ :=\ \mathsf{Audit}(X)\,\mathsf{Mark}(X)
+\end{aligned}
+\]
+\end{mdframed}
+
+A final constraint demonstrates that no ballot is both voted and audited. This is simple: an unvoted ballot will have all 0's in its ballot block, while an unaudited ballot will have the same. Therefore the Hadamard product (element-wise multiplication) of the audit column with the mark column will be 0 in every element if it is properly formed. In the malicious case, if a ballot is both voted and audited, at least one element of the ballot block will contain a 1 in both columns and the product of the columns will not be 0 at that element, thus $V_{c3.1}(X)$ will not vanish. 
 
 \subsection{Tally Constraints}
+\label{sec:tally}
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{c4.1}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Vote}}(\omega^{\mathcal{C}}X)\bigr)\cdot \mathsf{Mask}_{\mathsf{tail}}(X) \\
+V_{c4.2}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)\bigr)\cdot \frac{\mathsf{Z}_H(X)}{\mathsf{Mask}_{\mathsf{tail}}(X)}\\
+V_{c4.3,c}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[c]\bigr)\cdot \frac{\mathsf{Z}_H(X)}{X-\omega^{c}}
+\end{aligned}
+\]
+\end{mdframed}
+
+\textblue{explaination tk}
+
+\section{Voter Checks}
+
+Eperio, like many voting systems, split the E2E-V proof into two parts: a universal verifiable proof that the tally is correct, and a voter verifiable proof that receipts are correct. All the constraints from Section~\ref{sec:constraints} correspond to the former proof, while in this section we describe the voter verifiable proofs. 
+
+\subsection{Print Audit}
+\label{sec:print}
+
+To support print-audit verification, we use a ballot-specific \emph{block mask} polynomial that isolates the $\mathcal{C}$ rows corresponding to a particular ballot. For a ballot ID $b$, let $\mathsf{Mask}_{\mathsf{ballot}}^{(b)}(X)$ be the publicly checkable polynomial defined over the domain $H$ by
+$$
+\mathsf{Mask}_{\mathsf{ballot}}^{(b)}(\omega^i)=
+\begin{cases}
+1,& i\in I_b,\\
+0,& \text{otherwise},
+\end{cases}
+\qquad i\in\{0,\dots,n-1\},
+$$
+i.e., it is the interpolation of a $0/1$ array that is $1$ exactly on the ballot block $I_b=\{b\mathcal{C},\dots,b\mathcal{C}+(\mathcal{C}-1)\}$. Given the ballot ID $b$, the election authority (EA) proves the print-audit data for that ballot by opening the committed column polynomials at each of the $\mathcal{C}$ domain points in the block, returning the evaluations $\{\mathsf{Audit}(\omega^i)\}_{i\in I_b}$, $\{\mathsf{Mark}(\omega^i)\}_{i\in I_b}$, and $\{\mathsf{Code}(\omega^i)\}_{i\in I_b}$ together with a single batched opening proof for these evaluations.
+
+\subsection{Receipt Check}
+\label{sec:receipt}
+
+To support receipt checking without revealing which candidate-position within a ballot was marked, the EA uses a shuffle-based protocol that hides the canonical ordering behind a secret permutation. First, the EA defines a public \emph{ballot-ID column} $\mathsf{BallotID}(X)$ that encodes the ballot identifier on every ballot position: for each ballot $b\in\{0,\dots,\mathcal{B}-1\}$ and each within-ballot offset $k\in\{0,\dots,\mathcal{C}-1\}$, we set $\mathsf{BallotID}(\omega^{b\mathcal{C}+k})=b$, and we set $\mathsf{BallotID}(\omega^i)=0$ on all padding indices $i\ge \mathcal{P}$. Next, the EA samples a secret permutation $\pi$ over $\{0,\dots,n-1\}$ and uses it to define permuted columns by $\mathsf{F}^{\pi}(\omega^i)=\mathsf{F}(\omega^{\pi(i)})$. The EA then commits once (pre-election or once-per-election) to the shuffled columns $\mathsf{BallotID}^{\pi}(X)$, $\mathsf{Code}^{\pi}(X)$, and $\mathsf{Mark}^{\pi}(X)$, and proves once that each shuffled column is a permutation of its corresponding source column under the \emph{same} secret permutation $\pi$. 
+
+For a per-receipt query, the voter provides ballot ID $b$. The EA finds, privately, an index $t$ such that $\mathsf{BallotID}^{\pi}(\omega^t)=b$ and $\mathsf{Mark}^{\pi}(\omega^t)=1$, and it returns the receipt code $c:=\mathsf{Code}^{\pi}(\omega^t)$ together with a batched opening proof at the single point $\omega^t$ for the three committed polynomials $\mathsf{BallotID}^{\pi}(X)$, $\mathsf{Mark}^{\pi}(X)$, and $\mathsf{Code}^{\pi}(X)$. Revealing the index $t$ is safe because $\pi$ is secret, so $t$ does not reveal the candidate-order position of the mark in the original (unshuffled) ballot block.
+
+\subsection{Dispute Resolution}
+\label{sec:dispute}
+
+In a dispute, the voter provides a ballot ID $b$ and a disputed confirmation code $c\in\mathbb{F}_q$, and the EA must prove that $c$ does not appear anywhere in the code block for ballot $b$ without revealing any of the ballot’s codes. To do so, the EA introduces an \emph{equality-flag} polynomial $\mathsf{Eq}(X)$ over the domain $H$, intended to be a binary indicator for matches against the disputed value: informally, $\mathsf{Eq}(\omega^i)=1$ exactly when $\mathsf{Code}(\omega^i)=c$, and $\mathsf{Eq}(\omega^i)=0$ otherwise. The EA then proves that $\mathsf{Eq}$ is computed consistently by also introducing an auxiliary \emph{inverse witness} polynomial $\mathsf{Inv}(X)$ and enforcing the pointwise relation $(\mathsf{Code}(X)-c)\cdot \mathsf{Inv}(X) = 1-\mathsf{Eq}(X)$ for all $X\in H$, together with the booleanity constraint $\mathsf{Eq}(X)(\mathsf{Eq}(X)-1)=0$. Intuitively, when $\mathsf{Code}(X)\neq c$, the relation forces $\mathsf{Eq}(X)=0$ and $\mathsf{Inv}(X)=(\mathsf{Code}(X)-c)^{-1}$, while when $\mathsf{Code}(X)=c$, it allows $\mathsf{Eq}(X)=1$ without requiring an inverse at zero.
+
+Finally, to prove \emph{non-membership} on ballot $b$, the EA uses the public ballot-block mask $\mathsf{Mask}_{\mathsf{ballot}}^{(b)}(X)$ (equal to $1$ on the indices in $I_b$ and $0$ elsewhere) to isolate the relevant $\mathcal{C}$ positions. It enforces that no equality flags occur inside the ballot block by proving that the masked sum is zero:
+$$
+\sum_{i=0}^{n-1}\mathsf{Mask}_{\mathsf{ballot}}^{(b)}(\omega^i)\cdot \mathsf{Eq}(\omega^i)=0.
+$$
+Equivalently, defining $\mathsf{Hit}(X)=\mathsf{Mask}_{\mathsf{ballot}}^{(b)}(X)\cdot \mathsf{Eq}(X)$, the EA proves that $\mathsf{Hit}$ sums to $0$, which implies $\mathsf{Eq}(\omega^i)=0$ for every $i\in I_b$ and hence that the disputed code $c$ does not appear on ballot $b$.
 
 
 

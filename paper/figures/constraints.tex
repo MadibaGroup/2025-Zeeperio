@@ -244,38 +244,7 @@ V_{c4.3,c}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[c]\bigr)
 % Notation for voter checks (c5.*): print-audit, receipt, dispute
 %------------------------------------------------------------
 
-\paragraph{Indices and ballots.}
-We index rows by $i\in\{0,\dots,n-1\}$ and identify the $i$-th domain point with $X=\omega^i$.
-A ballot has ID $b\in\{0,\dots,\mathcal{B}-1\}$ and occupies the \emph{ballot block}
-\[
-I_b=\{\,b\mathcal{C},\,b\mathcal{C}+1,\,\dots,\,b\mathcal{C}+(\mathcal{C}-1)\,\}\subseteq\{0,\dots,n-1\}.
-\]
 
-\paragraph{Block selector for ballot $b$.}
-Let $\mathsf{Sel}_b(X)$ be the (publicly checkable) selector polynomial for ballot $b$ defined pointwise by
-\[
-\mathsf{Sel}_b(\omega^i)=
-\begin{cases}
-1,& i\in I_b,\\
-0,& \text{otherwise},
-\end{cases}
-\qquad i\in\{0,\dots,n-1\}.
-\]
-(Equivalently, $\mathsf{Sel}_b$ is the interpolation of this $0/1$ array over $H$.)
-
-%------------------------------------------------------------
-% c5.1 Print-audit check (open the whole block)
-%------------------------------------------------------------
-\paragraph{c5.1 Print-audit check.}
-The voter supplies ballot ID $b$. The EA returns the $\mathcal{C}$ evaluations
-\[
-\bigl\{\mathsf{Audit}(\omega^{i})\bigr\}_{i\in I_b},
-\qquad
-\bigl\{\mathsf{Mark}(\omega^{i})\bigr\}_{i\in I_b},
-\qquad
-\bigl\{\mathsf{Code}(\omega^{i})\bigr\}_{i\in I_b},
-\]
-together with a batched opening proof for these evaluations.
 
 
 \subsection{Receipt Check}
@@ -283,40 +252,7 @@ together with a batched opening proof for these evaluations.
 %------------------------------------------------------------
 % c5.2 Receipt check (shuffle-based)
 %------------------------------------------------------------
-\paragraph{c5.2 Receipt check (shuffle-based).}
 
-\emph{Ballot-ID column.}
-Let $\mathsf{BallotID}(X)$ be a public column encoding ballot IDs per position, defined by
-\[
-\mathsf{BallotID}(\omega^{b\mathcal{C}+k})=b \quad\text{for } b\in\{0,\dots,\mathcal{B}-1\},\;k\in\{0,\dots,\mathcal{C}-1\},
-\]
-and $\mathsf{BallotID}(\omega^i)=0$ on padding indices $i\ge \mathcal{P}$.
-
-\emph{Secret permutation.}
-Let $\pi$ be a secret permutation of $\{0,\dots,n-1\}$. For any column $\mathsf{F}$, define its permuted form
-\[
-\mathsf{F}^{\pi}(\omega^i)=\mathsf{F}\bigl(\omega^{\pi(i)}\bigr).
-\]
-The EA commits once (pre-election or once-per-election) to
-\[
-\mathsf{BallotID}^{\pi}(X),\quad \mathsf{Code}^{\pi}(X),\quad \mathsf{Mark}^{\pi}(X),
-\]
-and proves (once) that each is a permutation of its source column under the \emph{same} $\pi$.
-
-\emph{Per-receipt query.}
-Given ballot ID $b$, the EA finds (privately) an index $t$ such that
-\[
-\mathsf{BallotID}^{\pi}(\omega^t)=b
-\quad\text{and}\quad
-\mathsf{Mark}^{\pi}(\omega^t)=1,
-\]
-and returns the claimed receipt code
-\[
-c := \mathsf{Code}^{\pi}(\omega^t),
-\]
-along with a batched opening proof at the single point $\omega^t$ for
-$\mathsf{BallotID}^{\pi},\mathsf{Mark}^{\pi},\mathsf{Code}^{\pi}$.
-(Revealing $t$ is safe because $\pi$ is secret, so $t$ carries no candidate-order meaning.)
 
 %------------------------------------------------------------
 % c5.3 Dispute resolution (selector + equality flags)
@@ -324,35 +260,3 @@ $\mathsf{BallotID}^{\pi},\mathsf{Mark}^{\pi},\mathsf{Code}^{\pi}$.
 
 \subsection{Dispute Resolution}
 
-\paragraph{c5.3 Dispute resolution (selector + equality flags).}
-The voter supplies ballot ID $b$ and disputed code $c\in\mathbb{F}_q$.
-The EA proves that $c$ does not appear on that ballot block without revealing any codes.
-
-\emph{Equality flag polynomial.}
-The EA introduces a binary flag polynomial $\mathsf{Eq}(X)\in\{0,1\}$ over $H$ intended to satisfy
-\[
-\mathsf{Eq}(\omega^i)=
-\begin{cases}
-1,& \mathsf{Code}(\omega^i)=c,\\
-0,& \text{otherwise}.
-\end{cases}
-\]
-
-\emph{Inverse witness for correctness.}
-The EA also introduces an auxiliary polynomial $\mathsf{Inv}(X)$ and enforces, for all $X\in H$,
-\[
-(\mathsf{Code}(X)-c)\cdot \mathsf{Inv}(X) - (1-\mathsf{Eq}(X)) = 0,
-\]
-together with the booleanity constraint
-\[
-\mathsf{Eq}(X)\bigl(\mathsf{Eq}(X)-1\bigr)=0.
-\]
-Intuition: if $\mathsf{Code}(X)\neq c$ then $\mathsf{Eq}(X)=0$ and $\mathsf{Inv}(X)=(\mathsf{Code}(X)-c)^{-1}$ exists;
-if $\mathsf{Code}(X)=c$ then $\mathsf{Eq}(X)=1$ and the equation forces $0=0$ without requiring an inverse.
-
-\emph{Non-membership on ballot $b$.}
-Finally, the EA enforces that no equality occurs inside the ballot block:
-\[
-\sum_{i=0}^{n-1}\mathsf{Sel}_b(\omega^i)\cdot \mathsf{Eq}(\omega^i)=0.
-\]
-(Equivalently, define $\mathsf{Hit}(X)=\mathsf{Sel}_b(X)\cdot \mathsf{Eq}(X)$ and prove its sum is $0$.)
