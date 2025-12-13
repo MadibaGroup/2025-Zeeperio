@@ -1,0 +1,66 @@
+% !TEX root = ../main.tex
+
+
+\begin{table}[t]
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\caption{A set of polynomials that can be computed before the beginning of the election. $\mathsf{Sel}_{b}(X)$ is the one exception, it will not be precomputed but rather computed during a receipt check just for the one ballot $b$ that the voter wants to check.}
+\label{tab:selectors}
+\begin{tabular}{@{}p{0.6\linewidth}|p{0.4\linewidth}@{}}
+\toprule
+\textbf{Description} & \textbf{Polynomial} \\
+\midrule
+
+Polynomial that is zero on $H$ &
+$\mathsf{Z}_H(X)=X^n-1$ \\
+
+%Polynomial that is $0$ at $X=\omega^0$ and nonzero elsewhere on $H$ &
+%$X-\omega^0$ \\
+
+%Polynomial that is $0$ at $X=\omega^{n-1}$ and nonzero elsewhere on $H$ &
+%$X-\omega^{n-1}$ \\
+
+Mask that is $0$ on all of $H$ except possibly at $X=\omega^0$ &
+$\mathsf{Mask}_{0}(X)=\displaystyle\frac{\mathsf{Z}_H(X)}{X-\omega^0}$ \\
+
+Mask that is $0$ on all of $H$ except possibly at $X=\omega^{n-1}$ &
+$\mathsf{Mask}_{n-1}(X)=\displaystyle\frac{\mathsf{Z}_H(X)}{X-\omega^{n-1}}$ \\ \hline
+
+Polynomial that is 0 up to padding $[0,\mathcal{P}-1]$ &
+$\mathsf{Z}_{\mathsf{head}}(X)=\displaystyle\prod_{i=0}^{\mathcal{P}-1}\left(X-\omega^i\right)$ \\
+
+Polynomial that is 0 for the last $\mathcal{C}$ rows (zeros at $\omega^{n-1},\dots,\omega^{n-\mathcal{C}}$) &
+$\mathsf{Mask}_{\mathsf{tail}}(X)=\displaystyle\prod_{t=0}^{\mathcal{C}-1}\left(X-\omega^{n-1-t}\right)$ \\ \hline
+
+%Complement tail mask (zeros on $H$ except possibly on last $\mathcal{C}$ rows) &
+%$\displaystyle\frac{\mathsf{Z}_H(X)}{\mathsf{Mask}_{\mathsf{tail}}(X)}$ \\
+
+Lagrange basis over $H$ used below &
+$L_i(X)=\displaystyle\prod_{\substack{0\le j<n\\ j\ne i}}\frac{X-\omega^j}{\omega^i-\omega^j}$ \\
+
+Polynomial with a 1 at the start of every ballot (indices $i\equiv 0\!\!\pmod{\mathcal{C}}$ up to padding) and 0 elsewhere&
+$\mathsf{Sel}_{\mathsf{blk}}(X)=\displaystyle\sum_{j=0}^{\lfloor n/\mathcal{C}\rfloor-1} L_{j\mathcal{C}}(X)$ \\
+
+Polynomial that is 1 for all rows belonging to ballot-$b$ ($I_b=\{b\mathcal{C},\dots,b\mathcal{C}+\mathcal{C}-1\}$) and 0 elsewhere &
+$\mathsf{Sel}_{b}(X)=\displaystyle\sum_{k=0}^{\mathcal{C}-1} L_{b\mathcal{C}+k}(X)$ \\
+
+
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+%Define ballot-start selector $\mathsf{Sel}_{\mathsf{blk}}(X)$ such that
+%\[
+%\mathsf{Sel}_{\mathsf{blk}}(\omega^i)=
+%\begin{cases}
+%1,& i\equiv 0\pmod{\mathcal{C}},\\
+%0,& \text{otherwise},
+%\end{cases}
+%\qquad i\in\{0,\dots,n-1\}.
+%\]
+
