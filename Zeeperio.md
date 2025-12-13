@@ -411,3 +411,4 @@ z = \sum_{i = 0}^{n - 1} S_i \cdot D_i
 $$
 
 This dot product isolates any equality matches between $c$ and the ballot codes. The EA commits to $z$ and proves that $z = 0$ using a simple opening. This confirms that $c$ does not appear in the selected indices without revealing which codes were on the ballot.
+

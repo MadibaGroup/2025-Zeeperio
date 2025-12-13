@@ -23,8 +23,16 @@
 c1.1 Audit is zero-padded. For all $X\in H$: $\mathsf{Audit}(X)\cdot \mathsf{Z}_{\mathsf{head}}(X)=0$.
 \begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
 \[
-V_{c1.1}(X)\ :=\ \mathsf{Audit}(X)\,\mathsf{Z}_{\mathsf{head}}(X)
+\begin{aligned}
+V_{c1.1}(X)\ &:=\ \mathsf{Audit}(X)\,\mathsf{Z}_{\mathsf{head}}(X)\\
+V_{c1.2}(X)\ &:=\ \mathsf{Audit}(X)\bigl(\mathsf{Audit}(X)-1\bigr) \\
+V_{c1.3}(X)\ &:=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)-\mathcal{C}\bigr) \\
+V_{c1.4}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)+\mathsf{Acc}_{\mathsf{Audit}}(\omega X)\bigr)\cdot(X-\omega^{n-1})\\
+V_{c1.5}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)\bigr)\cdot \mathsf{Mask}_{n-1}(X)\\
+V_{c1.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Sum}_{\mathsf{Audit}\times\mathcal{C}}\bigr)\cdot \mathsf{Mask}_{0}(X)
+\end{aligned}
 \]
+
 \end{mdframed}
 \\[-2mm]
 \midrule

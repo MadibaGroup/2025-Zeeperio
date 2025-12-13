@@ -73,16 +73,16 @@ Interpolation is expensive for the prover so provers use an optimization. The ev
 
 In Zeeprio, if we have a column of length $\mathcal{P}$, we will zero pad it the nearest power of 2. Thus $n$ is the padded column length (a power of two) with $n\ge \mathcal{P}$. For this example constraint (mark column is binary), the presence of zero padding does not impact the constraint. However for other constraints, we will have to explicitly handle the padding separately from the election table data. 
 
-At this point, the verifier has a polynomial commitment to $\mathsf{Mark}(X)$ which we will call $K_{\mathsf{Mark}(X)}$. How does the prover demonstrate it is binary? The prover will construct another polynomial as follows: $V(X)\ :=\ \mathsf{Mark}(X)\bigl(\mathsf{Mark}(X)-1\bigr)$. It will commit to $V(X)$ and send $K_{V(X)}$ to the verifier. If $\mathsf{Mark}(X)$ is binary for all $X\in H$, then $V(X)$ will be zero for all $X\in H$. If $\mathsf{Mark}(X)$ is not binary for at least one $X\in H$, $V(X)$ will be non-zero at the same $X$. We have converted the constraint $\mathsf{Mark}(X)$ is binary into: 
+At this point, the verifier has a polynomial commitment to $\mathsf{Mark}(X)$ which we will call $K_{\mathsf{Mark}}$. How does the prover demonstrate it is binary? The prover will construct another polynomial as follows: $V(X)\ :=\ \mathsf{Mark}(X)\bigl(\mathsf{Mark}(X)-1\bigr)$. It will commit to $V(X)$ and send $K_{V}$ to the verifier. If $\mathsf{Mark}(X)$ is binary for all $X\in H$, then $V(X)$ will be zero for all $X\in H$. If $\mathsf{Mark}(X)$ is not binary for at least one $X\in H$, $V(X)$ will be non-zero at the same $X$. We have converted the constraint $\mathsf{Mark}(X)$ is binary into: 
 
 \begin{enumerate}
 \item $V(X)$ is correctly constructed from $\mathsf{Mark}(X)$
 \item  $V(X)$ it is zero for all $X\in H$. A polynomial that is is zero for all $X\in H$ is called a \textit{vanishing polynomial} (on $H$).
 \end{enumerate}
 
-To prove that $V(X)$ is correctly constructed from $\mathsf{Mark}(X)$, the verifier has $K_{\mathsf{Mark}(X)}$ and $K_{V(X)}$. The verifier will (or the prover using the strong Fiat-Shamir heuristic) choose a random evaluation point $\zeta \notin H$. Using the polynomial commitment scheme, the prover will open the polynomials at the value $\zeta$ sending $V(\zeta)$, $\mathsf{Mark}(\zeta)$, and opening proofs for each to the verifier. The verifier will check the opening proofs and check that $V(\zeta)\ :=\ \mathsf{Mark}(\zeta)\bigl(\mathsf{Mark}(\zeta)-1\bigr)$. Just because the relation holds at the point $\zeta$, what does that say about it holding at each $X\in H$? The answer is that it overwhelmingly holds due to a lemma named Schwartz-Zippel that we will not review further here.
+To prove that $V(X)$ is correctly constructed from $\mathsf{Mark}(X)$, the verifier has $K_{\mathsf{Mark}}$ and $K_{V}$. The verifier will (or the prover using the strong Fiat-Shamir heuristic) choose a random evaluation point $\zeta \notin H$. Using the polynomial commitment scheme, the prover will open the polynomials at the value $\zeta$ sending $V(\zeta)$, $\mathsf{Mark}(\zeta)$, and opening proofs for each to the verifier. The verifier will check the opening proofs and check that $V(\zeta)\ :=\ \mathsf{Mark}(\zeta)\bigl(\mathsf{Mark}(\zeta)-1\bigr)$. Just because the relation holds at the point $\zeta$, what does that say about it holding at each $X\in H$? The answer is that it overwhelmingly holds due to a lemma named Schwartz-Zippel that we will not review further here.
 
-Next the prover will demonstrate that $V(X)$ vanishes on $H$. Recall that $\mathsf{Z}_H(X)=X^n-1$ is a vanishing polynomial on $H$. The prover will construct another polynomial $Q(X):=V(X)/\mathsf{Z}_H(X)$, commits to $Q(X)$, and sends the commitment $K_{Q(X)}$ to the verifier. If and only if $V(X)$ is zero at every point of $H$, $\mathsf{Z}_H(X)$ exactly divides $V(X)$ and results in a proper polynomial $Q(X)$, otherwise $Q(X)$ will be a rational function not reducible to a polynomial. $Q(X):=V(X)/\mathsf{Z}_H(X)$ can be rearranged as $V(X)-Q(X)\cdot(X^n-1)=0$. Using $\zeta$ from above, the prover sends $Q(\zeta)$ and its opening proof. The verifier checks $V(\zeta)-Q(\zeta)\cdot(\zeta^n-1)=0$. By Schwartz–Zippel, if this equality holds at a uniformly random $\zeta\notin H$, then except with negligible probability it holds as a polynomial identity, which implies that $V(X)$ vanishes on $H$. \qed
+Next the prover will demonstrate that $V(X)$ vanishes on $H$. Recall that $\mathsf{Z}_H(X)=X^n-1$ is a vanishing polynomial on $H$. The prover will construct another polynomial $Q(X):=V(X)/\mathsf{Z}_H(X)$, commits to $Q(X)$, and sends the commitment $K_{Q}$ to the verifier. If and only if $V(X)$ is zero at every point of $H$, $\mathsf{Z}_H(X)$ exactly divides $V(X)$ and results in a proper polynomial $Q(X)$, otherwise $Q(X)$ will be a rational function not reducible to a polynomial. $Q(X):=V(X)/\mathsf{Z}_H(X)$ can be rearranged as $V(X)-Q(X)\cdot(X^n-1)=0$. Using $\zeta$ from above, the prover sends $Q(\zeta)$ and its opening proof. The verifier checks $V(\zeta)-Q(\zeta)\cdot(\zeta^n-1)=0$. By Schwartz–Zippel, if this equality holds at a uniformly random $\zeta\notin H$, then except with negligible probability it holds as a polynomial identity, which implies that $V(X)$ vanishes on $H$. \qed
 
 
 \subsection{Zeeperio Constraints}
@@ -110,13 +110,46 @@ Zeeperio uses several public helper polynomials that depend only on the election
 
 The Eperio tables for an election consist of three (padded) columns which will be encoded into polynomials evaluated over $H$. We call the polynomials $\mathsf{Code}(X)$, $\mathsf{Audit}(X)$, and $\mathsf{Mark}(X)$. How each index maps to a unique ballot ID and candidate is provided as a public template and columns will be sorted by ballot ID and then candidate (see Figure~\ref{fig:eperio}). The final tally is a vector $\mathsf{Tally}[0..\mathcal{C}-1]\in\mathbb{F}_q^{\mathcal{C}}$.
 
-Across all the constraints, we will use an additional 5 `helper' polynomials. We will introduce them as needed, however they consist of 3 accumulator polynomials: $\mathsf{Acc}_{\mathsf{Audit}}(X)$,$\mathsf{Acc}_{\mathsf{Mark}}(X)$, and $\mathsf{Acc}_{\mathsf{Vote}}(X)$. As well as two block sum helper polynomials: $\mathsf{BlkSum}_{\mathsf{Audit}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Audit}(\omega^k X)$ and $\mathsf{BlkSum}_{\mathsf{Mark}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Mark}(\omega^k X)$.
+Across all the constraints, we will use an additional 5 `helper' polynomials. We will introduce them as needed, however they consist of 3 accumulator polynomials: $\mathsf{Acc}_{\mathsf{Audit}}(X)$ and $\mathsf{Acc}_{\mathsf{Mark}}(X)$, and $\mathsf{Acc}_{\mathsf{Vote}}(X)$. A (suffix) accumulator polynomial $\mathsf{Acc}_{P}(\omega^{i}) \;=\; \sum_{t=i}^{n-1} P(\omega^{t})$, where $P(X)$ can be replaced with $\mathsf{Code}(X)$, $\mathsf{Audit}(X)$, and $\mathsf{Mark}(X)$. We also defined two block sum helper polynomials: $\mathsf{BlkSum}_{\mathsf{Audit}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Audit}(\omega^k X)$ and $\mathsf{BlkSum}_{\mathsf{Mark}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Mark}(\omega^k X)$.
+
+%\input{figures/constraints.tex}
+
+\subsection{Audit Constraints}
+
+Due to limited space in the paper, we cannot fully explain each of the \constraints constraints. Instead we provide some intuition for them.
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{c1.1}(X)\ &:=\ \mathsf{Audit}(X)\,\mathsf{Z}_{\mathsf{head}}(X)\\
+V_{c1.2}(X)\ &:=\ \mathsf{Audit}(X)\bigl(\mathsf{Audit}(X)-1\bigr) \\
+V_{c1.3}(X)\ &:=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)-\mathcal{C}\bigr) \\
+V_{c1.4}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)+\mathsf{Acc}_{\mathsf{Audit}}(\omega X)\bigr)\cdot(X-\omega^{n-1})\\
+V_{c1.5}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)\bigr)\cdot \mathsf{Mask}_{n-1}(X)\\
+V_{c1.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Sum}_{\mathsf{Audit}\times\mathcal{C}}\bigr)\cdot \mathsf{Mask}_{0}(X)
+\end{aligned}
+\]
+\end{mdframed}
+
+The audit column is well-defined for an election if all padding bits have the value 0 (c1.1) and the column is otherwise binary (c1.2). Each ballot spans $\mathcal{C}$ positions, so the audit column should contain a contiguous block of $\mathcal{C}$ ones for an audited ballot, and a block of $\mathcal{C}$ zeros for unaudited ballots. The mechanism is to compute a block-sum over each ballot, $\mathsf{BlkSum}_{\mathsf{Audit}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Audit}(\omega^k X)$, then restrict attention to ballot-start indices using $\mathsf{Sel}_{\mathsf{blk}}(X)$. For a well-formed audit column, the filtered block-sum is always either $0$ (not audited) or $\mathcal{C}$ (audited), and never an intermediate value. Note that after choosing $\zeta$, in order to check $\mathsf{BlkSum}_{\mathsf{Audit}}(X)$ is well-formed, the verifier requires $\mathcal{C}$ opened points from $\mathsf{Audit}(\omega^0\zeta)$ to $\mathsf{Audit}(\omega^{\mathcal{C}-1}\zeta)$, so this check is linear in $\mathcal{C}$ (but more importantly constant in $\mathcal{P}$ and $n$).
+
+The EA will assert the number of print audits in the election as the integer $\mathsf{Sum}_\mathsf{A}$. Since each print audit ballot contains a block of $\mathcal{C}$ 1's, the number of 1's in $A(X)$ must be $\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}=\mathsf{Sum}_\mathsf{A}\cdot\mathcal{C}$. To reason about the sum across a polynomial on $H$, many protocols use accumulator polynomials~\cite{GWC19,BFGW19}. $\mathsf{Acc}_{\mathsf{Audit}}(X)$ is intended to hold a running suffix-sum of the audit column down the domain order (including padding, which is forced to be $0$ by c1.1):
+
+$$
+\begin{aligned}
+\mathsf{Acc}_{\mathsf{Audit}}(\omega^{i}) &:= \mathsf{Audit}(\omega^{i}) + \mathsf{Acc}_{\mathsf{Audit}}(\omega^{i+1}) \ \ \text{for } i=0,1,\ldots,n-2,\\
+\mathsf{Acc}_{\mathsf{Audit}}(\omega^{n-1}) &:= \mathsf{Audit}(\omega^{n-1}).
+\end{aligned}
+$$
+
+Constraint c1.4 and c1.5 check each line of this recurrance respectively, guarenting that $\mathsf{Acc}_{\mathsf{Audit}}(X)$ is formed correctly. The first value in $\mathsf{Acc}_{\mathsf{Audit}}(X)$ holds the sum, so c1.6 ensures this value is equal to $\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}$. 
+
+\subsection{Mark Constraints}
+
+\subsection{Cross-Column Constraints}
 
 
-
-\input{figures/constraints.tex}
-
-
+\subsection{Tally Constraints}
 
 
 
