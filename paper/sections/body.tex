@@ -107,7 +107,7 @@ Zeeperio uses several public helper polynomials that depend only on the election
 
 The Eperio tables for an election consist of three (padded) columns which will be encoded into polynomials evaluated over $H$. We call the polynomials $\mathsf{Code}(X)$, $\mathsf{Audit}(X)$, and $\mathsf{Mark}(X)$. How each index maps to a unique ballot ID and candidate is provided as a public template and columns will be sorted by ballot ID and then candidate (see Figure~\ref{fig:eperio}). The final tally is a vector $\mathsf{Tally}[0..\mathcal{C}-1]\in\mathbb{F}_q^{\mathcal{C}}$.
 
-Across all the constraints, we will use an additional 5 `helper' polynomials. We will introduce them as needed, however they consist of 3 accumulator polynomials: $\mathsf{Acc}_{\mathsf{Audit}}(X)$ and $\mathsf{Acc}_{\mathsf{Mark}}(X)$, and $\mathsf{Acc}_{\mathsf{Vote}}(X)$. A (suffix) accumulator polynomial $\mathsf{Acc}_{P}(\omega^{i}) \;=\; \sum_{t=i}^{n-1} P(\omega^{t})$, where $P(X)$ can be replaced with $\mathsf{Code}(X)$, $\mathsf{Audit}(X)$, and $\mathsf{Mark}(X)$. We also defined two block sum helper polynomials: $\mathsf{BlkSum}_{\mathsf{Audit}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Audit}(\omega^k X)$ and $\mathsf{BlkSum}_{\mathsf{Mark}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Mark}(\omega^k X)$.
+Across all the constraints, we will use an additional 5 `helper' polynomials. We will introduce them as needed, however they consist of two (additive, suffix) accumulator polynomials: $\mathsf{Acc}_{\mathsf{Audit}}(X)$ and $\mathsf{Acc}_{\mathsf{Mark}}(X)$, where $\mathsf{Acc}_{\mathsf{Audit}}(\omega^{i}) \;=\; \sum_{t=i}^{n-1} \mathsf{Audit}(\omega^{t})$; likewise for $\mathsf{Mark}(X)$. We also define a `stridded' accumulator $\mathsf{Acc}_{\mathsf{Vote}}(X)$ that we will describe with constraints 4. Finally we also define two block sum helper polynomials: $\mathsf{BlkSum}_{\mathsf{Audit}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Audit}(\omega^k X)$ and $\mathsf{BlkSum}_{\mathsf{Mark}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Mark}(\omega^k X)$.
 
 %\input{figures/constraints.tex}
 
@@ -180,16 +180,25 @@ A final constraint demonstrates that no ballot is both voted and audited. This i
 \begin{aligned}
 V_{c4.1}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Vote}}(\omega^{\mathcal{C}}X)\bigr)\cdot \mathsf{Mask}_{\mathsf{tail}}(X) \\
 V_{c4.2}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)\bigr)\cdot \frac{\mathsf{Z}_H(X)}{\mathsf{Mask}_{\mathsf{tail}}(X)}\\
-V_{c4.3,c}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[c]\bigr)\cdot \frac{\mathsf{Z}_H(X)}{X-\omega^{c}}
+V_{c4.3,j}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[j]\bigr)\cdot \frac{\mathsf{Z}_H(X)}{X-\omega^{j}}
 \end{aligned}
 \]
 \end{mdframed}
 
-\textblue{explaination tk}
+The EA will announce the tally as a list of vote totals for each of the $\mathcal{C}$ candidates: $\mathsf{Tally}[j]$ for $j\in\{0,\ldots,\mathcal{C}-1\}$. The marks for candidate $i$ will be in every $i$-th element of $\mathsf{Mark}(X)$ over $H$. The EA will build an additive, suffix accumulator $\mathsf{Acc}_{\mathsf{Vote}}(X)$ however it will be \textit{strided}: 
+
+$$
+\mathsf{Acc}_{\mathsf{Vote}}(\omega^i)\ :=\ \sum_{t=0}^{\left\lfloor\frac{n-1-i}{\mathcal{C}}\right\rfloor}\mathsf{Mark}\!\left(\omega^{\,i+t\mathcal{C}}\right),
+\qquad i\in\{0,\ldots,n-1\}.
+$$
+
+The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note there is no assumption that $c | n$, the sum for some candidates may be one element longer than others. Constraint c4.1 demonstrates the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates the starting values are correct. Constraint c4.3 demonstrates that the published tally matches the sum of each candidate's vote. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
+
+% = = = = = = = = = = = = = = = = = %
 
 \section{Voter Checks}
 
-Eperio, like many voting systems, split the E2E-V proof into two parts: a universal verifiable proof that the tally is correct, and a voter verifiable proof that receipts are correct. All the constraints from Section~\ref{sec:constraints} correspond to the former proof, while in this section we describe the voter verifiable proofs. 
+Eperio, like many voting systems, split the E2E-V proof into two parts: a universal verifiable proof that the tally is correct, and a voter verifiable proof that receipts are correct. All the constraints from Section~\ref{sec:constraints} correspond to the former proof, while in this section we describe the voter verifiable checks.
 
 \subsection{Print Audit}
 \label{sec:print}
