@@ -232,7 +232,122 @@ $$
 $$
 Equivalently, defining $\mathsf{Hit}(X)=\mathsf{Mask}_{\mathsf{ballot}}^{(b)}(X)\cdot \mathsf{Eq}(X)$, the EA proves that $\mathsf{Hit}$ sums to $0$, which implies $\mathsf{Eq}(\omega^i)=0$ for every $i\in I_b$ and hence that the disputed code $c$ does not appear on ballot $b$.
 
+\section{Implementation and Performance Evaluation}
 
+We describe a production-ready implementation of Zeeperio that takes the
+polynomial relations from (Section 3- section 4) and verifies
+them on Ethereum under gas constraints. 
+The system has two parts:
+\begin{itemize}
+  \item an off-chain prover implemented in Rust that constructs the necessary
+  witness columns, forms KZG commitments, and produces batched openings.
+  \item an on-chain verifier implemented as a Solidity smart contract that
+  recomputes Fiat--Shamir challenges, checks KZG openings using BN254 pairings,
+  and validates the aggregated vanishing identities at a single challenge point $\zeta$.
+\end{itemize}
+
+\input{figures/pipeline.tex}
+
+\subsection{Implementation}
+
+\paragraph{Off-chain prover.}
+An election instance is defined by $\mathcal{B}$ ballots and $\mathcal{C}$ candidates, yielding $\mathcal{P}=\mathcal{B}\mathcal{C}$ ballot-candidate
+positions. We pad to the next power of two $n\ge P$ and define the evaluation
+domain $H=\{\omega^0,\ldots,\omega^{n-1}\}$ where $\omega$ is an $n$th root of
+unity. Each length-$n$ column is represented as evaluations on $H$, and the prover deterministically derives the auxiliary columns
+required by the protocol.
+
+All constraints are enforced via vanishing identities over $H$. For each
+constraint we form a polynomial $V_i(X)$ intended to vanish on~$H$, and we
+define the corresponding quotient $Q_i(X)$ such that
+
+\begin{equation*}
+  V_i(X) \;=\; Q_i(X)\cdot Z_H(X), 
+\end{equation*}
+where $Z_H(X)=X^n-1$ is the vanishing polynomial for $H$. 
+Instead of proving each constraint separately, the prover aggregates them using a
+Fiat-Shamir challenge $\alpha$ and proves a single identity at $\zeta$:
+
+\begin{equation*}
+ p_{\textsf{vanish}}(\zeta)
+  \;:=\;
+  \sum_i \alpha^i V_i(\zeta)
+  \;=\;
+  Q(\zeta)\cdot Z_H(\zeta),
+\end{equation*}
+where $Q$ is the aggregated quotient polynomial committed by the prover.
+
+To satisfy the zero-knowledge property, the prover applies \emph{hiding KZG} commitments, where it
+adds a blinding term derived from a $\gamma\cdot g$ SRS basis. Additionally, the prover uses 
+\emph{$Z$-masking} for witness polynomials not meant to be revealed off-domain, and randomizes them as
+$f'(X)=f(X)+\rho(X)\,Z_H(X)$, which preserves evaluations on $H$.
+
+\paragraph{Fiat-Shamir transcript.}
+Challenges are derived non-interactively by hashing public inputs and serialized
+commitments in a fixed order. The transcript yields $(\alpha,\zeta)$ for the main
+proof and additional challenges for the inclusion/shuffle proof.
+Both prover and verifier must share \emph{exact} serialization rules
+(little-endian field encoding and compressed group encoding), otherwise valid
+proofs will be rejected.
+
+\paragraph{Batched openings and ABI export.}
+To keep calldata and gas predictable, the prover batches multiple openings at a
+common point using a folding scalar $\gamma$ and outputs a single witness group
+element per point. The exported ABI payload contains public inputs, labeled
+commitments, a list of opening batches (each with point, $\gamma$, labels, opened
+values, and blinding scalars), and the transcript scalars.
+
+\paragraph{On-chain verifier.}
+The verifier exposes three entrypoints, \texttt{verifyMain(bytes)}, \texttt{verifyInclusion(bytes)}, and \texttt{verifyReceipt(bytes)}.
+Each entrypoint decodes calldata into a structured proof, recomputes transcript
+challenges from the decoded statement and commitments, and rejects if challenges
+do not match.
+
+For each opening batch at point $x$, the contract folds the relevant commitments
+and values, then checks a single KZG pairing equation via the BN254 pairing
+precompile. After all the openings have been validated, the contract reconstructs the required
+evaluations, computes the proof $p_{\textsf{vanish}}(\zeta)$, and checks
+\begin{equation*}
+  p_{\textsf{vanish}}(\zeta)=Q(\zeta)\,(\zeta^n-1).
+\end{equation*}
+
+To keep the EVM logic minimal, commitments and opened values are tagged by
+16-bit labels which help the verifier locate required evaluations via simple scans over
+decoded arrays.
+
+\subsection{Performance Evaluation}
+
+We evaluate Zeeperio along the three axes:
+(i) prover time, (ii) verifier time (including decoding), and (iii) calldata size.
+We report metrics separately for the main proof and the two voter verification proofs.
+
+
+\subsubsection{Benchmark configuration}
+
+As shown in Table \ref{tab:election}, we report metrics for a single election instance with
+$B=100,000$ ballots and $C=8$ candidates. This yields $P=BC=800{,}000$
+ballot-candidate positions, which we pad to the next power-of-two
+$n=\textsf{pow2}(P)=2^{20}=1{,}048{,}576$ to define the evaluation domain
+$H=\{\omega^0,\ldots,\omega^{n-1}\}$.
+For this election, we allocate $10\%$ of ballots to print audits.
+\input{figures/election.tex}
+
+
+\subsubsection{Metrics reported}
+
+We report three deployability metrics for each proof kind:
+(i) prover time, (ii) proof/calldata size, and (iii) on-chain gas.
+
+
+\paragraph{Proof size.}
+We report: number of commitments, number of opening points, total opened labels,
+and ABI calldata length in bytes.
+
+\paragraph{On-chain cost.}
+We report gas used by \texttt{verifyMain}, \texttt{verifyInclusion}, and
+\texttt{verifyReceipt}.
+
+\input{figures/evaluations.tex}
 
 %Zeeperio shifts from statistical audits to cryptographic arguments of knowledge. 
 %At a high level, Zeeperio uses the Poly-IOP model to encodes the entire state of an election as a small set of polynomials. 
@@ -273,6 +388,8 @@ Equivalently, defining $\mathsf{Hit}(X)=\mathsf{Mask}_{\mathsf{ballot}}^{(b)}(X)
 %\end{description}
 %
 %
+
+
 %\section{Preliminaries}
 %
 %We now introduce the cryptographic tools used in Zeeperio.
