@@ -1,0 +1,13 @@
+[package]
+name = "zeeperio-types"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ark-bn254 = "0.4"
+ark-ec = "0.4"
+ark-ff = "0.4"
+ark-serialize = "0.4"
+base64 = "0.22"
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"

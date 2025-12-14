@@ -1,0 +1,401 @@
+[
+  {"ballot_id":"001","audit":0,"mark":1,"code":4923486522},
+  {"ballot_id":"001","audit":0,"mark":0,"code":9263928202},
+  {"ballot_id":"001","audit":0,"mark":0,"code":3976458823},
+
+  {"ballot_id":"002","audit":0,"mark":0,"code":1935498254},
+  {"ballot_id":"002","audit":0,"mark":1,"code":2837461920},
+  {"ballot_id":"002","audit":0,"mark":0,"code":1048576001},
+
+  {"ballot_id":"003","audit":1,"mark":0,"code":5647381910},
+  {"ballot_id":"003","audit":1,"mark":0,"code":6797493021},
+  {"ballot_id":"003","audit":1,"mark":0,"code":7869038132},
+
+  {"ballot_id":"004","audit":0,"mark":1,"code":3456721980},
+  {"ballot_id":"004","audit":0,"mark":0,"code":9081726354},
+  {"ballot_id":"004","audit":0,"mark":0,"code":1234567890},
+  
+  {"ballot_id":"005","audit":1,"mark":0,"code":5678901234},
+  {"ballot_id":"005","audit":1,"mark":0,"code":6789012345},
+  {"ballot_id":"005","audit":1,"mark":0,"code":7890123456},
+
+  {"ballot_id":"006","audit":0,"mark":0,"code":8901234567},
+  {"ballot_id":"006","audit":0,"mark":1,"code":9012345678},
+  {"ballot_id":"006","audit":0,"mark":0,"code":1122334455},
+
+  {"ballot_id":"007","audit":0,"mark":0,"code":2233445566},
+  {"ballot_id":"007","audit":0,"mark":1,"code":3344556677},
+  {"ballot_id":"007","audit":0,"mark":0,"code":4455667788},
+
+  {"ballot_id":"008","audit":1,"mark":0,"code":5566778899},
+  {"ballot_id":"008","audit":1,"mark":0,"code":6677889900},
+  {"ballot_id":"008","audit":1,"mark":0,"code":7788990011},
+
+  {"ballot_id":"009","audit":0,"mark":1,"code":8899001122},
+  {"ballot_id":"009","audit":0,"mark":0,"code":9900112233},
+  {"ballot_id":"009","audit":0,"mark":0,"code":1011121314},
+  
+  {"ballot_id":"010","audit":0,"mark":0,"code":1213141516},
+  {"ballot_id":"010","audit":0,"mark":1,"code":1314151617},
+  {"ballot_id":"010","audit":0,"mark":0,"code":1415161718},
+
+  {"ballot_id":"011","audit":1,"mark":0,"code":1516171819},
+  {"ballot_id":"011","audit":1,"mark":0,"code":1617181920},
+  {"ballot_id":"011","audit":1,"mark":0,"code":1718192021},
+
+  {"ballot_id":"012","audit":0,"mark":0,"code":1819202122},
+  {"ballot_id":"012","audit":0,"mark":1,"code":1920212223},
+  {"ballot_id":"012","audit":0,"mark":0,"code":2021222324},
+
+  {"ballot_id":"013","audit":0,"mark":0,"code":2122232425},
+  {"ballot_id":"013","audit":0,"mark":1,"code":2223242526},
+  {"ballot_id":"013","audit":0,"mark":0,"code":2324252627},
+
+  {"ballot_id":"014","audit":1,"mark":0,"code":2425262728},
+  {"ballot_id":"014","audit":1,"mark":0,"code":2526272829},
+  {"ballot_id":"014","audit":1,"mark":0,"code":2627282930},
+
+  {"ballot_id":"015","audit":0,"mark":1,"code":2728293031},
+  {"ballot_id":"015","audit":0,"mark":0,"code":2829303132},
+  {"ballot_id":"015","audit":0,"mark":0,"code":2930313233},
+
+  {"ballot_id":"016","audit":0,"mark":0,"code":3031323334},
+  {"ballot_id":"016","audit":0,"mark":1,"code":3132333435},
+  {"ballot_id":"016","audit":0,"mark":0,"code":3233343536},
+
+  {"ballot_id":"017","audit":1,"mark":0,"code":3334353637},
+  {"ballot_id":"017","audit":1,"mark":0,"code":3435363738},
+  {"ballot_id":"017","audit":1,"mark":0,"code":3536373839},
+
+  {"ballot_id":"018","audit":0,"mark":0,"code":3637383940},
+  {"ballot_id":"018","audit":0,"mark":1,"code":3738394041},
+  {"ballot_id":"018","audit":0,"mark":0,"code":3839404142},
+
+  {"ballot_id":"019","audit":0,"mark":0,"code":3940414243},
+  {"ballot_id":"019","audit":0,"mark":1,"code":4041424344},
+  {"ballot_id":"019","audit":0,"mark":0,"code":4142434445},
+
+  {"ballot_id":"020","audit":1,"mark":0,"code":4243444546},
+  {"ballot_id":"020","audit":1,"mark":0,"code":4344454647},
+  {"ballot_id":"020","audit":1,"mark":0,"code":4445464748},
+
+  {"ballot_id":"021","audit":0,"mark":1,"code":4546474849},
+  {"ballot_id":"021","audit":0,"mark":0,"code":4647484950},
+  {"ballot_id":"021","audit":0,"mark":0,"code":4748495051}, 
+
+  {"ballot_id":"022","audit":0,"mark":0,"code":4849505152},
+  {"ballot_id":"022","audit":0,"mark":0,"code":4950515253},
+  {"ballot_id":"022","audit":0,"mark":1,"code":5051525354},
+
+  {"ballot_id":"023","audit":1,"mark":0,"code":5152535455},
+  {"ballot_id":"023","audit":1,"mark":0,"code":5253545556},
+  {"ballot_id":"023","audit":1,"mark":0,"code":5354555657},
+
+  {"ballot_id":"024","audit":0,"mark":0,"code":5455565758},
+  {"ballot_id":"024","audit":0,"mark":0,"code":5556575859},
+  {"ballot_id":"024","audit":0,"mark":1,"code":5657585960},
+
+  {"ballot_id":"025","audit":1,"mark":0,"code":5758596061},
+  {"ballot_id":"025","audit":1,"mark":0,"code":5859606162},
+  {"ballot_id":"025","audit":1,"mark":0,"code":5960616263},
+
+  {"ballot_id":"026","audit":0,"mark":0,"code":6061626364},
+  {"ballot_id":"026","audit":0,"mark":1,"code":6162636465},
+  {"ballot_id":"026","audit":0,"mark":0,"code":6263646566},
+
+  {"ballot_id":"027","audit":0,"mark":0,"code":6364656667},
+  {"ballot_id":"027","audit":0,"mark":1,"code":6465666768},
+  {"ballot_id":"027","audit":0,"mark":0,"code":6566676869},
+
+  {"ballot_id":"028","audit":1,"mark":0,"code":6667686970},
+  {"ballot_id":"028","audit":1,"mark":0,"code":6768697071},
+  {"ballot_id":"028","audit":1,"mark":0,"code":6869707172},
+
+  {"ballot_id":"029","audit":0,"mark":1,"code":6970717273},
+  {"ballot_id":"029","audit":0,"mark":0,"code":7071727374},
+  {"ballot_id":"029","audit":0,"mark":0,"code":7172737475},
+
+  {"ballot_id":"030","audit":0,"mark":0,"code":7273747576},
+  {"ballot_id":"030","audit":0,"mark":0,"code":7374757677},
+  {"ballot_id":"030","audit":0,"mark":1,"code":7475767778},
+
+  {"ballot_id":"031","audit":1,"mark":0,"code":7576777879},
+  {"ballot_id":"031","audit":1,"mark":0,"code":7677787980},
+  {"ballot_id":"031","audit":1,"mark":0,"code":7778798081},
+
+  {"ballot_id":"032","audit":0,"mark":0,"code":7879808182},
+  {"ballot_id":"032","audit":0,"mark":1,"code":7980818283},
+  {"ballot_id":"032","audit":0,"mark":0,"code":8081828384},
+
+  {"ballot_id":"033","audit":0,"mark":0,"code":8182838485},
+  {"ballot_id":"033","audit":0,"mark":1,"code":8283848586},
+  {"ballot_id":"033","audit":0,"mark":0,"code":8384858687},
+
+  {"ballot_id":"034","audit":1,"mark":0,"code":8485868788},
+  {"ballot_id":"034","audit":1,"mark":0,"code":8586878889},
+  {"ballot_id":"034","audit":1,"mark":0,"code":8687888990},
+
+  {"ballot_id":"035","audit":0,"mark":1,"code":8788899091},
+  {"ballot_id":"035","audit":0,"mark":0,"code":8889909192},
+  {"ballot_id":"035","audit":0,"mark":0,"code":8990919293},
+
+  {"ballot_id":"036","audit":0,"mark":0,"code":9091929394},
+  {"ballot_id":"036","audit":0,"mark":1,"code":9192939495},
+  {"ballot_id":"036","audit":0,"mark":0,"code":9293949596},
+
+  {"ballot_id":"037","audit":1,"mark":0,"code":9394959697},
+  {"ballot_id":"037","audit":1,"mark":0,"code":9495969798},
+  {"ballot_id":"037","audit":1,"mark":0,"code":9596979899},
+
+  {"ballot_id":"038","audit":0,"mark":0,"code":9697989900},
+  {"ballot_id":"038","audit":0,"mark":1,"code":9798991001},
+  {"ballot_id":"038","audit":0,"mark":0,"code":9899001012},
+
+  {"ballot_id":"039","audit":0,"mark":0,"code":9901011123},
+  {"ballot_id":"039","audit":0,"mark":0,"code":1001121314},
+  {"ballot_id":"039","audit":0,"mark":1,"code":1011131415},
+
+  {"ballot_id":"040","audit":1,"mark":0,"code":1021141516},
+  {"ballot_id":"040","audit":1,"mark":0,"code":1031151617},
+  {"ballot_id":"040","audit":1,"mark":0,"code":1041161718},
+
+  {"ballot_id":"041","audit":0,"mark":1,"code":1051171819},
+  {"ballot_id":"041","audit":0,"mark":0,"code":1061181920},
+  {"ballot_id":"041","audit":0,"mark":0,"code":1071192021},
+
+  {"ballot_id":"042","audit":0,"mark":0,"code":1081202122},
+  {"ballot_id":"042","audit":0,"mark":1,"code":1091212223},
+  {"ballot_id":"042","audit":0,"mark":0,"code":1101222324},
+
+  {"ballot_id":"043","audit":1,"mark":0,"code":1111232425},
+  {"ballot_id":"043","audit":1,"mark":0,"code":1121242526},
+  {"ballot_id":"043","audit":1,"mark":0,"code":1131252627},
+
+  {"ballot_id":"044","audit":0,"mark":1,"code":1141262728},
+  {"ballot_id":"044","audit":0,"mark":0,"code":1151272829},
+  {"ballot_id":"044","audit":0,"mark":0,"code":1161282930},
+
+  {"ballot_id":"045","audit":0,"mark":0,"code":1171293031},
+  {"ballot_id":"045","audit":0,"mark":1,"code":1181303132},
+  {"ballot_id":"045","audit":0,"mark":0,"code":1191313233},
+
+  {"ballot_id":"046","audit":1,"mark":0,"code":1201323334},
+  {"ballot_id":"046","audit":1,"mark":0,"code":1211333435},
+  {"ballot_id":"046","audit":1,"mark":0,"code":1221343536}, 
+
+  {"ballot_id":"047","audit":0,"mark":0,"code":1231353637},
+  {"ballot_id":"047","audit":0,"mark":1,"code":1241363738},
+  {"ballot_id":"047","audit":0,"mark":0,"code":1251373839},
+
+  {"ballot_id":"048","audit":0,"mark":0,"code":1261383940},
+  {"ballot_id":"048","audit":0,"mark":1,"code":1271394041},
+  {"ballot_id":"048","audit":0,"mark":0,"code":1281404142},
+
+  {"ballot_id":"049","audit":1,"mark":0,"code":1291414243},
+  {"ballot_id":"049","audit":1,"mark":0,"code":1301424344},
+  {"ballot_id":"049","audit":1,"mark":0,"code":1311434445},
+
+  {"ballot_id":"050","audit":0,"mark":1,"code":1321444546},
+  {"ballot_id":"050","audit":0,"mark":0,"code":1331454647},
+  {"ballot_id":"050","audit":0,"mark":0,"code":1341464748}, 
+
+  {"ballot_id":"051","audit":0,"mark":0,"code":1351474849},
+  {"ballot_id":"051","audit":0,"mark":1,"code":1361484950},
+  {"ballot_id":"051","audit":0,"mark":0,"code":1371495051}, 
+
+  {"ballot_id":"052","audit":1,"mark":0,"code":1381505152},
+  {"ballot_id":"052","audit":1,"mark":0,"code":1391515253},
+  {"ballot_id":"052","audit":1,"mark":0,"code":1401525354},
+
+  {"ballot_id":"053","audit":0,"mark":1,"code":1411535455},
+  {"ballot_id":"053","audit":0,"mark":0,"code":1421545556},
+  {"ballot_id":"053","audit":0,"mark":0,"code":1431555657},
+
+  {"ballot_id":"054","audit":0,"mark":0,"code":1441565758},
+  {"ballot_id":"054","audit":0,"mark":1,"code":1451575859},
+  {"ballot_id":"054","audit":0,"mark":0,"code":1461585960},
+
+  {"ballot_id":"055","audit":1,"mark":0,"code":1471596061},
+  {"ballot_id":"055","audit":1,"mark":0,"code":1481606162},
+  {"ballot_id":"055","audit":1,"mark":0,"code":1491616263},
+
+  {"ballot_id":"056","audit":0,"mark":0,"code":1501626364},
+  {"ballot_id":"056","audit":0,"mark":1,"code":1511636465},
+  {"ballot_id":"056","audit":0,"mark":0,"code":1521646566},
+
+  {"ballot_id":"057","audit":0,"mark":0,"code":1531656667},
+  {"ballot_id":"057","audit":0,"mark":0,"code":1541666768},
+  {"ballot_id":"057","audit":0,"mark":1,"code":1551676869},
+
+  {"ballot_id":"058","audit":1,"mark":0,"code":1561686970},
+  {"ballot_id":"058","audit":1,"mark":0,"code":1571697071},
+  {"ballot_id":"058","audit":1,"mark":0,"code":1581707172},
+
+  {"ballot_id":"059","audit":0,"mark":1,"code":1591717273},
+  {"ballot_id":"059","audit":0,"mark":0,"code":1601727374},
+  {"ballot_id":"059","audit":0,"mark":0,"code":1611737475},
+
+  {"ballot_id":"060","audit":0,"mark":0,"code":1621747576},
+  {"ballot_id":"060","audit":0,"mark":1,"code":1631757677},
+  {"ballot_id":"060","audit":0,"mark":0,"code":1641767778},
+
+  {"ballot_id":"061","audit":1,"mark":0,"code":1651777879},
+  {"ballot_id":"061","audit":1,"mark":0,"code":1661787980},
+  {"ballot_id":"061","audit":1,"mark":0,"code":1671798081},
+
+  {"ballot_id":"062","audit":0,"mark":0,"code":1681808182},
+  {"ballot_id":"062","audit":0,"mark":1,"code":1691818283},
+  {"ballot_id":"062","audit":0,"mark":0,"code":1701828384},
+
+  {"ballot_id":"063","audit":0,"mark":0,"code":1711838485},
+  {"ballot_id":"063","audit":0,"mark":1,"code":1721848586},
+  {"ballot_id":"063","audit":0,"mark":0,"code":1731858687},
+
+  {"ballot_id":"064","audit":1,"mark":0,"code":1741868788},
+  {"ballot_id":"064","audit":1,"mark":0,"code":1751878889},
+  {"ballot_id":"064","audit":1,"mark":0,"code":1761888990},
+
+  {"ballot_id":"065","audit":0,"mark":1,"code":1771899091},
+  {"ballot_id":"065","audit":0,"mark":0,"code":1781909192},
+  {"ballot_id":"065","audit":0,"mark":0,"code":1791919293},
+
+  {"ballot_id":"066","audit":0,"mark":0,"code":1801929394},
+  {"ballot_id":"066","audit":0,"mark":0,"code":1811939495},
+  {"ballot_id":"066","audit":0,"mark":1,"code":1821949596},
+
+  {"ballot_id":"067","audit":1,"mark":0,"code":1831959697},
+  {"ballot_id":"067","audit":1,"mark":0,"code":1841969798},
+  {"ballot_id":"067","audit":1,"mark":0,"code":1851979899},
+
+  {"ballot_id":"068","audit":0,"mark":0,"code":1861989900},
+  {"ballot_id":"068","audit":0,"mark":1,"code":1871991001},
+  {"ballot_id":"068","audit":0,"mark":0,"code":1882001012},
+
+  {"ballot_id":"069","audit":0,"mark":0,"code":1892011123},
+  {"ballot_id":"069","audit":0,"mark":1,"code":1902021314},
+  {"ballot_id":"069","audit":0,"mark":0,"code":1912031415},
+
+  {"ballot_id":"070","audit":1,"mark":0,"code":1922041516},
+  {"ballot_id":"070","audit":1,"mark":0,"code":1932051617},
+  {"ballot_id":"070","audit":1,"mark":0,"code":1942061718},
+
+  {"ballot_id":"071","audit":0,"mark":1,"code":1952071819},
+  {"ballot_id":"071","audit":0,"mark":0,"code":1962081920},
+  {"ballot_id":"071","audit":0,"mark":0,"code":1972092021},
+
+  {"ballot_id":"072","audit":0,"mark":0,"code":1982102122},
+  {"ballot_id":"072","audit":0,"mark":1,"code":1992112223},
+  {"ballot_id":"072","audit":0,"mark":0,"code":2002122324},
+
+  {"ballot_id":"073","audit":1,"mark":0,"code":2012132425},
+  {"ballot_id":"073","audit":1,"mark":0,"code":2022142526},
+  {"ballot_id":"073","audit":1,"mark":0,"code":2032152627},
+
+  {"ballot_id":"074","audit":0,"mark":1,"code":2042162728},
+  {"ballot_id":"074","audit":0,"mark":0,"code":2052172829},
+  {"ballot_id":"074","audit":0,"mark":0,"code":2062182930},
+
+  {"ballot_id":"075","audit":0,"mark":0,"code":2072193031},
+  {"ballot_id":"075","audit":0,"mark":0,"code":2082203132},
+  {"ballot_id":"075","audit":0,"mark":1,"code":2092213233},
+
+  {"ballot_id":"076","audit":1,"mark":0,"code":2102223334},
+  {"ballot_id":"076","audit":1,"mark":0,"code":2112233435},
+  {"ballot_id":"076","audit":1,"mark":0,"code":2122243536},
+
+  {"ballot_id":"077","audit":0,"mark":0,"code":2132253637},
+  {"ballot_id":"077","audit":0,"mark":1,"code":2142263738},
+  {"ballot_id":"077","audit":0,"mark":0,"code":2152273839},
+
+  {"ballot_id":"078","audit":0,"mark":0,"code":2162283940},
+  {"ballot_id":"078","audit":0,"mark":1,"code":2172294041},
+  {"ballot_id":"078","audit":0,"mark":0,"code":2182304142},
+
+  {"ballot_id":"079","audit":1,"mark":0,"code":2192314243},
+  {"ballot_id":"079","audit":1,"mark":0,"code":2202324344},
+  {"ballot_id":"079","audit":1,"mark":0,"code":2212334445},
+
+  {"ballot_id":"080","audit":0,"mark":1,"code":2222344546},
+  {"ballot_id":"080","audit":0,"mark":0,"code":2232354647},
+  {"ballot_id":"080","audit":0,"mark":0,"code":2242364748},
+
+  {"ballot_id":"081","audit":0,"mark":0,"code":2252374849},
+  {"ballot_id":"081","audit":0,"mark":1,"code":2262384950},
+  {"ballot_id":"081","audit":0,"mark":0,"code":2272395051}, 
+
+  {"ballot_id":"082","audit":1,"mark":0,"code":2282405152},
+  {"ballot_id":"082","audit":1,"mark":0,"code":2292415253},
+  {"ballot_id":"082","audit":1,"mark":0,"code":2302425354},
+
+  {"ballot_id":"083","audit":0,"mark":1,"code":2312435455},
+  {"ballot_id":"083","audit":0,"mark":0,"code":2322445556},
+  {"ballot_id":"083","audit":0,"mark":0,"code":2332455657},
+
+  {"ballot_id":"084","audit":0,"mark":0,"code":2342465758},
+  {"ballot_id":"084","audit":0,"mark":0,"code":2352475859},
+  {"ballot_id":"084","audit":0,"mark":1,"code":2362485960},
+
+  {"ballot_id":"085","audit":1,"mark":0,"code":2372496061},
+  {"ballot_id":"085","audit":1,"mark":0,"code":2382506162},
+  {"ballot_id":"085","audit":1,"mark":0,"code":2392516263},
+
+  {"ballot_id":"086","audit":0,"mark":0,"code":2402526364},
+  {"ballot_id":"086","audit":0,"mark":1,"code":2412536465},
+  {"ballot_id":"086","audit":0,"mark":0,"code":2422546566},
+
+  {"ballot_id":"087","audit":0,"mark":0,"code":2432556667},
+  {"ballot_id":"087","audit":0,"mark":1,"code":2442566768},
+  {"ballot_id":"087","audit":0,"mark":0,"code":2452576869},
+
+  {"ballot_id":"088","audit":1,"mark":0,"code":2462586970},
+  {"ballot_id":"088","audit":1,"mark":0,"code":2472597071},
+  {"ballot_id":"088","audit":1,"mark":0,"code":2482607172},
+
+  {"ballot_id":"089","audit":0,"mark":1,"code":2492617273},
+  {"ballot_id":"089","audit":0,"mark":0,"code":2502627374},
+  {"ballot_id":"089","audit":0,"mark":0,"code":2512637475},
+
+  {"ballot_id":"090","audit":0,"mark":0,"code":2522647576},
+  {"ballot_id":"090","audit":0,"mark":1,"code":2532657677},
+  {"ballot_id":"090","audit":0,"mark":0,"code":2542667778},
+
+  {"ballot_id":"091","audit":1,"mark":0,"code":2552677879},
+  {"ballot_id":"091","audit":1,"mark":0,"code":2562687980},
+  {"ballot_id":"091","audit":1,"mark":0,"code":2572698081},
+
+  {"ballot_id":"092","audit":0,"mark":0,"code":2582708182},
+  {"ballot_id":"092","audit":0,"mark":1,"code":2592718283},
+  {"ballot_id":"092","audit":0,"mark":0,"code":2602728384},
+
+  {"ballot_id":"093","audit":0,"mark":0,"code":2612738485},
+  {"ballot_id":"093","audit":0,"mark":1,"code":2622748586},
+  {"ballot_id":"093","audit":0,"mark":0,"code":2632758687},
+
+  {"ballot_id":"094","audit":1,"mark":0,"code":2642768788},
+  {"ballot_id":"094","audit":1,"mark":0,"code":2652778889},
+  {"ballot_id":"094","audit":1,"mark":0,"code":2662788990},
+
+  {"ballot_id":"095","audit":0,"mark":1,"code":2672799091},
+  {"ballot_id":"095","audit":0,"mark":0,"code":2682809192},
+  {"ballot_id":"095","audit":0,"mark":0,"code":2692819293},
+
+  {"ballot_id":"096","audit":0,"mark":0,"code":2702829394},
+  {"ballot_id":"096","audit":0,"mark":1,"code":2712839495},
+  {"ballot_id":"096","audit":0,"mark":0,"code":2722849596},
+
+  {"ballot_id":"097","audit":1,"mark":0,"code":2732859697},
+  {"ballot_id":"097","audit":1,"mark":0,"code":2742869798},
+  {"ballot_id":"097","audit":1,"mark":0,"code":2752879899},
+
+  {"ballot_id":"098","audit":0,"mark":0,"code":2762889900},
+  {"ballot_id":"098","audit":0,"mark":1,"code":2772891001},
+  {"ballot_id":"098","audit":0,"mark":0,"code":2782901012},
+
+  {"ballot_id":"099","audit":0,"mark":0,"code":2792911123},
+  {"ballot_id":"099","audit":0,"mark":1,"code":2802921314},
+  {"ballot_id":"099","audit":0,"mark":0,"code":2812931415},
+
+  {"ballot_id":"100","audit":1,"mark":0,"code":2822941516},
+  {"ballot_id":"100","audit":1,"mark":0,"code":2832951617},
+  {"ballot_id":"100","audit":1,"mark":0,"code":2842961718}
+]

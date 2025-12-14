@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "crates/zeeperio-types",
+    "crates/zeeperio-kzg",
+    "crates/zeeperio-core",
+    "crates/zeeperio-cli",
+]
+resolver = "2"

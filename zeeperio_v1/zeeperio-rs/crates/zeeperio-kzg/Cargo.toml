@@ -1,0 +1,21 @@
+[package]
+name = "zeeperio-kzg"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ark-bn254 = "0.4"
+ark-ec = "0.4"
+ark-ff = "0.4"
+ark-poly = "0.4"
+ark-poly-commit = "0.4"
+ark-serialize = "0.4"
+blake3 = "1"
+byteorder = "1"
+rand = "0.8"
+sha2 = "0.10"
+thiserror = "1"
+zeeperio-types = { path = "../zeeperio-types" }
+
+[dev-dependencies]
+tempfile = "3"
