@@ -1,6 +1,6 @@
 % !TEX root = ../main.tex
 \begin{abstract}
 
-The size of a Zeeperio proof is constant in the number of ballots and voters in an election, as is the time to verify it. It is compact enough for autonomous verification by a smart contract on a blockchain, such as Ethereum. 
+In this paper, we are interesting in whether an autonomous smart contract can verify an election. In this paper, we revisit the Eperio election backend that enables end-to-end verifiability (E2E-V) for a variety of ballot styles. Eperio proofs simple enough to verify with spreadsheet software. The roadblock to on-chain verification of Eperio proofs is the data size, which is linear in the number of voters. We propose Zeeperio, which replaces Eperio's cut-and-choose proof with a custom succinct zero-knowledge argument.  The size of a Zeeperio proof is constant in the number of ballots and voters in an election, as is the time to verify it. We implement Zeeperio and demonstrate its proofs can be verified by a smart contract running on Ethereum. 
 
 \end{abstract}
