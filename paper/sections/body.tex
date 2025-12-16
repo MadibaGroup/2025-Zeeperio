@@ -8,7 +8,7 @@ In this paper, we contribute to a broader discussion the cryptographic voting co
 
 Flavours of Realcryptik already permeate the research literature. Despite opposition to internet voting, Helios~\cite{Adi08} is perhaps the most used E2E-V voting technology. While researchers argue coercion resistance is essential for internet voting, Helios provides none. Scantegrity II~\cite{CCC+08} was the first E2E-V system to see governmental use. It is built around the compromise that in a paper ballot system, it is acceptable for optical scanner to learn how the voter voted, side-stepping the complex ballot mechanics its predecessors to avoid this. In recent years, serious discussions have arose around whether E2E-V should be largely abandoned in favor of risk limiting audits? Should we affirm the use of ballot marking devices when we know most voters do not carefully check their output?
 
-We propose a different compromise in this paper: let EAs and their vendors see the raw ballots, while protecting them from all outsiders (receipt-freeness). For the EA, we still rely on legal protections implemented through procedures but not offer cryptographic protection. \textblue{Should add more arguments...}
+We propose a different compromise in this paper: let EAs and their vendors see the raw ballots, while protecting them from all outsiders (receipt-freeness). For the EA, we still rely on legal protections implemented through procedures but not offer cryptographic protection.
 
 The research question of this paper is how to modify the cryptography of an E2E-V voting system to provide integrity, without the need to maintain ballot secrecy from the EA (but still provide receipt-freeness otherwise). The simpler threat model means we can streamline the cryptography, in particular we can prove that encrypted (or committed in our case) ballots are tallied correctly rather than computing the tally under encryption. This shifts the protocol away from multiparty computation and threshold cryptography to essentially an all encompassing zero knowledge proof (ZKP). While ZKPs have been used in voting systems from almost their invention in 1980s and onward, we focus on modern succinct ZKPs called zk-SNARKs.
 
@@ -21,6 +21,14 @@ Our contribution is designing a custom succinct argument for Eperio that we call
 \section{Background and Related Work}
 
 \subsection{Eperio}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=\textwidth]{figures/zeeperio.pdf}
+\caption{default\label{default}}
+\end{center}
+\end{figure}
+
 
 We assume the reader is already familiar with end-to-end verifiable (E2E-V) voting protocols which allow for: (i) an election authority to prove an election tally is computed correctly without learning individual voter choices, and for (ii) voters to check their individual ballots are included unmodified in the tally without being able to reveal how they voted to anyone else. Eperio is an E2E-V tallying protocol (or `backend') that composes with several styles of paper ballots, including Pret a Voter and Scantegrity I. A brief description of Eperio is provided in Figure~\ref{fig:eperio} with a Pret a Voter style ballot.
 
