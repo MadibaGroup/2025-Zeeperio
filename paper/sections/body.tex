@@ -24,7 +24,7 @@ Our contribution is designing a custom succinct argument for Eperio that we call
 
 \begin{figure}[t!]
 \begin{center}
-\includegraphics[width=\textwidth]{figures/zeeperio.pdf}
+\includegraphics[clip, trim=0cm 15cm 0cm 10cm,width=\textwidth]{figures/zeeperio.pdf}
 \caption{An Eperio/Zeeperio table illustrated with Scantegrity~II ballots which reveal a hidden confirmation code for each selection marked. Eperio commits to columns: ballot, position, mark, selection (it technically does not work with Scantegrity II so selection will encode a Scantegrity I or Pret a Voter layout). Many copies are made, shuffled row-wise, and based on random coin tosses, the EA opens \{ballot, position, mark\} or they open \{mark, selection\} enabling receipt checks and tally checks respectively. We omit how Eperio handles print audits. In Zeeperio, the table is not shuffled so the white columns are public information and not committed to. The pink columns are padded (purpose described below) and committed to. The EA uses these commitment to demonstrate certain properties (constraints) hold for each pink column.\label{fig:eperio}}
 \end{center}
 \end{figure}
