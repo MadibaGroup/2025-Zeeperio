@@ -22,10 +22,10 @@ Our contribution is designing a custom succinct argument for Eperio that we call
 
 \subsection{Eperio}
 
-\begin{figure}[t]
+\begin{figure}[t!]
 \begin{center}
 \includegraphics[width=\textwidth]{figures/zeeperio.pdf}
-\caption{default\label{default}}
+\caption{An Eperio/Zeeperio table illustrated with Scantegrity~II ballots which reveal a hidden confirmation code for each selection marked. Eperio commits to columns: ballot, position, mark, selection (it technically does not work with Scantegrity II so selection will encode a Scantegrity I or Pret a Voter layout). Many copies are made, shuffled row-wise, and based on random coin tosses, the EA opens \{ballot, position, mark\} or they open \{mark, selection\} enabling receipt checks and tally checks respectively. We omit how Eperio handles print audits. In Zeeperio, the table is not shuffled so the white columns are public information and not committed to. The pink columns are padded (purpose described below) and committed to. The EA uses these commitment to demonstrate certain properties (constraints) hold for each pink column.\label{fig:eperio}}
 \end{center}
 \end{figure}
 
@@ -167,7 +167,7 @@ V_{c2.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Sum}_{\mathsf{Ma
 \]
 \end{mdframed}
 
-The constraints on the mark column parallel the constraints on the audit column. Padding is zero (c2.1), the column is binary (c2.2), and the total number of votes matches the sum announced by the election authority $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). Since it is binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, which is c2.3.
+The constraints on the mark column parallel the constraints on the audit column. Padding is zero (c2.1), the column is binary (c2.2), and the total number of votes matches the sum announced by the election authority $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). Since it is binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, which is c2.3. We assume that over-voted ballots are rejected by the scanner or automatically converted into print audit ballots. 
 
 \subsection{Cross-Column Constraints}
 
@@ -275,7 +275,9 @@ For this election, we allocate $10\%$ of ballots to print audits.
 
 Zeeperio is a succinct proof of an Eperio-encoded election that can be autonomously verified by a smart contract. Even if the reader does not buy the notion of Realcryptik, that not hiding raw ballots from the EA can be a stepping stone to full E2E-V elections, Zeeperio is still useful as a drop-in (or complimentary) mechanism for standard Eperio. Eperio (like Scantegrity and Punchscan) makes a `blackbox assumption' for ballot privacy that can be extended to Zeeperio. This leads to a natural path for vendors to follow: get comfortable with Zeeprio and then run it in a TEE for full E2E-V.
 
-It was difficult to adequately explain Zeeperio in a conference-length paper. We note that a full version of this work, in the form of a thesis, explains each constraint in detail, offers broader discussion of the implementation, and provides sketches of security arguments.\footnote{Link withheld for anonymity.}
+It was difficult to adequately explain Zeeperio in a conference-length paper. We note that a full version of this work, in the form of a thesis, explains each constraint in detail, offers broader discussion of the implementation, and provides sketches of security arguments.\footnote{Link withheld for anonymity.} The surface area of the security analysis is small. On one side, Eperio has already been shown to satisfy end-to-end verifiability in both a cryptographic treatment~\cite{eperio} and a formal-methods treatment~\cite{basin}. On the other side, modern PIOP-based zk-SNARK constructions justify proving collections of algebraic constraints by reducing them to vanishing-polynomial checks. The remaining gap is therefore narrow but essential: do our specific vanishing constraints characterize the same relation that Eperio intends to enforce?
+
+%We address this gap by treating Eperio as a semantic relation $R_{\textsf{Eperio}}$ over the bulletin-board data and a private witness (the election tables and auxiliary randomness), and by proving an adequacy theorem for Zeeperio’s constraint system: if all Zeeperio vanishing polynomials vanish on the evaluation domain, then the instance satisfies $R_{\textsf{Eperio}}$ and, in particular, the published tally equals the tally induced by the committed mark column under the canonical ballot layout. In this sense, the proof obligation is the same one that arises for any implementation strategy—whether a software implementation, a circuit in a general-purpose ZK system, or a mechanized formal model—namely, to show that the implemented checks correspond to the intended relation. Our theorem makes this correspondence explicit at the level of the algebraic constraints, leaving only the standard assumptions inherited from the underlying Eperio analysis and the soundness/zero-knowledge guarantees of the PIOP instantiation.
 
 
 
