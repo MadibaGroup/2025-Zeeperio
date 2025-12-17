@@ -1,4 +1,4 @@
-\begin{table}[t]
+\begin{table}[t!]
 \centering
 \caption{Implementation metrics for $B=100{,}000$, $C=8$}
 \label{tab:eval}
@@ -6,11 +6,12 @@
 \hline
 \textbf{Metric} & \textbf{Main} & \textbf{Inclusion} & \textbf{Receipt} \\
 \hline
-Prover time (s) & \texttt{[]} & \texttt{[]} & \texttt{[]} \\
-Commitments (\#) & \texttt{[]} & \texttt{[]} & \texttt{[]} \\
-Opened labels total (\#) & \texttt{[]} & \texttt{[]} & \texttt{[]} \\
-Calldata size (bytes) & \texttt{[]} & \texttt{[]} & \texttt{[]} \\
-Gas used & \texttt{[]} & \texttt{[]} & \texttt{[]} \\
+Proof generation (s) & 8,709 & 3,849 & 3,823 \\
+Commitments (\#) & 24 & 13 & 6 \\
+Opening points (\#) & 6 & 2 & 2 \\
+Calldata size (bytes) & 8416 & 4128 & 2688 \\
+Transaction fee (GWEI)\footnotemark & 2,429,116 & 1,029,029 & 727,118 \\
 \hline
 \end{tabular}
 \end{table}
+\footnotetext{At an ETH price of \$3,000 USD, gas price of 4.5 Gwei, and using 1 Gwei $=10^{-9}$ ETH, these transaction fees are approximately \~\$34, \~\$14, and \~\$10 respectively.}

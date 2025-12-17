@@ -206,7 +206,7 @@ The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total nu
 % = = = = = = = = = = = = = = = = = %
 
 \section{Voter Checks}
-
+\label{sec:voter}
 Eperio, like many voting systems, splits the E2E-V proof into two parts: a universal verifiable proof that the tally is correct, and a voter-verifiable proof that receipts are correct. All constraints from Section~\ref{sec:constraints} correspond to the former proof, whereas in this section we describe the voter-verifiable checks.
 
 \subsection{Print Audit}
@@ -240,36 +240,48 @@ V_{\mathsf{dispute}}(X)\ :=\ \bigl((\mathsf{Code}(X)-c)\cdot \mathsf{Inv}_b(X)-1
 
 If $c$ does appear on the ballot, say at position $\kappa\in I_b$, the EA will not be able to put a value in $\mathsf{Inv}_b(\kappa)$ that makes $V_{\mathsf{dispute}}(X)$ vanish. 
 
-\section{Implementation and Performance Evaluation}
+\section{Implementation and Performance}
+Zeeperio is implemented as two separate components:
+\paragraph{Off-chain Prover.}
+The prover is implemented in Rust and uses the \emph{arkworks} toolkit for BN254 pairings. 
+The instance is launced with a CLI that generates all three proofs described in Sections~\ref{sec:constraints} and~\ref{sec:voter}.
+It commits to all polynomials using the \emph{hiding} variant of KZG, where each commitment includes a blinding term derived from the SRS. 
+The prover also uses \emph{off-domain masking} where it randomizes witness polynomials with additional masking to prevent any information leakage.
+To maximize cost efficiency, the prover batches all polynomial evaluations using a random scalar $\gamma$ into a single KZG opening proof.
+This allows the verifier to check all evaluations simultaneously with a single pairing check.
+Finally, the proofs are exported to calldata using Ethereum ABI encoding.
+\paragraph{Onchain Verifier.}
+The verifier smart contract is implemented in Solidity using the \texttt{Foundry} project setup. 
+The contract takes an ABI-encoded proof containing the public inputs, polynomial commitments and opening proofs, 
+and verifies them on-chain using the BN254 pairing precompiles. 
+The verification logic is split into three functions: \texttt{verifyMain}, \texttt{verifyInclusion}, and \texttt{verifyReceipt},
+corresponding to the three proofs described in Sections~\ref{sec:constraints} and~\ref{sec:voter}.
+It should be noted that both prover and verifier recompute the same challenges, so they need to share
+the same serialization rules.
 
-Zeeperio is organized around two main pieces: an off-chain prover written in Rust and an on-chain verifier in Solidity. The Rust side is split into small libraries: one defines the core proof logic using the arkworks cryptography toolkit (for pairing-friendly curves and polynomial math), another wraps KZG commitment helpers, a shared crate holds the data types exchanged across the system, and a command-line tool ties them together for end users. The Solidity verifier is a Foundry project that encodes the \altbn elliptic-curve constants and routines to check different proof variants once they are submitted to a smart contract.
+\subsection{Performance}
 
-%\input{figures/pipeline.tex}
-
-To satisfy the zero-knowledge property, the prover uses \emph{hiding (or Pedersen)} KZG commitments, where it adds a blinding term derived from a $\gamma\cdot g$ SRS basis~\cite{KZG10}. Additionally, the prover uses a technique---employed and popularized in Sonic~\cite{MBKM19}---we call the MBKM heuristic\footnote{Variously referred to in the literature as blinders, vanishing-polynomial blinding, the $Z_H$-mask trick, and off-domain masking.} which randomizes polynomials with additional off-domain points so that any bounded number of evaluations of the polynomial at random points leak zero information (in an information theoretical sense) about any other point on the polynomial.
-
-Challenges are derived non-interactively with the strong Fiat-Shamir heuristic, hashing a serialized transacript of the proof's parameters, public inputs and commitments in a fixed order. The transcript yields $(\alpha,\zeta)$ for the main
-proof and additional challenges for the inclusion/shuffle proof.
-Both prover and verifier must share \emph{exact} serialization rules
-(little-endian field encoding and compressed group encoding), otherwise valid
-proofs will be rejected.
-
-The bilinear pairing used to check a KZG opening proof is the most expensive on-chain operation. All openings that occur at the same evaluation point can be batched. As a result, the verifier performs roughly one pairing-based check (via an Ethereum precompile operation) per evaluation point, while the remaining work is less expensive glue logic. 
-
-For usability and integration, the verifier exposes three entrypoints (\texttt{verifyMain}, \texttt{verifyInclusion}, and \texttt{verifyReceipt}) corresponding to the full-election proof and smaller auxiliary checks, each consuming a single ABI-encoded proof object. The ABI payload is a structured record containing the public inputs, the list of polynomial commitments, and a list of opening batches (each batch specifies its evaluation point, the folding scalar $\gamma$, the set of commitments opened there, the claimed values, and the single aggregated opening proof). To keep decoding and bookkeeping lightweight, commitments and opened values are referenced by compact 16-bit labels rather than long identifiers. This lets the contract locate the required terms via simple scans over the decoded arrays, keeping the EVM-side logic small and auditable even for readers who are not Ethereum specialists.
-
-
-\subsection{Performance Evaluation}
-
-
-Ethereum performance is shown in Table \ref{tab:eval}. This is based on a benchmark election instance with
-$B=100,000$ ballots and $C=8$ candidates. This yields $P=BC=800{,}000$
-ballot-candidate positions, which we pad to the next power-of-two
-$n=\textsf{pow2}(P)=2^{20}=1{,}048{,}576$ to define the evaluation domain
-$H=\{\omega^0,\ldots,\omega^{n-1}\}$.
-For this election, we allocate $10\%$ of ballots to print audits.
+We benchmark Zeeperio on an election instance with with $\mathcal{B}$ = 100,000 ballots and $\mathcal{C}$ = 5 candidates.
+This yields $\mathcal{P} = \mathcal{B}\mathcal{C} = 500,000$ positions, which we pad to the next
+power-of-two $n = pow2(P) = 20 = 1,048,576$ to define the evaluation domain $H = {\omega^0,\dots,\omega^{n-1}}$.
+For this election, we allocate 10\% of ballots to print audits.
+Table \ref{tab:eval} shows the measurements for each of the three proofs. 
+All results were taken on an Apple Macbook Pro (M3 Pro, 18 GB RAM). 
 
 \input{figures/evaluations.tex}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \section{Concluding Remarks}
 
