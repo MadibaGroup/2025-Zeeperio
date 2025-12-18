@@ -179,7 +179,7 @@ V_{c2.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Sum}_{\mathsf{Ma
 \]
 \end{mdframed}
 
-Padding is zero (c2.1), the column is binary (c2.2), and the total number of votes matches the sum announced by the election authority $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). Since it is binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, which is c2.3. We assume that over-voted ballots are rejected by the scanner or automatically converted into print audit ballots.
+\noindent The constraints are as follows: padding elements are zero (c2.1), column elements are binary (c2.2), and the total number of votes matches the sum announced by the election authority $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). Since elements are binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, by c2.3. We assume that over-voted ballots are rejected by the scanner or automatically converted into print-audit ballots.
 
 
 
@@ -197,7 +197,7 @@ V_{c3.1}(X)\ :=\ \mathsf{Audit}(X)\,\mathsf{Mark}(X)
 \]
 \end{mdframed}
 
- This is simple: an unvoted ballot will have all 0's in its ballot block, while an unaudited ballot will have the same. Therefore, the Hadamard product (element-wise multiplication) of the audit column with the mark column will be 0 in every element if it is properly formed. In the malicious case, if a ballot is both voted and audited, at least one element of the ballot block will contain a 1 in both columns, and the product of the columns will not be 0 at that element, thus $V_{c3.1}(X)$ will not vanish.
+ \noindent This constraint is straightforward: an unvoted ballot will have all 0's in its ballot block, while an unaudited ballot will have the same. Therefore, the Hadamard product (element-wise multiplication) of the audit column with the mark column will be 0 in every element if it is properly formed. In the malicious case, if a ballot is both voted and audited, at least one element of the ballot block will contain a 1 in both columns, and the product of the columns will not be 0 at that element, thus $V_{c3.1}(X)$ will not vanish.
 
 
 
@@ -217,7 +217,7 @@ V_{c4.3,j}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[j]\bigr
 \]
 \end{mdframed}
 
-The EA will announce the tally as a list of vote totals for each of the $\mathcal{C}$ candidates: $\mathsf{Tally}[j]$ for $j\in\{0,\ldots,\mathcal{C}-1\}$. The marks for candidate $i$ will be in every $i$-th element of $\mathsf{Mark}(X)$ over $H$. The EA will build an additive, suffix accumulator $\mathsf{Acc}_{\mathsf{Vote}}(X)$ however it will be \textit{strided}: 
+\noindent The EA will announce the tally as a list of vote totals for each of the $\mathcal{C}$ candidates: $\mathsf{Tally}[j]$ for $j\in\{0,\ldots,\mathcal{C}-1\}$. The marks for candidate $i$ will be in every $i$-th element of $\mathsf{Mark}(X)$ over $H$. The EA will build an additive, suffix accumulator $\mathsf{Acc}_{\mathsf{Vote}}(X)$ however it will be \textit{strided}: 
 
 $$
 \mathsf{Acc}_{\mathsf{Vote}}(\omega^i)\ :=\ \sum_{t=0}^{\left\lfloor\frac{n-1-i}{\mathcal{C}}\right\rfloor}\mathsf{Mark}\!\left(\omega^{\,i+t\mathcal{C}}\right),
