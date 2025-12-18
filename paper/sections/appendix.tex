@@ -5,7 +5,7 @@
 \section{Orphaned Text}
 
 Zeeperio shifts from statistical audits to cryptographic arguments of knowledge. 
-At a high level, Zeeperio uses the Poly-IOP model to encodes the entire state of an election as a small set of polynomials. 
+At a high level, Zeeperio uses the PIOP model to encodes the entire state of an election as a small set of polynomials. 
 Instead of writing a generic arithmetic circuit, Zeeperio works directly at the polynomial level to design custom constraints for ballot structure, sums over ballots, and tallies.
 Then, using the KZG commitment scheme, Zeeperio allows the Election Authority (EA) to generate a single, succinct proof that the election outcome is correct.
 This proof is constant in size and verification time, regardless of how many voters cast their ballots.
@@ -20,12 +20,12 @@ This lowers the barrier to verification from running complex cryptographic softw
 
 Before detailing the protocol mechanics, we formalize the operational environment and the specific contributions of this work relative to the state of the art.
 
-\subsection{The RealCryptik Threat Model}
-Zeeprio adopts the \textit{RealCryptik} threat model. 
+\subsection{The Realcryptik Threat Model}
+Zeeprio adopts the \textit{realcryptik} threat model. 
 Traditional E2E literature often models the EA as a powerful adversary that must be prevented from learning individual votes at all costs. 
 However, this model often ignores the reality of elections. In many scenarios, the EA has the full capability to deanonymize votes.
 
-The RealCryptik model explicitly assumes that the EA \textbf{has access to who voted for whom}. Under this assumption, the primary security goal shifts from absolute privacy to absolute \textbf{integrity}. 
+The realcryptik model explicitly assumes that the EA \textbf{has access to who voted for whom}. Under this assumption, the primary security goal shifts from absolute privacy to absolute \textbf{integrity}. 
 The system must guarantee that even an EA with full view of voter choices cannot manipulate an election without detection. This model reflects the reality of \emph{black box} vendors while enforcing the verification constraints necessary for public trust. 
 While public privacy is maintained through zero-knowledge proofs, the protocol also prevents the EA from manipulating the outcome based on their knowledge.
 
@@ -33,7 +33,7 @@ While public privacy is maintained through zero-knowledge proofs, the protocol a
 This work presents the following contributions.
 
 \begin{description} 
-\item \textbf{Succinct universal verification:} All election constraints are encoded as a single Poly-IOP relation and proven via a zkSNARK proof, independent of the number of voters.
+\item \textbf{Succinct universal verification:} All election constraints are encoded as a single PIOP relation and proven via a zkSNARK proof, independent of the number of voters.
 \item \textbf{Enhanced privacy and dispute resolution:}
   Confirmation codes are committed to a single polynomial and are only selectively opened when needed.
   After a voter has cast their ballot, they receives a receipt containing a confirmation code to which they can check it appears in the public bulletin board. 
@@ -51,8 +51,8 @@ We now introduce the cryptographic tools used in Zeeperio.
 
 \subsection{Polynomial interactive oracle proofs}
 
-A polynomial interactive oracle proof (Poly-IOP) is an interactive proof where the prover sends commitments to polynomials and the verifier has oracle access to these polynomials through evaluation queries.
-Formally, a Poly-IOP protocol for a relation $\mathcal{R}$ between public input $x$ and witness $w$ follows:
+A polynomial interactive oracle proof (PIOP) is an interactive proof where the prover sends commitments to polynomials and the verifier has oracle access to these polynomials through evaluation queries.
+Formally, a PIOP protocol for a relation $\mathcal{R}$ between public input $x$ and witness $w$ follows:
 \begin{enumerate}[label=(\roman*)]
   \item The prover, given $x$ and $w$, computes polynomials $f_1,\dots,f_m$ and sends commitments to them.
   \item The verifier sends random challenges $r_1,\dots,r_\ell$.
@@ -91,7 +91,7 @@ We combine multiple constraints into a single quotient polynomial using random c
 
 \subsection{Zero-knowledge and Fiat--Shamir}
 
-We can apply the Fiat-Shamir heuristic to the Poly-IOP to make the protcol non-interactive.
+We can apply the Fiat-Shamir heuristic to the PIOP to make the protcol non-interactive.
 This can be done by replacing the verifier's random challenges by outputs of a hash function on the transcript.
 To achieve zero-knowledge, we add random blinding polynomials to all witness polynomials before committing, and we ensure that any information opened to the verifier is public.
 Therefore, the only meaningful information revealed by the proof is that the constraints are satisfied, while keeping the underlying ballot structure and confirmation codes hidden.
@@ -127,7 +127,7 @@ be an evaluation domain with primitive $n$th root $\omega$. Each column is inter
 $F(X)\in \mathbb{F}[X]_{<n}$ satisfying $F(\omega^i)=F[i]$ on $\Omega$.
 
 \paragraph{Commitments and Fiat-Shamir.}
-Zeeperio bases itself as a Poly-IOP using the KZG polynomial commitments with
+Zeeperio bases itself as a PIOP using the KZG polynomial commitments with
 $\mathsf{KZG.Commit}(F)$, $\mathsf{KZG.Open}(F,z)$, and $\mathsf{KZG.Verify}(C,z,y,\pi)$, and derives all verifier challenges via Fiat-Shamir.  
 
 \paragraph{Zero-knowledge.}

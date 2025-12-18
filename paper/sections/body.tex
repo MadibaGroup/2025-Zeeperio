@@ -2,13 +2,13 @@
 
 \section{Introduction}
 
-Decades of research on end-to-end verifiable (E2E-V) elections have shown strong cryptographic guarantees can be realized for protecting the integrity of elections and the secrecy of voter ballots~\cite{HR16}. In more recent years, pilot projects and deployments of E2E-V platforms have also demonstrated that these systems are usable and scalable to an appropriate degree~\cite{AMPQ09,CCC+10,BBB+13,CRST15}. Despite these efforts, the vendors of systems for governmental elections continue to run unverifiable elections where the content of individual ballots can be determined by at least one trusted entity in the platform.
+Decades of research on end-to-end verifiable (E2E-V) elections have shown strong cryptographic guarantees can be realized for protecting the integrity of elections and the secrecy of voter ballots~\cite{HR16}. In more recent years, pilot projects and deployments of E2E-V platforms have also demonstrated that these systems are usable and scalable to an appropriate degree~\cite{AMPQ09,CCC+10,BBB+13,CRST15}. Despite these efforts, some governments continue to run elections without meaningful verification or openness to scrutiny, and where the voter ballot selections and their identities exist in combination within the election service (see e.g., Cardillo et al. \cite{cae19}).
 
 In this paper, we contribute to a broader discussion the cryptographic voting community has been having for some number of years: do we compromise our ideals and offer watered-down systems that the industry might find more palatable if they offer tangible security advantages over the status quo? We relate this to the term Realpolitik, coined in 19th-century Germany to describe statecraft based on pragmatic calculations rather than ideology, and propose \textit{Realcryptik} to describe such a pragmatic approach to election verification.
 
 Flavours of Realcryptik already permeate the research literature. Despite opposition to internet voting, Helios~\cite{Adi08} is perhaps the most used E2E-V voting technology. While researchers argue coercion resistance is essential for internet voting, Helios provides none. Scantegrity II~\cite{CCC+08} was the first E2E-V system to see governmental use. It is built around the compromise that in a paper ballot system, it is acceptable for optical scanner to learn how the voter voted, side-stepping the complex ballot mechanics its predecessors to avoid this. In recent years, serious discussions have arose around whether E2E-V should be largely abandoned in favor of risk limiting audits? Should we affirm the use of ballot marking devices when we know most voters do not carefully check their output?
 
-We propose a different compromise in this paper: let EAs and their vendors see the raw ballots, while protecting them from all outsiders (receipt-freeness). For the EA, we still rely on legal protections implemented through procedures but not offer cryptographic protection.
+We propose a different compromise in this paper: Allow election service providers (vendors) to continue the practice of collecting unencrypted ballot selections, while protecting those selections from other observers. For the election authorities (EAs), our approach continues to rely on legal protections implemented through procedures, i.e., without formal cryptographic secrecy protections and guarantees.
 
 The research question of this paper is how to modify the cryptography of an E2E-V voting system to provide integrity, without the need to maintain ballot secrecy from the EA (but still provide receipt-freeness otherwise). The simpler threat model means we can streamline the cryptography, in particular we can prove that encrypted (or committed in our case) ballots are tallied correctly rather than computing the tally under encryption. This shifts the protocol away from multiparty computation and threshold cryptography to essentially an all encompassing zero knowledge proof (ZKP). While ZKPs have been used in voting systems from almost their invention in 1980s and onward, we focus on modern succinct ZKPs called zk-SNARKs.
 
@@ -16,7 +16,26 @@ The research question of this paper is how to modify the cryptography of an E2E-
 
 We apply this modification to an existing E2E-V back-end called Eperio~\cite{ECHA10}. Eperio is a simplification of Scantegrity II's backend (known as a switchboard) and is design to be simple enough that a non-expert validator can audit the election using a spreadsheet, such as MS Excel. Eperio's security was studied in detail using formal methods at CCS 2021 paper~\cite{BDGR21}. By replacing Eperio's cut-and-choose based proof with a zk-SNARK, it obviously is no longer verifiable by hand. However this is a deliberate choice. Traditionally voters would either have to verify an election themselves or rely on a trusted entity (political party, watchdog) to perform this verification---hence the need to simplify elections to a spreadsheet. Today we have systems like Ethereum that provide a peer-to-peer network that is effectively validating that computational outputs of arbitrary code, called smart contracts, are correct. Ethereum protects assets with a market capitalization of \$100+B USD and it can protect election results too, as long as the results are verifiable within its very restricted limits (known as gas consumption). If the verification task can be reduced to a succinct (zk-SNARK) proof, voters do not need check the proof at all.
 
+
+% \subsection{Contributions}
+% This work presents the following contributions.
+
+% \begin{description} 
+% \item \textbf{Succinct universal verification:} All election constraints are encoded as a single PIOP relation and proven via a zkSNARK proof, independent of the number of voters.
+% \item \textbf{Enhanced privacy and dispute resolution:}
+%   Confirmation codes are committed to a single polynomial and are only selectively opened when needed.
+%   After a voter has cast their ballot, they receives a receipt containing a confirmation code to which they can check it appears in the public bulletin board. 
+%  This is done in a way that prevents the receipt from being used as a proof of how the voter voted.
+%   \item \textbf{On-chain verification:}
+%   The final proof is verified by an Ethereum smart contract. This removes the need for a proprietary verifier software and anchors the election result in a public, tamper-evident ledger.
+% \end{description}
+
+
+
 Our contribution is designing a custom succinct argument for Eperio that we call Zeeprio. Our protocol uses {\em polynomial interactive oracle proofs} (PIOPs), which have been used to build zk-SNARKs for any arithmetic circuit (and thus any computation), the best known system being Plonk~\cite{GWC19}. The size of a Zeeperio proof is constant in the number of ballots and voters in an election, as is the time to verify it. It is compact enough for autonomous verification by a smart contract on a blockchain, such as Ethereum. Zeeperio proofs are linear (as opposed to constant) in the number of candidates, but this seems acceptable as reading the final tally or checking an audited ballot is linear in the number of candidates. 
+
+
+
 
 \section{Background and Related Work}
 
