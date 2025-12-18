@@ -108,10 +108,10 @@ Zeeperio consists of \constraints constraints. Each constraint follows a similar
 In fact, given a set of vanishing polynomials $\{V_1(X),V_2(X),\ldots,V_m(X)\}$ and their corresponding quotient polynomials, the check can be batched into a single check. The prover will form a `super-polynomial' $\mathsf{Batch}(X)$ where each coefficient is one of the vanishing polynomials:
 
 $$
-\mathsf{Batch}(Y)=\sum_{i=1}^{m}Y^{i}\Bigl(V_i(X)-Q_i(X)\,\mathsf{Z}_H(X)\Bigr)
+\mathsf{Batch}(Y)=\sum_{i=1}^{m}Y^{i}\Bigl(V_i(X)-Q_i(X)\,\mathsf{Z}_H(X)\Bigr).
 $$
 
-A polynomial where every coefficient is 0 is a zero-polynomial. Therefore the verifier (or prover via strong Fiat-Shamir) will choose a random $\zeta\in \mathbb{F}_q\notin H$ as before and set $X=\zeta$, which overwhelmingly makes every coefficient zero. To see if every coefficient is zero, it will also choose a random $\alpha\in\mathbb{F}_q$ and set $Y=\alpha$. If every $V_i(X)$ vanishes, then $\mathsf{Batch}(Y)$ is a zero polynomial and: 
+\noindent A polynomial where every coefficient is 0 is a zero-polynomial. Therefore the verifier (or prover via strong Fiat-Shamir) will choose a random $\zeta\in \mathbb{F}_q\notin H$ as before and set $X=\zeta$, which overwhelmingly makes every coefficient zero. To see if every coefficient is zero, it will also choose a random $\alpha\in\mathbb{F}_q$ and set $Y=\alpha$. If every $V_i(X)$ vanishes, then $\mathsf{Batch}(Y)$ is a zero polynomial and: 
 $$
 \mathsf{Batch}(\alpha)=\sum_{i=1}^{m}\alpha^{i}\Bigl(V_i(\zeta)-Q_i(\zeta)\,\mathsf{Z}_H(\zeta)\Bigr)=0.
 $$
@@ -159,7 +159,7 @@ $$
 \end{aligned}
 $$
 
-Constraint c1.4 and c1.5 check each line of this recurrence respectively, guaranteeing that $\mathsf{Acc}_{\mathsf{Audit}}(X)$ is formed correctly. The first value in $\mathsf{Acc}_{\mathsf{Audit}}(X)$ holds the sum, so c1.6 ensures this value is equal to $\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}$. 
+\noindent Constraint c1.4 and c1.5 check each line of this recurrence respectively, guaranteeing that $\mathsf{Acc}_{\mathsf{Audit}}(X)$ is formed correctly. The first value in $\mathsf{Acc}_{\mathsf{Audit}}(X)$ holds the sum, so c1.6 ensures this value is equal to $\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}$. 
 
 \subsection{Mark Constraints}
 \label{sec:mark}
@@ -211,7 +211,7 @@ $$
 \qquad i\in\{0,\ldots,n-1\}.
 $$
 
-The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sum for some candidates may be one element longer than others. Constraint c4.1 demonstrates the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 demonstrates that the published tally matches the sum of each candidate's vote. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
+\noindent The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sum for some candidates may be one element longer than others. Constraint c4.1 demonstrates the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 demonstrates that the published tally matches the sum of each candidate's vote. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
 
 % = = = = = = = = = = = = = = = = = %
 
