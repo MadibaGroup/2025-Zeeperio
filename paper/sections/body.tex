@@ -18,13 +18,13 @@ Zeeperio is a modernization of the Eperio E2E-V backend~\cite{ECHA10}. Eperio wa
 
 If, however, verification could be reduced to a succinct (zk-SNARK) argument, voters and candidates can still independently verify the election (if they choose), but the proof could now be automatically checked by a smart contract, giving EAs automatic assurance that at least {\em someone} checked it. In this paper, that someone is the Ethereum network, which ties the acceptability of the election proof to the network's \$100+B USD market capitalization. The design challenge of this work is to fit the proof within the highly restricted computational limits of the smart contract setting.
 
-\subsection{Contribution.}
+\subsection{Contribution}
 
-Zeeperio is a modernization of the Eperio election-verification approach, replacing antiquated cut-and-choose full-open commitments with modern, succinct knowledge arguments for automated verification in a smart-contract setting.
+Zeeperio is a modernization of the Eperio election-verification approach, replacing antiquated cut-and-choose full-open commitments with modern, succinct knowledge arguments for automated verification in a smart-contract setting:
 
 \begin{enumerate}
- 	\item \textbf{Succinct universal verification:} Election constraints are encoded as a single polynomial interactive proof (PIOP) relation using a zkSNARK approach in Plonk~\cite{GWC19} with a size and runtime constant in the number of voters.
- 	\item \textbf{Autonomous verification:} The succinctness of Zeeperio arguments enables automated verification in a smart contract setting, reducing the need for EAs to solicit and coordinate explicit independent verification efforts (as in Eperio).
+ 	\item \textbf{Succinct universal verification:} Election constraints are encoded in a single polynomial interactive proof (PIOP) using a zkSNARK approach in Plonk~\cite{GWC19} with a size and runtime constant in the number of voters.
+ 	\item \textbf{Automatic verification:} The succinctness of Zeeperio arguments enables automatic verification in a smart contract setting, reducing the need for EAs to coordinate explicit independent verification efforts (as in Eperio).
  	\item \textbf{Implementation:} We implement the Zeeperio knowledge arguments and demonstrate their performance in an Ethereum smart contract, showing that an election with $\mathcal{B}=100,000$ ballots and $\mathcal{C}=5$ candidates can be verified on-chain for under $\$60$ USD.
  	\item \textbf{Enhanced dispute resolution}: As a result of confirmation code commitments made within a single polynomial, Zeeperio improves the dispute-resolution process by enabling a succinct proof that a disputed code is incorrect without revealing any other codes or the voter’s selections.
  \end{enumerate}
@@ -237,7 +237,7 @@ Eperio, like many voting systems, splits the E2E-V proof into two parts: a unive
 \subsection{Print Audit}
 \label{sec:print}
 
-The voter provides ballot ID $b$, which determines the public index set $I_b={b\mathcal{C},\ldots,b\mathcal{C}+\mathcal{C}-1}$. The EA opens the committed polynomials $\mathsf{Audit}(X)$, $\mathsf{Mark}(X)$, and $\mathsf{Code}(X)$ at the $\mathcal{C}$ points ${\omega^i}_{i\in I_b}$ and returns those evaluations together with opening proofs (for KZG, these can be batched in a single multipoint opening proof). 
+The voter provides ballot ID $b$, which determines the public index set $I_b={b\mathcal{C},\ldots,b\mathcal{C}+\mathcal{C}-1}$. The EA opens the committed polynomials $\mathsf{Audit}(X)$, $\mathsf{Mark}(X)$, and $\mathsf{Code}(X)$ at the $\mathcal{C}$ points ${\omega^i}_{i\in I_b}$ and returns those evaluations with opening proofs (for KZG, these can be batched in a single multipoint opening proof). 
 
 \subsection{Receipt Check}
 \label{sec:receipt}
@@ -306,7 +306,7 @@ For this election, we allocate 10\% of ballots to print audits.
 
 Zeeperio is a succinct proof of an Eperio-encoded election that can be autonomously verified by a smart contract. Even if the reader does not buy the notion of realcryptik, that not hiding raw ballots from the EA can be a stepping stone to full E2E-V elections, Zeeperio is still useful as a drop-in (or complementary) mechanism for standard Eperio. Eperio (like Scantegrity and Punchscan) makes a `blackbox assumption' for ballot privacy that can be extended to Zeeperio. This leads to a natural adoption pathway for vendors and election officials: Zeeprio introduces an initial verifiability component, with automated argument checking via smart contracts, as a first step. Stronger ballot secrecy guarantees can later be integrated with TEE's for full E2E-V.
 
-Describing the entirety of Zeeperio is challenging in the available page length. We note that a full version of this work, in the form of a thesis,\footnote{URL anonymized for review.} explains each constraint in detail, offers a broader discussion of the implementation, and provides sketches of security arguments. 
+Describing the entirety of Zeeperio is challenging in the available page length. We note that a full version of this work, in the form of a thesis (anonymized for review) that explains each constraint in detail, offers a broader discussion of the implementation, and provides sketches of security arguments. 
 
 Fortunately, the security of Zeeperio makes effective use of existing analysis: Eperio has already been shown to satisfy end-to-end verifiability in both cryptographic~\cite{ECHA10} and formal-methods~\cite{BDGR21} treatments, and modern PIOP-based zk-SNARK constructions justify proving collections of algebraic constraints by reducing them to vanishing-polynomial checks~\cite{GWC19}. Therefore, the security question is relatively straightforward, reducing only to whether our specific vanishing constraints characterize the same relations as those Eperio enforces.
 
