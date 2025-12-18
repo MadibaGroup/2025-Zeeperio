@@ -29,6 +29,7 @@ Zeeperio is an update to the Eperio election-verification approach, replacing an
  	\item \textbf{Enhanced dispute resolution}: As a consequence of confirmation code commitments made inside a single polynomial, Zeeperio improves the dispute-resolution process by enabling a succinct proof that a disputed code is incorrect without revealing any other codes or the voter’s selections.
  \end{enumerate} 
 
+%----------------------------------------------------------------
 \section{Background and Related Work}
 
 \subsection{Eperio}
@@ -36,12 +37,12 @@ Zeeperio is an update to the Eperio election-verification approach, replacing an
 \begin{figure}[t!]
 \begin{center}
 \includegraphics[clip, trim=0cm 15cm 0cm 10cm,width=\textwidth]{figures/zeeperio.pdf}
-\caption{An Eperio/Zeeperio table illustrated with Scantegrity~II ballots which reveal a hidden confirmation code for each selection marked. Eperio commits to columns: ballot, position, mark, selection (it technically does not work with Scantegrity II so selection will encode a Scantegrity I or Pret a Voter layout). Many copies are made, shuffled row-wise, and based on random coin tosses, the EA opens \{ballot, position, mark\} or they open \{mark, selection\} enabling receipt checks and tally checks respectively. We omit how Eperio handles print audits. In Zeeperio, the table is not shuffled so the white columns are public information and not committed to. The pink columns are padded (purpose described below) and committed to. The EA uses these commitment to demonstrate certain properties (constraints) hold for each pink column.\label{fig:eperio}}
+\caption{An Eperio/Zeeperio table illustrated with Scantegrity~II ballots that reveal a hidden confirmation code for each marked selection. Eperio commits to columns: ballot, position, mark, selection (it technically does not work with Scantegrity II, so selection encodes a Scantegrity I or Pret a Voter layout). Many copies are made, shuffled row-wise, and, based on random coin tosses, the EA opens \{ballot, position, mark\} or \{mark, selection\}, enabling receipt checks and tally checks, respectively. We omit how Eperio handles print audits. In Zeeperio, the table is not shuffled, so the white columns are public information and not committed to. The pink columns are padded (purpose described below) and committed to. The EA uses these commitments to demonstrate that certain properties (constraints) hold for each pink column.\label{fig:eperio}}
 \end{center}
 \end{figure}
 
 
-We assume the reader is already familiar with end-to-end verifiable (E2E-V) voting protocols which allow for: (i) an election authority to prove an election tally is computed correctly without learning individual voter choices, and for (ii) voters to check their individual ballots are included unmodified in the tally without being able to reveal how they voted to anyone else. Eperio is an E2E-V tallying protocol (or `backend') that composes with several styles of paper ballots, including Pret a Voter and Scantegrity I. A brief description of Eperio is provided in Figure~\ref{fig:eperio} with a Pret a Voter style ballot.
+We assume the reader is already familiar with end-to-end verifiable (E2E-V) voting protocols, which allow for: (i) an election authority to prove that an election tally is computed correctly without learning individual voter choices, and (ii) voters to check that their ballots are included unmodified in the tally without revealing how they voted to anyone else. Eperio is an E2E-V tallying protocol (or `backend') that works with several styles of paper ballots, including Pret a Voter and Scantegrity I. A brief description of Eperio is provided in Figure~\ref{fig:eperio} with a Pret a Voter-style ballot.
 
 In addition to succinctness, we also clean up a few issues that were not fully resolved in Scantegrity II and Eperio:
 
@@ -49,12 +50,13 @@ In addition to succinctness, we also clean up a few issues that were not fully r
 
 \item As pointed about by Basin \etal~\cite{BDGR21}, Eperio does not prove ballots were not overvoted; Zeeperio does (\S\ref{sec:tally}).
 \item As acknowledged by Essex \etal~\cite{ECHA10}, Eperio does not support Scantegrity II ballots; Zeeperio does (\S\ref{sec:receipt}).
-\item As acknowledged by Chaum \etal~\cite{CCC+08}, Scantegrity II supports dispute resolution but it requires all confirmation codes on the ballot to be revealed. Zeeprio offers a simple proof of incorrect code without revealing information about all codes (\S\ref{sec:dispute}).
+\item As Chaum \etal~\cite{CCC+08} acknowledge, Scantegrity II supports dispute resolution, but it requires all confirmation codes on the ballot to be revealed. Zeeprio offers a simple proof of an incorrect code without revealing information about all codes (\S\ref{sec:dispute}).
 
 \end{itemize}
 
-A remaining issue, pointed out by Basin et al~\cite{BDGR21}, are clash attacks~\cite{KTV12} which are not explicitly addressed by Eperio. However they are applicable to all major E2E-V voting systems and are addressed through strict polling place policies that denote which ballot is given to which voter.
+A remaining issue, pointed out by Basin et al.~\cite{BDGR21}, is clash attacks~\cite{KTV12}, which are not explicitly addressed by Eperio. However, they apply to all major E2E-V voting systems and are mitigated through strict polling-place policies that specify which ballot is given to which voter.
 
+%----------------------------------------------------------------
 \subsection{Succinct Proofs}
 
 While zero-knowledge proofs/arguments (ZKPs) date back to the 1980s~\cite{GMW86,BCC88}, classic ZKPs produce proofs that are at least linear in the size of the statement being proven. By contrast, succinct zero-knowledge arguments (SNARKs) are sublinear, with proof size typically logarithmic or constant. A Polynomial Interactive Oracle Proof (PIOP) is a pattern shared by several SNARKs~\cite{MBKM19,CHM+20,BFS20}. In this pattern, the prover specifies polynomials, and the verifier challenges the prover to open them at random points. PIOP does not say \textit{how} to make a SNARK; it is merely a generic pattern. 
