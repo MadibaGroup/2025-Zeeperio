@@ -25,8 +25,8 @@ Zeeperio is an update to the Eperio election-verification approach, replacing an
 \begin{enumerate}
  	\item \textbf{Succinct universal verification:} Election constraints are encoded as a single polynomial interactive proof (PIOP) relation using a zkSNARK approach in Plonk~\cite{GWC19} with a size and runtime constant in the number of voters.
  	\item \textbf{Autonomous verification:} The succinctness of Zeeperio arguments allows verification done automatically in a smart contract setting, reducing the need for EAs to solicit and coordinate explicit independent verification efforts (as in Eperio).
- 	\item \textbf{Implementation:} We implement the Zeeperio knowledge arguments and demonstrate their performance in Ethereum smart contract showing... \todo{Aikam put a number here}
- 	\item \textbf{Enhanced dispute resolution}: As a consequence of confirmation code commitments made inside a single polynomial, Zeeperio improves the dispute-resolution process by ... \todo{Jer/Aikam?}
+ 	\item \textbf{Implementation:} We implement the Zeeperio knowledge arguments and demonstrate their performance in Ethereum smart contract showing that an election with $\mathcal{B}=100,000$ ballots and $\mathcal{C}=5$ candidates can be verified on-chain for under $\$100$.\todo{Aikam put a number here}
+ 	\item \textbf{Enhanced dispute resolution}: As a consequence of confirmation code commitments made inside a single polynomial, Zeeperio improves the dispute-resolution process by enabling a succinct proof that a disputed code is incorrect, all without revealing any other codes or the voter’s selections. \todo{Jer/Aikam?}
  \end{enumerate} 
 
 \section{Background and Related Work}
@@ -65,6 +65,10 @@ To realize a PIOP, the prover must send a succinct representation of each polyno
 KZG uses a universal trusted setup: a secret value $\tau$ is chosen at random, used to compute a structured reference string (SRS) $\tuple{g^\tau, g^{\tau^2},g^{\tau^3},\ldots}$ in a pairing-friendly group defined by generator $g$, and then erased. Knowledge of $\tau$ after the setup is sufficient to fake KZG openings and thus forge false ZKP transcripts. However the setup can be run as an open participation multiparty computation where participants prove their contribution is correct and only one honest participant must forget $\tau$ for the SRS to be secure. Ethereum ran an open trusted setup in 2023, accepting 100K contributions over 208 days. A single SRS, such as this, can be shared by everyone wanting to do a KZG commitment (known as a universal trusted setup). 
 
 In practice, zk-SNARKs for a specific computation can be deployed in different ways: (a) written in a high-level language and compiled to VM instructions, (b) written in special markup languages and compiled into arithmetic circuits, or (c) written as a custom arithmetic circuit. In each case, these representations are fed into a general-purpose proof system for circuits or zkVMs. Each level of abstraction adds overhead and costs to the prover. Our approach is `closer to the metal.' We do not use circuits or Plonk itself. We instead go underneath what Plonk provides and use the same kind of building blocks it uses to make a custom PIOP argument for Zeeperio.
+
+Zeeperio follows the conventional paradigm in which arbitrary relations are reduced to algebraic constraints and proven succinctly when viewed through the lens of general-purpose zero-knowledge proof systems (GPZKPs) \cite{cryptoeprint:2024/1902}.
+Nevertheless, we improves on this design by bypassing the circuit/zkVM abstraction entirely and building polynomial identities directly over the election data.
+Furthermore, rather than adopting transparent proof systems such as FRI or STARKs that eliminate trusted setup at the expense of larger proofs and higher prover complexity, Zeeperio uses a universal KZG setup to achieve constant-size proofs and efficient on-chain verification \cite{10.1007/978-3-031-69231-4_4}.
 
 \subsection{Smart Contracts}
 
