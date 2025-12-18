@@ -1,6 +1,12 @@
 % !TEX root = ../main.tex
 \begin{abstract}
-
-In this paper, we are interesting in whether an autonomous smart contract can verify an election. In this paper, we revisit the Eperio election backend that enables end-to-end verifiability (E2E-V) for a variety of ballot styles. Eperio proofs simple enough to verify with spreadsheet software. The roadblock to on-chain verification of Eperio proofs is the data size, which is linear in the number of voters. We propose Zeeperio, which replaces Eperio's cut-and-choose proof with a custom succinct zero-knowledge argument.  The size of a Zeeperio proof is constant in the number of ballots and voters in an election, as is the time to verify it. We implement Zeeperio and demonstrate its proofs can be verified by a smart contract running on Ethereum. 
-
+Current election verification protocols delegate proof validation to independent auditors, treating integrity verification as a secondary manual process. 
+We present \textsc{Zeeperio}, a zk-SNARK system that verifies the correctness of election results on the Ethereum blockchain. 
+Unlike prior systems that achieve verification through manual audits or off-chain computation, Zeeperio verifies proofs autonomously via smart contracts, allowing all network participants to independently confirm correctness without trusting any third-party intermediaries.
+Zeeperio replaces the Eperio protocol's linear-sized proof data with a custom succinct argument where proof size and verification time are constant in the number of ballots. 
+We demonstrate that an election with $\mathcal{B}=100,000$ ballots and $\mathcal{C}=5$ candidates verifies on Ethereum L1 for under $\$60 \mathsf{USD}$ (at the time of writing), using the precompiles introduced by EIP 196 and 197.
+Compared to recent STARK-based election verification systems, \textsc{Zeeperio} is significantly more practical for blockchain deployment. 
+A leading STARK implementation requires proofs of size $\sim3\mathsf{MB}$ for $32,768$ ballots and generates proofs in roughly $9$ days. 
+On the other hand, Zeeperio generates proofs of only a few kilobytes for $100,000$ ballots in under $3$ hours on standard hardware. 
+This $>100\times$ reduction in proof size directly translates to lower transaction costs and improved on-chain scalability for larger elections.
 \end{abstract}
