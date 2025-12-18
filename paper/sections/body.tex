@@ -296,13 +296,6 @@ corresponding to the three proofs described in Sections~\ref{sec:constraints} an
 It should be noted that both prover and verifier recompute the same challenges, so they need to share
 the same serialization rules.
 
-\paragraph{Performance}
-
-We benchmark Zeeperio on an election instance with $\mathcal{B}$ = 100,000 ballots and $\mathcal{C}$ = 5 candidates.
-This yields $\mathcal{P} = \mathcal{B}\mathcal{C} = 500,000$ positions, which we pad to the next
-power-of-two $n = pow2(P) = 20 = 1,048,576$ to define the evaluation domain $H = {\omega^0,\dots,\omega^{n-1}}$.
-For this election, we allocate 10\% of ballots to print audits.
-
 \input{figures/evaluations.tex}
 
 
