@@ -66,7 +66,7 @@ KZG uses a universal trusted setup: a secret value $\tau$ is chosen at random, u
 
 In practice, zk-SNARKs for a specific computation can be deployed in different ways: (a) written in a high-level language and compiled to VM instructions, (b) written in special markup languages and compiled into arithmetic circuits, or (c) written as a custom arithmetic circuit. In each case, these representations are fed into a general-purpose (GPZKP) proof system for circuits or zkVMs. Each level of abstraction adds overhead and costs to the prover. Our approach is `closer to the metal.' We do not use circuits or Plonk itself. We instead go underneath what Plonk provides and use the same kind of building blocks it uses to make a custom PIOP argument for Zeeperio.
 
-There is a small but growing literature applying succinct ZKPs to voting. For online voting where voters prove ballot validity, GPZKPs are studied and its noted that customized ZKP (which Zeeperio does) is expected to be faster~\cite{cryptoeprint:2024/1902}. Closer to Zeeperio, a design for a succinct proof that an election is `counted as cast' uses zk-STARKs, which do not have a trusted setup and have expected post-quantum security~\cite{10.1007/978-3-031-69231-4_4}. However because this work uses GPZKPs, Zeeprio's custom PIOP approach can prove counted-as-cast for about 50,000 ballots across an hour (single core) compared to around 150 (single core) to 5000 (multicore) ballots in~\cite{10.1007/978-3-031-69231-4_4}.
+There is a small but growing literature applying succinct ZKPs to voting. For online voting where voters prove ballot validity, GPZKPs are studied and its noted that customized ZKP (which Zeeperio does) is expected to be faster~\cite{HKJR24}. Closer to Zeeperio, a design for a succinct proof that an election is `counted as cast' uses zk-STARKs, which do not have a trusted setup and have expected post-quantum security~\cite{HT25}. However because this work uses GPZKPs, Zeeprio's custom PIOP approach can prove counted-as-cast for about 50,000 ballots across an hour (single core) compared to around 150 (single core) to 5000 (multicore) ballots in~\cite{HT25}.
 
 \subsection{Smart Contracts}
 
@@ -131,7 +131,7 @@ Across all the constraints, we will use an additional 5 `helper' polynomials. We
 \subsection{Audit Constraints}
 \label{sec:audit}
 
-Due to limited space in the paper, we cannot fully explain each of the \constraints constraints. Instead we provide some intuition for them. The constraints are:
+Due to limited space in the paper, we cannot fully explain each of the \constraints constraints. Instead we provide some intuition for them. The audit constraints are:
 
 \begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
 \[
@@ -164,7 +164,7 @@ $$
 \subsection{Mark Constraints}
 \label{sec:mark}
 
-The constraints on the mark column parallel the constraints on the audit column. Padding is zero (c2.1), the column is binary (c2.2), and the total number of votes matches the sum announced by the election authority $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). Since it is binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, which is c2.3. We assume that over-voted ballots are rejected by the scanner or automatically converted into print audit ballots. The constraints are as follows:
+The constraints on the mark column parallel the constraints on the audit column:
 
 \begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
 \[
@@ -179,11 +179,15 @@ V_{c2.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Sum}_{\mathsf{Ma
 \]
 \end{mdframed}
 
+Padding is zero (c2.1), the column is binary (c2.2), and the total number of votes matches the sum announced by the election authority $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). Since it is binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, which is c2.3. We assume that over-voted ballots are rejected by the scanner or automatically converted into print audit ballots.
+
+
+
 %----------------------------------------------------------------
 \subsection{Cross-Column Constraints}
 
 
-A final constraint demonstrates that no ballot is both voted and audited. This is simple: an unvoted ballot will have all 0's in its ballot block, while an unaudited ballot will have the same. Therefore, the Hadamard product (element-wise multiplication) of the audit column with the mark column will be 0 in every element if it is properly formed. In the malicious case, if a ballot is both voted and audited, at least one element of the ballot block will contain a 1 in both columns, and the product of the columns will not be 0 at that element, thus $V_{c3.1}(X)$ will not vanish. The constraints is:
+A final constraint demonstrates that no ballot is both voted and audited:
 
 \begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
 \[
@@ -193,19 +197,15 @@ V_{c3.1}(X)\ :=\ \mathsf{Audit}(X)\,\mathsf{Mark}(X)
 \]
 \end{mdframed}
 
+ This is simple: an unvoted ballot will have all 0's in its ballot block, while an unaudited ballot will have the same. Therefore, the Hadamard product (element-wise multiplication) of the audit column with the mark column will be 0 in every element if it is properly formed. In the malicious case, if a ballot is both voted and audited, at least one element of the ballot block will contain a 1 in both columns, and the product of the columns will not be 0 at that element, thus $V_{c3.1}(X)$ will not vanish.
+
+
+
 %----------------------------------------------------------------
 \subsection{Tally Constraints}
 \label{sec:tally}
 
-
-The EA will announce the tally as a list of vote totals for each of the $\mathcal{C}$ candidates: $\mathsf{Tally}[j]$ for $j\in\{0,\ldots,\mathcal{C}-1\}$. The marks for candidate $i$ will be in every $i$-th element of $\mathsf{Mark}(X)$ over $H$. The EA will build an additive, suffix accumulator $\mathsf{Acc}_{\mathsf{Vote}}(X)$ however it will be \textit{strided}: 
-
-$$
-\mathsf{Acc}_{\mathsf{Vote}}(\omega^i)\ :=\ \sum_{t=0}^{\left\lfloor\frac{n-1-i}{\mathcal{C}}\right\rfloor}\mathsf{Mark}\!\left(\omega^{\,i+t\mathcal{C}}\right),
-\qquad i\in\{0,\ldots,n-1\}.
-$$
-
-\noindent The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sum for some candidates may be one element longer than others. Constraint c4.1 demonstrates the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 demonstrates that the published tally matches the sum of each candidate's vote. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$. The constraints are as follows:
+The tally constraints are as follows:
 
 \begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
 \[
@@ -216,6 +216,17 @@ V_{c4.3,j}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[j]\bigr
 \end{aligned}
 \]
 \end{mdframed}
+
+The EA will announce the tally as a list of vote totals for each of the $\mathcal{C}$ candidates: $\mathsf{Tally}[j]$ for $j\in\{0,\ldots,\mathcal{C}-1\}$. The marks for candidate $i$ will be in every $i$-th element of $\mathsf{Mark}(X)$ over $H$. The EA will build an additive, suffix accumulator $\mathsf{Acc}_{\mathsf{Vote}}(X)$ however it will be \textit{strided}: 
+
+$$
+\mathsf{Acc}_{\mathsf{Vote}}(\omega^i)\ :=\ \sum_{t=0}^{\left\lfloor\frac{n-1-i}{\mathcal{C}}\right\rfloor}\mathsf{Mark}\!\left(\omega^{\,i+t\mathcal{C}}\right),
+\qquad i\in\{0,\ldots,n-1\}.
+$$
+
+\noindent The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sum for some candidates may be one element longer than others. Constraint c4.1 demonstrates the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 demonstrates that the published tally matches the sum of each candidate's vote. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
+
+
 % = = = = = = = = = = = = = = = = = %
 
 \section{Voter Checks}
