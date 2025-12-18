@@ -228,6 +228,13 @@ $$
 \noindent The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sums for some candidates may be one element longer than those for others. Constraint c4.1 demonstrates that the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 shows that the published tally equals the sum of each candidate's votes. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
 
 
+\paragraph{Security Properties.}
+A full security analysis of Zeeperio is deferred to the extended thesis version\footnote{Link withheld for anonymity.}. However, Zeeperio's security leverages existing literature.
+Eperio has already been proven secure in both cryptographic~\cite{ECHA10} and formal-methods~\cite{BDGR21}, establishing end-to-end verifiability. 
+Modern PIOP-based SNARKs achieve security by reducing algebraic constraints to vanishing-polynomial checks~\cite{GWC19}.
+Thus, security reduces to a straightforward question: do our constraints faithfully encode the same validity conditions as Eperio? 
+Since they do, completeness and soundness follow directly from the security of the KZG commitment scheme and the PIOP model.
+
 % = = = = = = = = = = = = = = = = = %
 
 \section{Voter Checks}
@@ -306,9 +313,10 @@ For this election, we allocate 10\% of ballots to print audits.
 
 Zeeperio is a succinct proof of an Eperio-encoded election that can be autonomously verified by a smart contract. Even if the reader does not buy the notion of realcryptik, that not hiding raw ballots from the EA can be a stepping stone to full E2E-V elections, Zeeperio is still useful as a drop-in (or complementary) mechanism for standard Eperio. Eperio (like Scantegrity and Punchscan) makes a `blackbox assumption' for ballot privacy that can be extended to Zeeperio. This leads to a natural adoption pathway for vendors and election officials: Zeeprio introduces an initial verifiability component, with automated argument checking via smart contracts, as a first step. Stronger ballot secrecy guarantees can later be integrated with TEE's for full E2E-V.
 
-Describing the entirety of Zeeperio is challenging in the available page length. We note that a full version of this work, in the form of a thesis (anonymized for review) that explains each constraint in detail, offers a broader discussion of the implementation, and provides sketches of security arguments. 
+% Describing the entirety of Zeeperio is challenging in the available page length. We note that a full version of this work, in the form of a thesis,\footnote{URL anonymized for review.} explains each constraint in detail, offers a broader discussion of the implementation, and provides sketches of security arguments. 
 
-Fortunately, the security of Zeeperio makes effective use of existing analysis: Eperio has already been shown to satisfy end-to-end verifiability in both cryptographic~\cite{ECHA10} and formal-methods~\cite{BDGR21} treatments, and modern PIOP-based zk-SNARK constructions justify proving collections of algebraic constraints by reducing them to vanishing-polynomial checks~\cite{GWC19}. Therefore, the security question is relatively straightforward, reducing only to whether our specific vanishing constraints characterize the same relations as those Eperio enforces.
+
+% Fortunately, the security of Zeeperio makes effective use of existing analysis: Eperio has already been shown to satisfy end-to-end verifiability in both cryptographic~\cite{ECHA10} and formal-methods~\cite{BDGR21} treatments, and modern PIOP-based zk-SNARK constructions justify proving collections of algebraic constraints by reducing them to vanishing-polynomial checks~\cite{GWC19}. Therefore, the security question is relatively straightforward, reducing only to whether our specific vanishing constraints characterize the same relations as those Eperio enforces.
 
 % The thesis argues they do.
 
