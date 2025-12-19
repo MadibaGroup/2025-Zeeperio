@@ -23,7 +23,7 @@ If, however, verification could be reduced to a succinct (zk-SNARK) argument, vo
 Zeeperio is a modernization of the Eperio election-verification approach, replacing antiquated cut-and-choose full-open commitments with modern, succinct knowledge arguments for automated verification in a smart-contract setting:
 
 \begin{enumerate}
- 	\item \textbf{Succinct universal verification:} Election constraints are encoded in a single polynomial interactive proof (PIOP) using a zkSNARK approach in Plonk~\cite{GWC19} with a size and runtime constant in the number of voters.
+ 	\item \textbf{Succinct universal verification:} Election constraints are encoded in a single polynomial interactive proof (PIOP) using a zkSNARK approach from Plonk~\cite{GWC19} with a size and runtime constant in the number of voters.
  	\item \textbf{Automatic verification:} The succinctness of Zeeperio arguments enables automatic verification in a smart contract setting, reducing the need for EAs to coordinate explicit independent verification efforts (as in Eperio).
  	\item \textbf{Implementation:} We implement the Zeeperio knowledge arguments and demonstrate their performance in an Ethereum smart contract, showing that an election with $\mathcal{B}=100,000$ ballots and $\mathcal{C}=5$ candidates can be verified on-chain for under $\$60$ USD.
  	\item \textbf{Enhanced dispute resolution}: As a result of confirmation code commitments made within a single polynomial, Zeeperio improves the dispute-resolution process by enabling a succinct proof that a disputed code is incorrect without revealing any other codes or the voter’s selections.
@@ -68,7 +68,7 @@ For online voting, where voters prove ballot validity, GPZKPs are studied, and w
 
 \subsection{Smart Contracts}
 
-Smart contracts are programs deployed on a blockchain, such as Ethereum. The blockchain's consensus mechanism ensures the function call executes correctly and updates the code is updated accordingly. In Zeeprio, a smart contract will accept an election proof and verify it, reporting whether it is correct or not. Since smart contracts can implement arbitrary code, they can support cryptographic operations, though this approach is usually prohibitively expensive. Ethereum offers cheaper `pre-compiles' for pairing-based operations on the elliptic curve \altbn. On Ethereum's testnet, support for curve \bls has been staged for future deployment, as have KZG-specific operations over \bls, using the aforementioned SRS. Zeeperio on \altbn or \bls.
+Smart contracts are programs deployed on a blockchain, such as Ethereum. The blockchain's consensus mechanism ensures the function call executes correctly and updates the code is updated accordingly. In Zeeprio, a smart contract will accept an election proof and verify it, reporting whether it is correct or not. Since smart contracts can implement arbitrary code, they can support cryptographic operations, though this approach is usually prohibitively expensive. Ethereum offers cheaper `pre-compiles' for pairing-based operations on the elliptic curve \altbn. On Ethereum's testnet, support for curve \bls has been staged for future deployment, as have KZG-specific operations over \bls, using the aforementioned SRS.
 
 
 \section{Zeeperio}
