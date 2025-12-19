@@ -44,7 +44,7 @@ Zeeperio is a modernization of the Eperio election-verification approach, replac
 \begin{enumerate}
  	\item \textbf{Succinct universal verification:} Election constraints are encoded in a single polynomial interactive proof (PIOP) using a zk-SNARK approach from Plonk~\cite{GWC19} with a proof size and verification runtime constant in the number of ballots (for fixed template parameters, with only small $O(C)$ subchecks arising from per-ballot block constraints).
  	\item \textbf{Automatic verification:} The succinctness of Zeeperio arguments enables automatic verification in a smart contract setting, reducing the need for EAs to coordinate explicit independent verification efforts (as in Eperio).
- 	\item \textbf{Implementation:} We implement the Zeeperio knowledge arguments and demonstrate their performance in an Ethereum smart contract, showing that an election with $\mathcal{B}=100{,}000$ ballots and $\mathcal{C}=5$ candidates can be verified on-chain for under $\$30\,$USD.
+ 	\item \textbf{Implementation:} We implement the Zeeperio knowledge arguments and demonstrate their performance in an Ethereum smart contract, showing that an election with $\mathcal{B}=100{,}000$ ballots and $\mathcal{C}=5$ candidates can be verified on-chain for under $\$15\,$USD.
  	\item \textbf{Enhanced dispute resolution}: As a result of confirmation code commitments made within a single polynomial, Zeeperio improves the dispute-resolution process by enabling a succinct proof that a disputed code is incorrect without revealing any other codes or the voter’s selections.
  \end{enumerate}
 
