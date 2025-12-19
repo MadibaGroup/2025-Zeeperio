@@ -1,17 +1,16 @@
 \begin{table}[t!]
 \centering
-\caption{Zeeperio benchmark with $\mathcal{B}$ = 100,000 ballots, $\mathcal{C}$ = 5 candidates, $\mathcal{P} = \mathcal{B}\mathcal{C} = 500,000$ positions, padding to $2^20$, and 10\% of ballots print audited. All measurements are from a single-core execution on standard hardware (M3 Pro).}
+\caption{Zeeperio benchmark with $\mathcal{B}$ = 100,000 ballots, $\mathcal{C}$ = 5 candidates, $\mathcal{P} = \mathcal{B}\mathcal{C} = 500,000$ positions, padding to $2^{20}$, and 10\% of ballots print audited. All measurements are from a single-core execution on standard hardware (M3 Pro).}
 \begin{tabular}{lccc}
 \hline
 \textbf{Metric} & \textbf{Main} & \textbf{Inclusion} & \textbf{Receipt} \\
 \hline
-Proof generation (s) & 8,709 & 3,849 & 3,823 \\
+Proof generation (s) & 8,709 & 3,130 & 3,128 \\
 Commitments (\#) & 24 & 13 & 6 \\
 Opening points (\#) & 6 & 2 & 2 \\
-Calldata size (bytes) & 8416 & 4128 & 2688 \\
-Transaction fee (Gas)\footnotemark & 2,429,116 & 1,029,029 & 727,118 \\
+Calldata size (bytes) & 8,416 & 4,128 & 2,688 \\
+Gas used & 2,429,116 & 1,029,029 & 727,118 \\
 \hline
 \end{tabular}
 \label{tab:eval-table2}
 \end{table}
-\footnotetext{At an ETH price of \$3,000 USD, gas price of 4.5 Gwei, and using 1 Gwei $=10^{-9}$ ETH, these transaction fees are approximately $\sim\$34$, $\sim\$14$, and $\sim\$10$ respectively.}
