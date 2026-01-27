@@ -2,6 +2,68 @@
 
 \clearpage
 
+
+\section{Voatz}
+Voatz is a controversial \textbf{mobile voting application} that was used in a few U.S. pilot elections for overseas and military voters between 2018-2020 \cite{voatz-mobile-voting-2020}. 
+Unlike the academic protocols discussed above, Voatz is a proprietary system that claimed to offer security and immutability through the \emph{blockchain}, but independent analyses found it lacked E2E verifiability and was severely insecure.
+Voatz's front-end is a smartphone app that allows voters to submit ballots electronically.
+It advertises features like \emph{blockchain-backed receipts}, \emph{biometrics for authentication}, and \emph{E2E encryption} of ballots.
+However, a 2020 security analysis by Specter et al. (MIT) and the cybersecurity firm Trail of Bits found that it lacked E2E verifiability and contained severe, exploitable security vulnerabilities \cite{specter2020ballot,guido2020our}.
+
+\subsubsection{Verifiability}
+Voatz provides no mechanism for voters to independently verify if the app had recorded their choices correctly.
+There is no public bulletin board or tracking number a voter can check. 
+Voters have to trust the Voatz servers entirely, thereby failing to achieve \emph{cast-as-intended} verifiability.
+Similarly, voters have no way to confirm their ballot is included unaltered in the tally as Voatz does not publish anonymized receipts or a public list of votes, thereby failing to achieve \emph{recorded-as-cast} verifiability.
+Finally, none of the tallying is provably transparent as the backend is effectively a black box, thereby failing to achieve \emph{counted-as-collected} verifiability.
+As the analysts from Trail of Bits put it, Voatz "provides no meaningful end-to-end verification" and offers neither individual nor universal verifiability in a formal sense \cite{trailofbits-voatz-2020}.
+
+
+\subsubsection{Security Vulnerabilities}
+Another concern the researchers found was the Voatz app and infrastructure had multiple vulnerabilities. 
+For example, an attacker with root access on the voter's phone could intercept and alter the voter's choices before they are sent, and the Voatz app's checking mechanism could be easily evaded. 
+The network protocol was also found to potentially leak information about the vote, and since the blockchain was run privately by Voatz's servers, it did not protect against a server-side attack altering votes \cite{statescoop-voatz-audit-2020}. 
+Basically, Voatz's \emph{blockchain} is a permissioned ledger with no public auditability.
+Only Voatz and its partners have nodes, so it functions like a centralized database. 
+
+The advantage of blockchain is that it is tamper-evident, but because outsiders cannot observe the chain directly, and the system lacks independent auditing channels, the supposed \emph{publicly verifiable} blockchain functions as a \emph{black box}. 
+The MIT analysis concluded that there were "numerous vulnerabilities [that] allow different kinds of adversaries to alter, stop, or expose a user's vote" \cite{specter2020ballot}. 
+This included the possibility of some malware on the phone or a malicious Wi-Fi network that could change votes undetected, or that insiders could corrupt the blockchain records without voters or observers noticing \cite{govtech-voatz-audit-2020}.
+
+\subsubsection{Privacy}
+In theory, Voatz uses encryption to protect ballot content, but the MIT researchers found ways that an attacker could still learn a voter's choices. 
+One example given was that with root access, an attacker could \emph{bypass defenses} and learn the user's vote \cite{statescoop-voatz-audit-2020}. 
+Thus, Voatz failed to guarantee \emph{ballot secrecy} against realistic threats. 
+As for \emph{coercion-resistance} or \emph{receipt freeness} verifiability, Voatz actually provided voters with a receipt of sorts (the app would indicate that the vote was recorded on the blockchain). 
+However, because the process was not transparent, this receipt was not independently verifiable by a third party.
+A voter under coercion could potentially show their app screen or a confirmation message, but the coercer would have to trust Voatz's confirmation itself. 
+Regardless, since the system itself was insecure, discussing coercion-resistance is almost pointless as one could argue it is \emph{trivially receipt free} because even the voter cannot prove their vote to an outsider (as nothing publicly verifiable is produced). 
+However, the lack of any mechanism to change or invalidate a coerced vote, or to provide a fake proof means if an attacker compromised the device, the voter had no recourse. 
+
+\subsubsection{Trust Model}
+Voatz expects users to completely trust the vendor's infrastructure, which in this case is the app, the cloud servers, and the private blockchain.
+In Voatz, if the company's servers said a vote was counted, the voter has to believe it without independent evidence. 
+This is the antithesis of E2E verifiability, which aims to remove the need for such trust. 
+The MIT researchers also noted Voatz's \emph{lack of transparency}, and \emph{closed-source} code as criticial weaknesses.
+While Voatz claimed to conduct bug bounty programs and security audits, these were primarily \emph{black box} tests until the Trail of Bits assessment \cite{voatz-audits}.
+Even after the assesment identified critical vulnerabilities, Voatz disputed many findings and continued operations, raising concerns about the company's responsiveness to independent, security research \cite{techtarget-voatz-mit-2020}.
+
+
+\subsubsection{Deployment}
+Voatz was used in a very limited way. 
+For example, West Virginia's 2018 midterm elections allowed overseas military from certain counties to vote via Voatz, and some jurisdictions (parts of Utah in 2020, and a few small municipal pilots) experimented with it as well \cite{moore-sawhney-wv-mobile-voting-2019}. 
+The usage was very narrow, where there were tens of voters in some cases. 
+These pilots were met with \emph{intense} scrutiny and criticism from the security community. 
+After the public disclosure of Voatz's vulnerabilities and a DHS security audit, West Virginia and others backed away from the app. 
+The takeaway is that Voatz is \textbf{not} an E2E-V protocol at all, despite its marketing suggestions. 
+It is essentially a conventional internet voting system with an attached marketing buzzword, \emph{blockchain}.
+Voatz shows us that simply using buzzwords like \emph{blockchain} or \emph{encryption} does not guarantee security or verifiability. 
+Without open, independent verifiability and rigorous peer review, a voting system cannot be trusted. 
+Voatz has since become a cautionary tale, demonstrating that \emph{security through obscurity} and \emph{lack of transparency} are unacceptable in voting systems. 
+Various computer and election security research communities have extensively criticized Voatz's approach, with multiple independent analyses identifying critical vulnerabilities. 
+The consensus among academic security researchers is that it fails to meet basic requirements for secure, verifiable elections.
+
+
 \section{Orphaned Text}
 
 Zeeperio shifts from statistical audits to cryptographic arguments of knowledge. 
