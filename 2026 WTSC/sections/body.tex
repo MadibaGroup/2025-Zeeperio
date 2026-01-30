@@ -388,8 +388,12 @@ V_{\mathsf{dispute}}(X)\ :=\ \bigl((\mathsf{Code}(X)-c)\cdot \mathsf{Inv}_b(X)-1
 \noindent If $c$ does appear on the ballot, say at position $\kappa\in I_b$, the EA will not be able to put a value in $\mathsf{Inv}_b(\kappa)$ that makes $V_{\mathsf{dispute}}(X)$ vanish. 
 
 \section{Implementation and Performance}
-Zeeperio was implemented and tests were run on an Apple Macbook Pro (M3 Pro, 18\,GB RAM). Table~\ref{tab:eval-table2} shows the performance for each of the proofs.\footnotemark 
+Zeeperio is implemented as an off-chain prover, and an on-chain verifier. 
+The proof generation benchmarks were obtained on an Apple Macbook Pro (M3 Pro, 18\,GB RAM), and the gas costs were measured by deploying the verifier to the Sepolia testnet.
+Table~\ref{tab:eval-table2} shows the performance for each of the proofs.\footnotemark 
 \footnotetext{At an ETH price of \$3,000 USD, gas price of 2 Gwei, and using 1 Gwei $=10^{-9}$ ETH, the transaction fees for the proofs are $\sim\$15$, $\sim\$6$, and $\sim\$4$ respectively.}
+
+\input{figures/evaluations.tex}
 
 \paragraph{Off-chain Prover.}
 The prover is implemented in Rust and uses the \emph{arkworks} toolkit for BN254 pairings. 
@@ -398,17 +402,87 @@ It commits to all polynomials using the \emph{hiding} variant of KZG, where each
 The prover also uses \emph{off-domain masking} where it randomizes witness polynomials with additional masking to prevent any information leakage.
 To maximize cost efficiency, the prover batches all polynomial evaluations using a random scalar $\gamma$ into a single KZG opening proof.
 This allows the verifier to check all evaluations simultaneously with a single pairing check.
-Finally, the proofs are exported to calldata using Ethereum ABI encoding.
-\paragraph{Onchain Verifier.}
-The verifier smart contract is implemented in Solidity using the \texttt{Foundry} project setup. 
-The contract takes an ABI-encoded proof containing the public inputs, polynomial commitments and opening proofs, 
-and verifies them on-chain using the BN254 pairing precompiles. 
-The verification logic is split into three functions: \texttt{verifyMain}, \texttt{verifyInclusion}, and \texttt{verifyReceipt},
-corresponding to the three proofs described in Sections~\ref{sec:constraints} and~\ref{sec:voter}.
-Since both the prover and the verifier recompute the same challenges, they need to also share the same serialization rules.
 
-\input{figures/evaluations.tex}
+\paragraph{Calldata encoding.}
+Proofs are serialized into a single \texttt{bytes} payload using Ethereum ABI encoding. The payload contains:
+(i) a proof-kind tag,
+(ii) public inputs,
+(iii) an array of KZG commitments, and
+(iv) an array of openings containing evaluation points, claimed values, and the batched opening proof data.
+The prover computes the 4-byte function selector using Keccak-256 (\texttt{tiny-keccak}) when forming transaction calldata.
 
+\paragraph{On-chain verifier (Solidity + Foundry).}
+The verifier is implemented in Solidity and built with the \texttt{Foundry} toolchain. 
+The contract uses the BN254 precompiles for elliptic-curve arithmetic and pairing checks from EIP-196/197. 
+The contract does not store a circuit-specific \emph{verifying key} as there is no circuit.
+Instead, it stores the \emph{KZG verifier parameters} (a small subset of the SRS) in \texttt{ZeeperioKzgVk.sol}.
+This includes the fixed $G_1$ generators used for the commitments and the $G_2$ elements required for the KZG pairing equation.
+
+\noindent\textbf{Entrypoints and proof kinds.}
+The contract has three functions, \texttt{verifyMain}, \texttt{verifyInclusion}, and \texttt{verifyReceipt}. 
+Each entrypoint calls a shared internal routine \texttt{\_verify(expectedKind, proofCalldata)} which verifies and decodes the proof, and runs the corresponding constraint checks.
+
+\noindent\textbf{Custom ABI decoding via \texttt{calldataload}.}
+To reduce decoding overhead, proofs are passed as a single \texttt{bytes calldata} argument and decoded manually with \texttt{calldataload}. 
+The helper \texttt{\_readWord(data, offset)} := \texttt{calldataload(data.offset + offset)}
+reads 32-byte strings directly from calldata at specific offsets for the \texttt{bytes} payload. 
+The proof payload begins with a fixed-size header:
+\[
+\begin{array}{ll}
+\texttt{0x00:}~\texttt{kind} &
+\texttt{0x20:}~\texttt{commitmentsOffset} \\
+\texttt{0x40:}~\texttt{openingsOffset} &
+\texttt{0x60:}~\texttt{publicOffset} \\
+\texttt{0x80:}~\alpha &
+\texttt{0xA0:}~\beta \\
+\texttt{0xC0:}~\zeta &
+\texttt{0xE0:}~r
+\end{array}
+\]
+where the offsets point to the appropriate sections (commitments, openings, public inputs) within the same \texttt{bytes} blob.
+
+\begin{itemize}
+	\item \textbf{Commitments section}\newline
+	At \texttt{commitmentsOffset}, the contract decodes the \emph{KZG commitment} array of length $\ell$:
+	\[
+	\texttt{len} \,\|\, \underbrace{(\texttt{label}, x, y)}_{0x60~\text{bytes}} \,\|\, \cdots
+	\]
+	Each element has three strings concatenated together.
+	The first string is truncated to \texttt{uint16 label}, followed by two field elements for the BN254 $G_1$ point $(x,y)$.
+	The labels are used to look up commitments when forming linear combinations for KZG batch openings.
+	\item \textbf{Openings section}\newline
+	At \texttt{openingsOffset}, the contract decodes the \emph{KZG openings} array using the ABI style of \emph{array-of-offsets} layout:
+	\[
+	\texttt{len} \,\|\, \texttt{ptr}_0 \,\|\, \cdots \,\|\, \texttt{ptr}_{\texttt{len}-1}.
+	\]
+	Each pointer is a relative offset to an opening tuple. For each opening, the contract reads a fixed prefix:
+	\[
+	(\texttt{witness.x}, \texttt{witness.y}, \texttt{point}, \gamma, \texttt{labelsOff}, \texttt{valuesOff}, \texttt{blindingsOff}),
+	\]
+	and then decodes the three arrays at those offsets:
+	(i) \texttt{uint16[] labels}, (ii) \texttt{uint256[] values}, and (iii) \texttt{uint256[] blindings}. 
+	The \texttt{labels} selects which commitments are needed, \texttt{values} contains the claimed evaluations, and \texttt{blindings} contains the hiding terms needed for the hiding-KZG verifier equation.
+	\item \textbf{Public inputs section}\newline
+	At \texttt{publicOffset}, the contract decodes:
+	\[
+	(n,\; C,\; \texttt{sumA},\; \texttt{sumM},\; \texttt{tallyOffset},\; \texttt{disputedCode},\; \texttt{ballotIndex}),
+	\]
+	where \texttt{tallyOffset} points to the \texttt{uint256[]} tally array. 
+	For the main election proof, \texttt{tally.length} must equal $C$.
+	For the \texttt{Receipt} proof, the \texttt{disputedCode} and \texttt{ballotIndex} fields are used to bind the proof statement to the specific dispute instance.
+
+\end{itemize}
+After decoding, the verifier recomputes the Fiat-Shamir challenges by hashing the proof-specific transcript.
+The contract rejects if recomputed challenges do not match the prover-supplied \texttt{alpha/beta/zeta} (mod $\mathbb{F}_r$). 
+The contract also recomputes a challenge \texttt{r} deterministically from the decoded openings (hash of each opening's \texttt{point}, $\gamma$, witness, and the \texttt{values}/\texttt{blindings}) and rejects if it does not match the supplied \texttt{r}.
+
+\noindent Finally, the contract verifies each opening with a KZG pairing equation. 
+For each \texttt{Opening}, it forms the linear combination of the referenced commitments with the random $\gamma$ and the values (\texttt{labels}, \texttt{values}, \texttt{blindings}) and checks the resulting batched opening using one BN254 pairing check per opening point. 
+This is the mechanism that keeps on-chain verification practical while still validating many polynomial evaluations.
+
+\subsection{Evaluation on Sepolia}
+We deploy to Sepolia because it is free (test ETH can be obtained from public faucets), which makes it practical to repeatedly measure gas.
+Deploying on Ethereum mainnet requires no protocol changes as the kzg operations introduced in EIP-196/197 are available on both networks.
 
 %----------------------------------------------------------------
 \section{Concluding Remarks}

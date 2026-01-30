@@ -1,6 +1,714 @@
 % !TEX root = ../main.tex
 
 \clearpage
+\section{A}
+As shown in Fig. \ref{fig:zklevel}, there are several ways of building a SNARK system. SNARKs are typically implemented at a higher abstraction level with a \emph{circuit}, or a \emph{program} running inside a zkVM.
+The program is first converted into a circuit representation. The circuit is then compiled into a constraint system represented by Poly-IOP gadgets. 
+These gadgets consist of selector polynomials, wire polynomials, permutation arguments, and grand-product checks \cite{Liang:2025:SoK}.
+
+\input{figures/abstraction.tex}
+
+\section{Setup Phase}
+\label{subsec:setup-phase}
+
+Like many Poly-IOP-based systems, Zeeperio begins with a trusted setup phase to generate a Structured Reference String (SRS). We use Ethereum's \textit{Powers of Tau} ceremony, a public multi-party computation that produces a universal and updatable SRS composed of elliptic curve group elements
+\[
+\text{SRS} = \left(g, g^\tau, g^{\tau^2}, \dots, g^{\tau^d}\right),
+\]
+where $\tau$ is a secret value discarded after the setup \cite{cryptoeprint:2025/064}. This SRS supports pairing-based cryptography and is used to commit to polynomials in the KZG scheme.
+
+We use Ethereum's \textit{degree-20} Powers of Tau output, which supports polynomials of degree less than $2^{20} = 1,048,576$. This degree was chosen to comfortably accommodate the maximum expected number of voters at any single polling location. 
+With a 20-degree SRS, Zeeperio can support more than one million unique ballot-candidate positions. This ensures there is sufficient capacity even under extreme real-world election conditions.
+For example, the Kingston and Islands electoral district has 134,415 residents as of 2025 \cite{ElectionsCanadaDistrictFactSheets2025}. With a 20-degree SRS, Zeeperio can support this district with up to 8 candidates.
+
+The security of the protocol depends on the infeasibility of recovering $\tau$. In this model, no adversary can forge valid proofs without solving discrete logarithms in the elliptic curve group. 
+Since we directly use Ethereum's degree-20 Powers of Tau, there is no other trust assumption required and all parameters are public and reusable across all elections.
+
+\section{Audit Column Constraints}
+The \textbf{Audit Column} $\mathsf{A}[n]$ is an array of length $n$ that indicates the audit status of ballot $\mathcal{B}_j$.  
+For any ballot selected for an audit, $\mathsf{A}[i]=1$ for all its $\mathcal{C}$ positions. In contrast, if the ballot was cast correctly, $\mathsf{A}[i]=0$ for all of its $\mathcal{C}$ positions.
+
+To enforce this, we define a set of constraints that must hold for column $\mathsf{A}$ to be formed correctly:
+\begin{itemize}
+  \item \textbf{Padding:} The padded values $\mathsf{A}[i]$ where $i \ge \mathcal{P}$ must be 0.
+  \item \textbf{Values:} The column $\mathsf{A}$ should contain only 0s or 1s.
+  \item \textbf{Blocks:} All $\mathcal{C}$ positions on ballot $\mathcal{B}_j$ must be blocks of 0s or 1s.
+  \item \textbf{Count:} The EA publishes $\mathsf{Sum}_A$, the total number of ballots that were audited. We need to enforce the number of 1s in column $\mathsf{A}$ is equal to $\mathsf{Sum}_A \cdot \mathcal{C}$.
+\end{itemize}
+
+We now describe how each of these constraints are enforced using Poly-IOP gadgets.
+
+\subsection{Padding}
+\label{subsec:padding}
+We need to show that $\mathsf{A}[i]=0$ for all padded values $i\ge \mathcal{P}$. This can be achieved by zeroing out all non-padded entries at $0\le i < \mathcal{P}$. As a result, the audit column polynomial $\mathsf{A}(X)$ should evaluate to 0 for every $\omega\in\Omega$.
+
+We define \ref{eq:auditzero}, a constraint specific vanishing polynomial 
+with roots at \newline $\{\omega^0, \omega^1, \dots, \omega^{\mathcal{P}-1}\}$:
+
+\begin{equation}
+  \label{eq:auditzero}
+  \mathsf{Z}(X) = \prod_{i=0}^{\mathcal{P}-1}(X-\omega^i).
+\end{equation}
+
+If the audit column padding is implemented correctly, $\mathsf{A}(X)\cdot\mathsf{Z}(X)$ zeros out on the entire evaluation domain $\Omega$. 
+For any $i<\mathcal{P}$, $\omega^i$ is a root of $\mathsf{Z}(X)$, 
+so $\mathsf{A}(\omega^i)\cdot\mathsf{Z}(\omega^i) = 0$ regardless of $A(\omega^i)$. For $\mathcal{P}\le i<n$ (the padded values), $\mathsf{A}(\omega^i)\cdot\mathsf{Z}(\omega^i) = 0$ iff $\mathsf{A}(\omega^i)=0$. 
+Therefore, the domain vanishing polynomial $\mathsf{P_{vanish1}}(X)$ is defined as:
+
+
+\begin{equation}
+  \label{eq:1}
+\mathsf{P_{vanish1}}(X) = \mathsf{A}(X)\cdot \mathsf{Z}(X),
+\end{equation}
+where $\mathsf{P_{vanish1}}(X)=0$ on the evaluation domain $\Omega$.
+
+\subsection{Values}
+\label{subsec:values}
+We need to show every entry in column $\mathsf{A}[i]$ for $0\le i<n$ is either 0 or 1. The goal is to build a vanishing polynomial $\mathsf{P_{vanish2}}(X)$ such that it zeros out on the entire evaluation domain.
+We can achieve this by setting the roots at $\{0,1\}$. Therefore, the domain vanishing polynomial $\mathsf{P_{vanish2}}(X)$ is defined as:
+\begin{equation}
+  \label{eq:2}
+  \mathsf{P_{vanish2}}(X) = \mathsf{A}(X)\cdot (\mathsf{A}(X)-1).
+\end{equation}
+
+For any $\mathsf{A}[i]$ set to 1 at indices $0\le i<n$, $\mathsf{A}(X)$ is a root of $\mathsf{P_{vanish2}}(X)$. 
+On the other hand, for any $\mathsf{A}[i]$ set to 0, $(\mathsf{A}(X)-1)$ is a also a root of $\mathsf{P_{vanish2}}(X)$.
+If $\mathsf{P_{vanish2}}(X)$ zeros out at every $\omega\in\Omega$, the audit column only contains 0s and 1s.
+
+\subsection{Blocks}
+\label{subsec:blocks}
+For the audit column to be formed correctly, we need to show the audit status for ballot $\mathcal{B}_j$ is consistent among all its $\mathcal{C}$ positions. As shown in Fig. \ref{fig:ballot-columns}, there are three candidates, so the audit column contains the same value for each block of three. 
+If we add the values of each block, the result should be either 0 (for the cast ballots), or $\mathcal{C}$ (for the audited ballots).   
+
+We define a block-sum polynomial $\mathsf{S}_{\mathsf{blk}_A}(X)$ where every $X=\omega^i\in\Omega$ corresponds to the sum of the $\mathcal{C}$ consecutive positions in $\mathsf{A}[i]$ for all $0\le i<n$ below:
+\begin{equation}
+  \label{eq:blksum1}
+  \mathsf{S}_{\mathsf{blk}_A}(X) = \sum_{k=0}^{\mathcal{C}-1} \mathsf{A}(\omega^k\cdot X).
+\end{equation} 
+
+Every evaluation point $X = \omega^{j\cdot \mathcal{C}}$ in $\mathsf{S}_{\mathsf{blk}_A}(X)$ corresponds to the starting index $k = 0$ of ballot $\mathsf{B}_{\mathsf{ID}_j}$, and evaluates the sum over all its $\mathcal{C}$ positions.
+If the audit column is correctly formed, these positions correspond to 0 or $\mathcal{C}$. 
+Since we only care about the positions where $X = \omega^{j\cdot \mathcal{C}}$, we define a selector array $\mathsf{Sel}_{\mathsf{blk}_A}[n]$ that preserves only the specified positions. 
+Because the audited ballots do not require ballot secrecy, the EA knows which ballots are audited and can precompute the array by setting 1 at every $i=j\cdot\mathcal{C}$ for $0\le i < \mathcal{B}$, and 0 for the rest. 
+This does not depend on voter selections.
+
+Instead of interpolating the selector array using FFT, we can use a sum of the \textit{Lagrange basis} where
+ 
+\[
+\mathsf{L}_i(\omega^k) =
+\begin{cases}
+  1, & \text{if } k = i, \\
+  0, & \text{if } k \neq i.
+\end{cases}
+\]
+
+We can use this to build the selector polynomial by adding the Lagrange basis at every $\mathcal{C}$th position defined as:
+
+\begin{equation}
+\label{eq:selA}
+\mathsf{Sel}_{\mathsf{blk}_A}(X) = \sum_{j=0}^{\lfloor \frac{n}{\mathcal{C}}\rfloor - 1} \mathsf{L}_{j \cdot\mathcal{C}}(X).
+\end{equation}
+
+In this case, interpolation using the Lagrange basis is slightly more efficient ($O(n)$) than using FFT ($O(n\log n)$) \cite{Lagrange}. 
+This is because the sum stops at $\lfloor \frac{n}{\mathcal{C}}  \rfloor - 1$, and the padding bits are set to 0. 
+This also zeros out any tailing irregularities due to the wrap.
+
+We need to prove $\mathsf{S}_{\mathsf{blk}_A}(X)$ and $\mathsf{Sel}_{\mathsf{blk}_A}(X)$ are correctly formed. 
+Since $\mathsf{Sel}_{\mathsf{blk}_A}(X)$ is public and precomputed, we only need to satisfy the following constraint for $\mathsf{S}_{\mathsf{blk}_A}(X)$:
+\[
+  \mathsf{S}_{\mathsf{blk}_A}(\omega^{j\cdot\mathcal{C}}) = \sum_{i=0}^{C-1} \mathsf{A}(\omega^{j\cdot\mathcal{C}+i}),
+\] 
+for all blocks $j= \{0,\cdots,\left\lfloor \frac{n}{\mathcal{C}} \right\rfloor-1\}$. 
+
+We can convert this constraint into the domain vanishing polynomial defined as:
+
+\begin{equation}
+  \label{eq:3}
+  \mathsf{P_{vanish3}}(X)= (\mathsf{S}_{\mathsf{blk}_A}(X) - \sum_{i=0}^{n-1}\mathsf{A}(X\cdot\omega^i))\cdot \mathsf{Sel}_{\mathsf{blk}_A}(X),
+\end{equation}
+over the evaluation domain $\Omega$.
+
+Finally, we can use the same strategy used in Sec. \ref{subsec:values} to prove the evaluation of $\mathsf{S}_{\mathsf{blk}_A}(X)\cdot \mathsf{Sel}_{\mathsf{blk}_A}(X)$ corresponds to 0 or $\mathcal{C}$.
+We form the domain vanishing polynomial defined as:
+
+\begin{equation}
+\label{eq:4}
+\mathsf{P_{vanish4}}(X) = (\mathsf{S}_{\mathsf{blk}_A}(X)\cdot \mathsf{Sel}_{\mathsf{blk}_A}(X)) \cdot (\mathsf{S}_{\mathsf{blk}_A}(X)\cdot \mathsf{Sel}_{\mathsf{blk}_A}(X) - \mathcal{C}),
+\end{equation}
+over the evaluation domain $\Omega$.
+
+
+\subsection{Count}
+\label{subsec:count}
+Let $\mathsf{Sum}_A$ be the publicly declared number of audited ballots. Given our previous constraint, the total number of 1s in the audit column $\mathsf{A}$ should be $\mathsf{Sum}_A \cdot \mathcal{C}$. 
+We can prove they are equal using accumulator polynomials. 
+We define a backwards accumulator $\mathsf{Acc}_A(X)$ that encodes the running total of the audit markings.
+If the audit column is correctly formed, $\mathsf{Acc}_A(\omega^0) = \mathsf{Sum}_A \cdot \mathcal{C}$.
+
+We start by setting the last position of the accumulator polynomial to equal $\mathsf{A}(X)$ evaluated at the last position such that $\mathsf{Acc}_A(\omega^{n-1}) = \mathsf{A}(\omega^{n-1})$.
+For each preceding index $i$, we set $\mathsf{Acc}_A(X) = \mathsf{A}(X) + \mathsf{Acc}_A(\omega\cdot X)$, where $X=\omega^i$ and the preceding index $\omega\cdot X = \omega^{i+1}$ in the evaluation domain $\Omega$.
+
+To prove these relationships, we need to enforce the following three constraints over the domain $\Omega$.
+
+\begin{enumerate}
+    \item $\mathsf{Acc}_A(X) = \mathsf{A}(X) + \mathsf{Acc}_A(\omega X)$ for all $X=\omega^i$ except $X=\omega^{n-1}$
+        \newline To enforce this constraint, we define a constraint specific vanishing polynomial $\mathsf{Z}_{1_A}(X)$ that zeros out the last position at $X=\omega^{n-1}$ as:
+        \begin{equation}
+          \label{eq:za1}
+        \mathsf{Z}_{1_A}(X)= X-\omega^{n-1}.
+        \end{equation}
+        Since this allows us to preserve all values at $\omega\in\Omega$ except $\omega^{n-1}$, we can check if the relationship holds.
+        We define the domain vanishing polynomial as:
+        \begin{equation}
+          \label{eq:5}
+        \mathsf{P_{vanish5}}(X)=(\mathsf{Acc}_A(X) - \mathsf{A}(X) + \mathsf{Acc}_A(\omega\cdot X)) \cdot \mathsf{Z}_1(X).
+        \end{equation}
+    \item $\mathsf{Acc}_A(\omega^{n-1}) = \mathsf{A}(\omega^{n-1})$ for $X=\omega^{n-1}$
+        \newline We need to prove the last position of $\mathsf{Acc}_A(X) = \mathsf{A}(X)$. To enforce this, we define a constraint specific vanishing polynomial $\mathsf{Z}_{2_A}(X)$ that zeros out every $\omega\in\Omega$ except $\omega^{n-1}$ as:
+        \begin{equation}
+          \label{eq:za2}
+        \mathsf{Z}_{2_A}(X)= \frac{X^n-1}{X-\omega^{n-1}}.
+        \end{equation}
+        This vanishing polynomial lets us preserve only the last position where $i=n-1$. We define the domain vanishing polynomial as:
+        \begin{equation}
+          \label{eq:6}
+        \mathsf{P_{vanish6}}(X)=(\mathsf{Acc}_A(X) - \mathsf{A}(X)) \cdot \mathsf{Z}_2(X).
+        \end{equation}
+    \item $\mathsf{Acc}_A(\omega^0) = \mathsf{Sum}_A\cdot \mathcal{C}$ for $X=\omega^0$
+    \newline If the accumulator is is built correctly, the evaluation at $X=\omega^0$ should be the number of 1s in the audit column. 
+    We only want to preserve the first position, so we define a constraint specific vanishing polynomial $\mathsf{Z}_{3_A}(X)$ that zeros out every $\omega\in\Omega$ except $\omega^{0}$ as:
+    \begin{equation}
+      \label{eq:za3}
+    \mathsf{Z}_{3_A}(X) = \frac{X^n-1}{X-\omega^{0}}.
+    \end{equation}
+    We define the domain vanishing polynomial as:
+    \begin{equation}
+      \label{eq:7}
+    \mathsf{P_{vanish7}}(X)=(\mathsf{Acc}_A(X) - \mathsf{Sum}_A\cdot\mathcal{C}) \cdot \frac{X^n-1}{X-\omega^{0}}.
+    \end{equation}
+\end{enumerate}
+        These polynomials \emph{vanish} on the entire evaluation domain iff the accumulator was correctly formed.
+
+\section{Constraint: Mark Column}
+\label{sec:mark}
+The \textbf{Mark Column} $\mathsf{M}[n]$ is an array of length $n$ that indicates which position on ballot $\mathcal{B}_j$ was voted for.  
+For any ballot that was cast correctly, $\mathsf{M}[i]=1$ for exactly one of its position and all others $0$ to prevent overvotes. If a ballot was audited instead, then $\mathsf{M}[i]=0$ for all of its positions.
+
+We apply the same constraints to the mark column to prove it was correctly formed. 
+
+\begin{itemize}
+  \item \textbf{Padding:} $\mathsf{M}[i]=0$ for all the padded positions $\mathcal{P}\le i< n$. We use the same constraint specific vanishing technique as Sec. \ref{subsec:padding}, but apply it to $\mathsf{M}(X)$. The resulting domain vanishing polynomial is defined as:
+  \begin{equation}
+    \label{eq:8}
+  \mathsf{P_{vanish8}}(X) = \mathsf{M}(X)\cdot \mathsf{Z}(X),
+  \end{equation}
+  where $\mathsf{Z}(X) = \prod_{i=1}^{\mathcal{P}-1}(X-\omega^i).$
+  \item \textbf{Values:} The mark column $\mathsf{M}$ should only contain 0s and 1s.
+  We use the same technique as Sec. \ref{subsec:values}, but apply it to $\mathsf{M}(X)$. The resulting domain vanishing polynomial is defined as:
+  \begin{equation}
+    \label{eq:9}
+    \mathsf{P_{vanish9}}(X) = \mathsf{M}(X)\cdot (\mathsf{M}(X)-1).
+  \end{equation}
+  \item \textbf{Blocks:} We need to enforce there is at most one marked position per ballot. 
+  Similar to Sec. \ref{subsec:blocks}, we build a block-sum polynomial $\mathsf{S}_{\mathsf{blk}_M}(X)$ that sums over the $\mathcal{C}$ consecutive positions. 
+  This constraint is easier to enforce compared to the audit column counterpart as we need to only verify $\mathsf{S}_{\mathsf{blk}_M}(X)$ corresponds to $\{0,1\}$ rather than $\{0,1,\dots,\mathcal{C}\}$. 
+  This is why we do not need the selector polynomial for the mark column.
+
+  We define the block-sum polynomial as:
+\begin{equation}
+    \label{eq:blk2}
+  \mathsf{S}_{\mathsf{blk}_M}(X)= \sum_{k=0}^{\mathcal{C}-1} \mathsf{M}(\omega^k\cdot X). 
+\end{equation}
+
+  If there is only one mark per ballot, the evaluations of $\mathsf{S}_{\mathsf{blk}_M}(X)$ on the domain $\Omega$ correspond to 0 or 1. We need to prove $\mathsf{S}_{\mathsf{blk}_M}(X)$ was constructed correctly, so we define a vanishing polynomial that satisfies this constraint as:
+  \begin{equation}
+    \label{eq:10}
+    \mathsf{P_{vanish10}}(X)= (\mathsf{S_{blk}}(X) - \sum_{i=0}^{n-1}\mathsf{M}(X\cdot\omega^i)).
+  \end{equation}
+  
+  Now we need to show $\mathsf{S}_{\mathsf{blk}_M}(X)$ corresponds to $\{0,1\}$. Enforcing this constraint is identical to enforcing the \emph{values} constraint. We multiply the roots to form the domain vanishing polynomial defined as:
+  \begin{equation}
+    \label{eq:11}
+  \mathsf{P_{vanish11}}(X) = \mathsf{S}_{\mathsf{blk}_M}(X) \cdot (\mathsf{S}_{\mathsf{blk}_M}(X)-1).
+  \end{equation}
+  This zeros out the polynomial on the evaluation domain iff the mark column contains at most one mark per every $\mathcal{C}$th block. 
+
+  \item \textbf{Count:} Let $\mathsf{Sum}_M$ be the public number of cast ballots. We want to prove the total number of marked positions in the column $\mathsf{M}$ is equal to $\mathsf{Sum}_M$, since each cast ballot counts as one mark. 
+  
+  We use the same accumulation technique from Sec. \ref{subsec:count} to sum over all positions in $\mathsf{M}(X)$. We define the accumulator polynomial $\mathsf{Acc}_M(X)$ such that $\mathsf{Acc}_M(\omega^{n-1}) = \mathsf{M}(\omega^{n-1})$, 
+  and $\mathsf{Acc}_M(X) = A(X) + \mathsf{Acc}_M(\omega\cdot X)$ for each preceeding index $i$.
+
+  We need to show the accumulator polynomial $\mathsf{Acc}_M(X)$ is formed correctly and $\mathsf{Acc}_M(X)$ evaluated at $X=\omega^0$ corresponds to $\mathsf{Sum}_M$.
+  There are three constraints we must satisfy:
+  \begin{enumerate}
+    \item $\mathsf{Acc}_M(X)=M(X)$ for $X = \omega^{n-1}$
+    \item $\mathsf{Acc}_M(X)=\mathsf{Sum}_M$ for $X=\omega^0$
+    \item $\mathsf{Acc}_M(X) = M(X)+\mathsf{Acc}_M(\omega\cdot X)$ for all $X$ except $X=\omega^{n-1}$
+  \end{enumerate}
+
+  We can use the same constraint specific vanishing technique to control which positions to enforce and form the following domain vanishing polynomials defined by Equations \ref{eq:12} to \ref{eq:14}.
+
+\begin{equation}
+\label{eq:12}
+\mathsf{P_{vanish12}}(X)=(\mathsf{Acc}_M(X) - \mathsf{M}(X) + \mathsf{Acc}_M(\omega\cdot X)) \cdot \mathsf{Z}_{1_M}(X)
+\end{equation}
+\begin{equation}
+  \label{eq:13}
+\mathsf{P_{vanish13}}(X)=(\mathsf{Acc}_M(X) - M(X)) \cdot \mathsf{Z}_{2_M}(X)
+\end{equation}
+\begin{equation}
+  \label{eq:14}
+\mathsf{P_{vanish14}}(X)=(\mathsf{Acc}_M(X) - \mathsf{Sum}_M) \cdot \mathsf{Z}_{3_M}(X)
+\end{equation}
+
+where 
+\begin{align*}
+  \mathsf{Z}_{1_M}(X)=X-\omega^{n-1}, \mathsf{Z}_{2_M}(X)=\frac{X^n-1}{X-\omega^{n-1}}, \text{ and } \mathsf{Z}_{3_M}(X)=\frac{X^n-1}{X-\omega^{0}}.
+\end{align*}
+
+\end{itemize}
+
+\section{Constraint: Audit and Mark Column Exclusions}
+So far, we have enforced constraints that make sure the audit column $\mathsf{A}$ and mark column $\mathsf{M}$ are formed correctly. 
+Now, we need to enforce no ballot is marked as both audited and cast. Essentially, we need to prove both $\mathsf{A}$ and $\mathsf{M}$ are not set to 1 at the same index $0\le i<n$.
+
+This can be easily achieved by calculating the \textbf{Hadamard product} (element-wise multiplication) of the two columns. We define the domain vanishing polynomial as:
+\begin{equation}
+  \label{eq:15}
+\mathsf{P_{vanish15}}(X) = \mathsf{A}(X)\cdot \mathsf{M}(X),
+\end{equation}
+such that it zeros out on the evaluation domain $\Omega$ iff at least one of the columns is set to 0. If a ballot is audited, the corresponding audit column positions are set to 1, and the corresponding mark column positions are set to 0. 
+On the other hand, if a ballot is cast, only one of the corresponding positions in the mark column is set to 1, and all the corresponding positions in the audit column are set to 0.
+
+\section{Constraint: Tally Check}
+Finally, we need to verify the final election tally (the number of votes for each candidate) is correctly calculated from the mark column $\mathsf{M}$. As shown in Fig. \ref{fig:ballot-columns}, the candidates on each ballot are in a fixed canonical order where each candidate corresponds to the same position on each ballot. Therefore, we can derive the total count for each candidate by grouping the elements of $\mathsf{M}$ by candidate position across all ballots. 
+
+For candidate $c\in\{0,\dots, \mathcal{C}-1\}$ let us consider the indices $\{c, c + \mathcal{C},  c + 2\cdot \mathcal{C}, \dots \}$ where these indicies represent the $c$th position on every ballot. We will refer to these indices as a \textit{stream}, and use the term \textit{stride} for skipping ahead $c$ indices.
+
+We want to prove the sum of $\mathsf{M}$ over the stream is equal to the tally for candidate $c$. We can calculate the sum for each candidate all in one step by using a strided accumulation. This is similar to accumulator polynomial used to prove $\mathsf{Sum}_M = \mathsf{Acc}_M(\omega^0)$ in Sec. \ref{sec:mark}, except we shift by $\omega^\mathcal{C}$ on the domain instead of $\omega$.
+
+In a normal sum:
+\[
+(\mathsf{Acc}_M(X)-\mathsf{M}(X)+\mathsf{Acc}_M(\omega\cdot X))\cdot \mathsf{Z}(X)=0.
+\]
+
+In a strided sum: 
+\[
+(\mathsf{Acc}_M(X)-\mathsf{M}(X)+\mathsf{Acc}_M(\omega^\mathcal{C}\cdot X))\cdot \mathsf{Z}(X) = 0.
+\]
+
+In a standard accumulator, the sum can include the padded bits because the padding value is 0, which does not affect the tally.
+
+  In a strided accumulator, we can do the same thing but we zero out the last $\mathcal{C}$ elements.
+  If $n$ is not divisble by $\mathcal{C}$, there will be some fully padded blocks for which all its $\mathcal{C}$ positions are set to 0, and some remaining padded bits that do not form a full block of $\mathcal{C}$ positions. We call these residual bits the \textit{padding tail}.
+  This means some streams start from the padding tail and others start from the last padding block. However, this is not an issue as the former streams will just be longer by one zeroed value.
+
+  We define the following three constraints to satisfy the tally for each candidate:
+\begin{enumerate}
+    \item The last $\mathcal{C}$ positions of the accumulator must match the corresponding values from the mark column $\mathsf{M}$:
+    \[
+    \mathsf{Acc}_M(X) - \mathsf{M}(X) = 0 \text{ for } \omega^{n-1-\mathcal{C}} \le X \le \omega^{n-1}.
+    \]
+    \item The accumulator must be in the form:
+    \[
+    \mathsf{Acc}_M(X)-\mathsf{M}(X)+\mathsf{Acc}_M(\omega^\mathcal{C} \cdot X)=0 \text{ for all } X \text{ except } \omega^{n-1-\mathcal{C}} \le X \le \omega^{n-1}.
+    \]
+    \item The first position of each candidate $\mathcal{C}$ in the accumulator must match the publicly announced tally for candidate $\mathcal{C}\in\{0,1,\dots,\mathcal{C}-1\}$
+    \[
+    \mathrm{Acc}_M(X)-\mathsf{Sum}_{\mathcal{C}_i}=0 \text{ for each } \omega^0 \le X \le \omega^{\mathcal{C}-1}.
+    \]
+    It is important to note this constraint is applied to every candidate separately. Therefore, there will be $\mathcal{C}$ vanishing polynomials associated with this constraint.
+
+\end{enumerate}
+
+We can turn these constraints into domain vanishing polynomials defined as Equations \ref{eq:16} to \ref{eq:18}.
+
+\begin{equation}
+  \label{eq:16}
+  \mathsf{P_{vanish16}}(X) = (\mathsf{Acc}_M(X)-\mathsf{M}(X)) \cdot \mathsf{Z}_1(X)
+\end{equation}
+where $\mathsf{Z}_1(X)=\prod_{i=0}^{\mathcal{C}-1} (X - \omega^{n-1 - i})$.
+\begin{equation}
+  \label{eq:17}
+  \mathsf{P_{vanish17}}(X) = (\mathsf{Acc}_M(X) - \mathsf{M}(X) + \mathsf{Acc}_M(\omega^\mathcal{C} X)) \cdot \mathsf{Z_2}(X)
+\end{equation}
+where $\mathsf{Z}_2(X)=\left(\prod_{i=0}^{\mathcal{C}-1} \frac{X^n - 1}{X - \omega^{n-1 - i}} \right)$.
+\begin{equation}
+  \label{eq:18}
+  \{\mathsf{P}_{\mathsf{vanish18},c}(X)\}_{c=0}^{\mathcal{C}-1} = (\mathsf{Acc}_M(X) - \mathsf{Sum}_c) \cdot \mathsf{Z_3}(X) \text{ for each }\omega^0 \le X \le \omega^{\mathcal{C}-1}
+\end{equation}
+where $\mathsf{Z}_3(X)= \frac{X^n - 1}{X - \omega^{c}}$. 
+
+
+\section{Election Verification}
+\label{sec:elec}
+Now that we have fully defined the election constraints, we will show how the election verification is performed. 
+
+First, the EA commits to all polynomials involved in the vanishing constraints, including the public and private witness polynomials:
+\[
+\mathsf{Commitments} \;=\;
+\left[
+\begin{aligned}
+&\mathsf{KZG.Commit}(\mathsf{A}(X)),\quad
+ \mathsf{KZG.Commit}(\mathsf{M}(X)),\quad
+ \mathsf{KZG.Commit}(\mathsf{S}_{\mathsf{blk}_A}(X)),\\
+&\mathsf{KZG.Commit}(\mathsf{S}_{\mathsf{blk}_M}(X)),\quad
+ \mathsf{KZG.Commit}(\mathsf{Acc}_A(X)),\quad
+ \mathsf{KZG.Commit}(\mathsf{Acc}_M(X)).
+\end{aligned}
+\right]
+\]
+
+
+Then, the EA batches the $k=17+\mathcal{C}$ vanishing polynomials into a single polynomial using \textbf{random linear combination}. Instead of verifying each constraint separately, the EA generates a random $\alpha\in\mathbb{F}_q$ via Fiat-Shamir and builds the new domain vanishing polynomial defined as:
+\begin{equation}
+\label{eq:vanish}
+\mathsf{P_{vanish}}(X)= \sum_{i=1}^{k}(\alpha^{i-1}\cdot \mathsf{P}_{\mathsf{vanish}_i}(X)).
+\end{equation}
+This only works because KZG commitments are homomorphic. This allows for us to perform 
+operations on committed polynomials without needing to reveal the underlying data. 
+
+Next, the EA constructs the quotient polynomial $\mathsf{Q}(X)$ defined as:
+\begin{equation}
+\label{eq:q1}
+\mathsf{Q}(X) = \frac{\mathsf{P_{vanish}}(X)}{X^{n} - 1}.
+\end{equation}
+
+$\mathsf{Q}(X)$ exists iff all constraints encoded in $\mathsf{P_{vanish}}(X)$ evaluate to zero over the domain $\Omega$.
+Otherwise, we end up with a rational function which we cannot commit to using the KZG scheme. Therefore, the existance of $\mathsf{Q}(X)$ proves our election is enforced correctly.
+
+The EA then commits to $\mathsf{Q}(X)$ to produce the proof $\pi$:
+\[
+\pi \leftarrow \mathsf{KZG.Commit}(\mathsf{Q}(X)).
+\]
+
+The EA generates a challenge $\zeta\stackrel{\$}{\leftarrow}\mathbb{F}q$ via Fiat-Shamir, and sends all relevant commitment openings at the evaluation point $\zeta$ to the verifier:
+\[
+\mathsf{Openings} \;=\;
+\left[
+\begin{aligned}
+\mathsf{KZG.Open}(\mathsf{Q}(\zeta)),
+\mathsf{KZG.Open}(\mathsf{A}(\zeta)),\quad 
+\mathsf{KZG.Open}(\mathsf{M}(\zeta)),\quad
+\mathsf{KZG.Open}(\mathsf{S}_{\mathsf{blk}_A}(\zeta)),\\
+\mathsf{KZG.Open}(\mathsf{S}_{\mathsf{blk}_M}(\zeta)),\quad
+\mathsf{KZG.Open}(\mathsf{Acc}_A(\zeta)),\quad
+\mathsf{KZG.Open}(\mathsf{Acc}_M(\zeta)).
+\end{aligned}
+\right]
+\]
+
+
+Finally, the verifier builds $\mathsf{P_{vanish}}(X)$ from all the commitment openings at $\zeta$ and verifies 
+$\mathsf{P_{vanish}}(\zeta) - Q(\zeta)\cdot(\zeta^n-1) \stackrel{?}{=} 0$ using the pairing-based $\mathsf{KZG.Verify}$.
+If this check holds, then by the Shwartz-Zippel lemma we can conclude this relationship holds for any $X \in \mathbb{F}q$ with overwhelming probability. 
+Thus, we are assured that all Zeeperio election constraints are satisfied without learning any private ballot data.
+
+\section{Constraint: Voter Verification}
+ 
+So far, we have verified the election correctness through the constraint system. Now, we focus on the voter verification.
+This ensures that any data revealed to voters is consistent with the committed election data. 
+This is a separate, independant, zero-knowledge proof from the main election proof used specifically in the event a voter raises a dispute. 
+The underlying setup phase remains the same, and we continue to operate over the same election parameters and committed polynomials. 
+
+\subsection{Print Audit}
+\label{sec:print}
+In a print audit, an auditor selects a ballot to spoil and provides the ballot ID to the EA. The EA must prove the ballot corresponds to the committed values in $A[i]$ and $M[i]$. 
+Because ballot secrecy is not a concern for audited ballots, the EA can simply use KZG openings to reveal the commitments of the corresponding columns. 
+If given a ballot $\mathcal{B}_j$, the EA identifies the corresponding block of indices $i = [j\cdot \mathcal{C},j\cdot\mathcal{C}+1,\dots,j\cdot\mathcal{C}+(\mathcal{C}-1)]$. 
+It then opens the commitments to $\mathsf{A}[i]$ at those index values using KZG to show all of them are marked as 1s (confirms ballot was marked as audited). The EA also opens commitments to $\mathsf{M}[i]$ at those positions to show they are all 0 (confirms none of the positions were used to vote). 
+Since we do not have to preserve zero-knowledge with audited ballots, this is enough to satisfy the print audit constraint.
+
+\subsection{Voter Checks}
+\label{subsec:receipt-check}
+
+After casting a ballot, the voter receives a receipt with a unique confirmation code $C_{\mathsf{confirm}}[i]$. 
+If the voter raises a dispute, they provide their ballot ID $\mathcal{B}_j$ and the confirmation code $C$.
+We consider two scenarios:
+
+\begin{enumerate}
+  \item \textbf{Ballot inclusion ("Was my ballot included?")} 
+  The EA proves the confirmation code $C$ is associated with ballot $\mathcal{B}_j$ and appears in the committed election data. 
+  \item \textbf{Receipt correctness ("Is my confirmation code correct?")}
+  The voter can raise a dispute if they do not see their confirmation code in the published $\mathsf{C}_{{\mathsf{confirm}}}(X)$ data.  
+  The EA proves the disputed confirmation code $C$ is not associated with any of the positions on the ballot $\mathcal{B}_j$.
+\end{enumerate}
+
+\subsubsection{Ballot Inclusion}
+
+A simple receipt check follows the same logic as Sec. \ref{sec:print}, but uses the mark column instead of the audit column. However, this reveals which candidate was voted for and therefore is not receipt-free. 
+Instead, we follow the approach of Eperio~\cite{eperio} and use a permutation argument to prove the
+voter's confirmation code $C$ is associated with a marked position on their ballot $\mathcal{B}_j$, while
+keeping the candidate chosen hidden.
+
+\paragraph{Tuples and Shuffles}\mbox{}\newline
+For each index $i \in \{0,\dots,n-1\}$, the EA forms a tuple
+\[
+  (b_i, c_i, m_i) = (\mathsf{B_{ID}}[i],\, \mathsf{C}_{\mathsf{confirm}}[i],\, M[i])
+\]
+using the ballot ID, confirmation code, and mark columns. 
+Let $\sigma$ be a Fiat-Shamir derived \textbf{Fisher-Yates} shuffling algorithm applied to each tuple $(b_i, c_i, m_i)$. We define the permuted tuples as 
+\[
+  (b'_i, c'_i, m'_i) = (b_{\sigma(i)},\, c_{\sigma(i)},\, m_{\sigma(i)})
+\]
+and denote the corresponding original and shuffled interpolated polynomials as \newline$(\mathsf{B}_\mathsf{ID}(X), \mathsf{C}_\mathsf{confirm}(X), \mathsf{M}(X))$, and ($\mathsf{B}'_\mathsf{ID}(X), \mathsf{C}'_\mathsf{confirm}(X), \mathsf{M}'(X)$) $\in \mathbb{F}_q[X]$.
+
+The EA then commits to all six polynomials shown below.
+\[
+\mathsf{C} \;=\;
+\left[
+\begin{aligned}
+&\mathsf{KZG.Commit}(\mathsf{B}_\mathsf{ID}),\quad
+ \mathsf{KZG.Commit}(\mathsf{C}_\mathsf{confirm}),\quad
+ \mathsf{KZG.Commit}(\mathsf{M}(X)),\\
+&\mathsf{KZG.Commit}(\mathsf{B}'_\mathsf{ID}),\quad
+ \mathsf{KZG.Commit}(\mathsf{C}'),\quad
+ \mathsf{KZG.Commit}(\mathsf{M}').
+\end{aligned}
+\right]
+\]
+
+
+\paragraph{Random linear combination}\mbox{}\newline
+We use random linear combination to compare the two multisets of tuples without revealing the underlying data.
+The EA generates
+$\alpha \stackrel{\$}{\leftarrow} \mathbb{F}_q$ via Fiat-Shamir and defines the multisets below:
+\begin{align}
+  v_i = b_i + \alpha \cdot c_i + \alpha^2 \cdot m_i \label{eq:perm-v}\\
+  v'_i = b'_i + \alpha \cdot c'_i + \alpha^2 \cdot m'_i \label{eq:perm-vprime}
+\end{align}
+We define two polynomials $\mathsf{T}(X)$ and $\mathsf{T}'(X)$ such that
+$\mathsf{T}(\omega^i) = v_i$ and $\mathsf{T}'(\omega^i) = v'_i$ for the entire evaluation domain $\Omega$ as shown below:
+
+\begin{equation}
+\label{eq:tone}
+\mathsf{T}(X) = \alpha\cdot \mathsf{B}_\mathsf{ID}(X)+\alpha^2\cdot \mathsf{C}_\mathsf{confirm}(X)+ \mathsf{M}(X),
+\end{equation}
+\begin{equation}
+\label{eq:ttwo}
+\mathsf{T}'(X) = \alpha\cdot \mathsf{B}'_\mathsf{ID}(X)+\alpha^2\cdot \mathsf{C}'_\mathsf{confirm}(X)+ \mathsf{M}'(X).
+\end{equation}
+
+Now we can compare the encoded polynomials by using the grand-product argument over a random point $r$. 
+We introduce this random point because different sets can produce the same product without containing the same elements. Therefore, we evaluate the products over a random point and if they are equal, we can conclude the tuples ($\mathsf{B_{ID}}, \mathsf{C_{confirm}}, \mathsf{M}$) and ($\mathsf{B'_{ID}}, \mathsf{C'_{confirm}}, \mathsf{M}'$) are valid permutations of each other.
+
+The EA generates a random $r \stackrel{\$}{\leftarrow} \mathbb{F}_q$ via Fiat-Shamir and defines $\mathsf{T}_1(X)$ and $\mathsf{T}_2(X)$ as shown below:
+\begin{equation}
+\label{eq:t1}
+\mathsf{T}_1(X)= r-\mathsf{T}(X),
+\end{equation}
+\begin{equation}
+\label{eq:t2}
+\mathsf{T}_2(X)= r-\mathsf{T}'(X),
+\end{equation}
+for the entire evaluation domain $X\in\Omega$.
+
+\paragraph{Grand Product Argument}\mbox{}\newline
+We now enforce the grand product check using backward accumulators defined as:
+
+\begin{equation}
+  \label{eq:acct1}
+\mathsf{Acc}_{T_1}(X) =
+    \begin{cases}
+    \mathsf{Acc}_{T_1}(\omega^{n-1})=  \mathsf{T}_1(\omega^{n-1}) \\
+    \mathsf{Acc}_{T_1}(\omega^i) =  \mathsf{T}_1(\omega^i)\cdot \mathsf{Acc}_{T_1}(\omega^{i+1}),
+    \end{cases}
+\end{equation}
+
+\begin{equation}
+  \label{eq:acct2}
+\mathsf{Acc}_{T_2}(X) =
+    \begin{cases}
+    \mathsf{Acc}_{T_2}(\omega^{n-1})=  \mathsf{T}_2(\omega^{n-1}) \\
+    \mathsf{Acc}_{T_2}(\omega^i) =  \mathsf{T}_2(\omega^i)\cdot \mathsf{Acc}_{T_2}(\omega^{i+1}).
+    \end{cases}
+\end{equation}
+
+This enforces the equality of products because $\mathsf{Acc}_{T_1}(\omega^0) = \prod_{i=0}^{n-1} \mathsf{T}_1(\omega^i)$ and
+$\mathsf{Acc}_{T_2}(\omega^0) = \prod_{i=0}^{n-1} T_2(\omega^i)$. 
+We can then compare if $\mathsf{Acc}_{T_1}(\omega^0) \stackrel{?}{=} \mathsf{Acc}_{T_2}(\omega^0)$.
+If this check passes, we can conclude the two multisets are equal, and therefore the voter's confirmation code $C$ is associated with a marked position on their ballot $\mathcal{B}_j$.
+
+
+To show this equality, we enforce the following five constraints:
+
+
+\begin{enumerate}
+    \item $\mathsf{Acc}_{T_1}(X)=\mathsf{T}_1(X)$ for $X = \omega^{n-1}$
+    \newline This constraint verifies the last value of $\mathsf{Acc}_{T_1}(X)$ matches the last value of $\mathsf{T}_1(X)$. We define the constraint specific vanishing polynomial $\mathsf{Z}_1(X)$ that zeros all $\omega\in\Omega$, except $\omega^{n-1}$ defined as:
+    \begin{equation}
+    \label{eq:zv1}
+    \mathsf{Z}_1(X)=\frac{X^n-1}{X-\omega^{n-1}}.
+    \end{equation}
+    This ensures the check is only performed on the last position. The resulting domain vanishing polynomial is defined as:
+    \begin{equation}
+    \label{eq:v1}
+      \mathsf{P}_\mathsf{vanish1}(X)=(\mathsf{Acc}_{T_1}(X) - \mathsf{T}_1(X)) \cdot \mathsf{Z}_1(X).
+    \end{equation}
+    \item $\mathsf{Acc}_{T_2}(X)=\mathsf{T}_2(X)$ for $X = \omega^{n-1}$
+    \newline Similarly, this constraint verifies the last value of $\mathsf{Acc}_{T_2}(X)$ matches the last value of $\mathsf{T}_2(X)$. The resulting domain vanishing polynomial is defined as:
+    \begin{equation}
+      \label{eq:v2}
+    \mathsf{P}_\mathsf{vanish2}(X)=(\mathsf{Acc}_{T_2}(X) - \mathsf{T}_2(X)) \cdot \mathsf{Z}_1(X).
+    \end{equation}
+    \item $\mathsf{Acc}_{T_1}(X) = \mathsf{T}_1(X)\cdot \mathsf{Acc}_{T_1}(\omega\cdot X)$ for all $X$ except $X=\omega^{n-1}$
+    \newline This constraint verifies the rest of the accumulator $\mathsf{Acc}_{T_1}(X)$ is formed correctly. We define the constraint specific vanishing polynomial $\mathsf{Z}_2(X)$ that only zeros out the last element at $X=\omega^{n-1}$ defined as:
+    \begin{equation}
+      \label{eq:zv2}
+    \mathsf{Z}_2(X) = X-\omega^{n-1}.
+    \end{equation}
+    This ensures the check is performed on all $\omega\in\Omega$, except the last element $\omega^{n-1}$. The resulting domain vanishing polynomial is defined as:
+    \begin{equation}
+      \label{eq:v3}
+    \mathsf{P}_\mathsf{vanish3}(X) = (\mathsf{Acc}_{T_1}(X) - \mathsf{T}_1(X)\cdot \mathsf{Acc}_{T_1}(\omega\cdot X))\cdot \mathsf{Z}_2(X).
+    \end{equation}
+    \item $\mathsf{Acc}_{T_2}(X) = \mathsf{T}_2(X)\cdot \mathsf{Acc}_{T_2}(\omega\cdot X)$ for all $X$ except $X=\omega^{n-1}$
+    \newline Similarly, this constraint verifies the rest of the accumulator $\mathsf{Acc}_{T_2}(X)$ is formed correctly. The resulting domain vanishing polynomial is defined as:
+    \begin{equation}
+      \label{eq:v4}
+    \mathsf{P}_\mathsf{vanish4}(X) = (\mathsf{Acc}_{T_2}(X) - \mathsf{T}_2(X)\cdot \mathsf{Acc}_{T_2}(\omega\cdot X))\cdot \mathsf{Z}_2(X).
+    \end{equation}
+    \item $\mathsf{Acc}_{T_1}(X) =\mathsf{Acc}_{T_2}(X)$ for $X=\omega^0$
+    \newline Finally, the last constraint verifies the two accumulators are equal at the first position. We define the constraint specific vanishing polynomial $\mathsf{Z}_3(X)$ that zeros all $\omega\in\Omega$, except $\omega^{0}$ defined as:
+     \begin{equation}
+      \label{eq:zv3}
+    \mathsf{Z}_3(X) = \frac{X^n-1}{X-\omega^0}.
+    \end{equation}
+    This ensures the check is only performed on the first element. The resulting domain vanishing polynomial is defined as: 
+    \begin{equation}
+      \label{eq:v5}
+  \mathsf{P}_\mathsf{vanish5}(X) = (\mathsf{Acc}_{T_1}(X) - \mathsf{Acc}_{T_2}(X))\cdot \mathsf{Z}_3(X).   
+  \end{equation}
+  \end{enumerate}
+These constraints collectively ensure the accumulators are correctly formed and $\prod^{n-1}_{i=0} \mathsf{T}_1(\omega^i) = \prod^{n-1}_{i=0} \mathsf{T}_2(\omega^i)$.
+
+
+We still need to verify $\mathsf{T}_1(X)$ and $\mathsf{T}_2(X)$ are formed correctly with the random value $r$ to complete the final check. 
+Therefore, we must satisfy the following two constraints.
+\begin{enumerate}
+\item $\mathsf{T}_1(X)=r-\mathsf{T}(X)$ for all $\omega^0 \le X \le \omega^{n-1}$
+\newline We can turn this into the domain vanishing polynomial defined as:
+\begin{equation}
+\label{eq:v6}
+\mathsf{P}_\mathsf{vanish6}(X) = \mathsf{T}_1(X) - (r-\mathsf{T}(X)).
+\end{equation}
+\item $\mathsf{T}_2(X)=r-\mathsf{T}'(X)$ for all $\omega^0 \le X \le \omega^{n-1}$
+\newline We can turn this into the domain vanishing polynomial defined as:
+\begin{equation}
+\label{eq:v7}
+\mathsf{P}_\mathsf{vanish7}(X) = \mathsf{T}_2(X) - (r-\mathsf{T}'(X)).
+\end{equation}
+\end{enumerate}
+
+\paragraph{Verification}\mbox{}\newline
+Verifying all constraints efficiently requires the EA to batch all $k=7$ vanishing polynomials into a single polynomial. 
+The EA generates a random challenge $\beta \stackrel{\$}{\leftarrow} \mathbb{F}_q$ via Fiat-Shamir and defines the batched vanishing polynomial as:
+
+\begin{equation}
+  \mathsf{P}_{\text{vanish}}(X)
+  = \sum_{i=1}^{k} \beta^{i-1} \cdot \mathsf{P}_{\mathsf{vanish}_i}(X).
+  \label{eq:batch2}
+\end{equation}
+
+$\mathsf{P}_{\text{vanish}}(X)$ vanishes on the evaluation domain $\Omega$ iff all
+constraints~\eqref{eq:v1} to \eqref{eq:v7} hold.
+
+The EA then forms the quotient polynomial defined as:
+\begin{equation}
+  \label{eq:q2}
+  \mathsf{Q}(X) = \frac{\mathsf{P}_{\mathsf{vanish}}(X)}{X^n -1}.
+\end{equation}
+
+Finally, the EA generates an evaluation challenge $\zeta \stackrel{\$}{\leftarrow} \mathbb{F}_q$ via
+Fiat-Shamir, opens all required committed polynomials at $\zeta$, and the verifier
+checks Equation \ref{eq:q2check}.
+\begin{equation}
+  \label{eq:q2check}
+  P_{\text{vanish}}(\zeta) - Q(\zeta)\, Z_H(\zeta) \stackrel{?}{=} 0
+\end{equation}
+
+If this holds, we can assume the tuples are valid permutations of each other by the Shwartz-Zippel lemma. 
+It is important to note this argument leaks nothing about the mapping of any of the tuples, or the shuffling algorithm $\sigma$. 
+
+\paragraph{Ballot Check}\mbox{}\newline
+Once the permutation check has been established, it can be reused for multiple receipt checks.
+The EA looks for the $\mathcal{C}$ tuples where the shuffled ballot ID $\mathsf{B}'_\mathsf{ID}$ macthes the ballot ID $\mathcal{B}_j$ provided by the voter. 
+The EA reveals each of the $\mathcal{C}$ tuples using KZG openings on the voter's confirmation code.
+Exactly one of these tuples has a mark value of $1$ which reveals the corresponding $(\mathsf{B}_\mathsf{ID}, \mathsf{C}_{\mathsf{confirm}}, 1)$. 
+This proves to the voter their ballot was included in the tally. 
+However, because of the shuffle, the voter does not learn the exact position where the mark was placed, thereby preserving receipt-freeness.
+
+
+
+
+\subsection{Receipt Correctness}
+\label{subsec:receipt-correctness}
+
+If a voter believes their posted confirmation code does not match the code provided on their receipt, they may raise a dispute.  
+In this case, the EA must prove the disputed code $C$ does not appear in the block of confirmation codes associated with the
+voter's ballot $\mathcal{B}_j$. This is all done without revealing any of the codes associated wth ballot $\mathcal{B}_j$.
+
+
+Since the ballots are in canonical order as shown in Fig. \ref{fig:ballot-columns}, the EA can create a selector vector $\mathsf{Sel}_j$ such that it \emph{activates} the $\mathcal{C}$ positions associated with $\mathcal{B}_j$. Let $\mathsf{Sel}[n]$ be the selector vector that \emph{activates} indices $[\mathcal{B}_j\cdot\mathcal{C}, \mathcal{B}_j\cdot\mathcal{C}+1,\dots, \mathcal{B}_j\cdot\mathcal{C}+(\mathcal{C}-1)]$ in the evaluation domain $\Omega$ by setting the output as 1, and 0 elsewhere.
+We do not need to prove $\mathsf{Sel}[n]$ as it is fully determined by the canonical ordering of the election columns.  
+
+
+\paragraph{Equality test}\mbox{}\newline
+The EA defines a helper vector
+$\mathsf{D}[n] \in \mathbb{F}_q^n$ as:
+\begin{equation}
+  \label{eq:d}
+  \mathsf{D}_i = 1 - (\mathsf{C}_{\mathsf{confirm}_i} - C)^{q-1},  
+\end{equation}
+for $0 \le i < n$, where $q$ is the (prime) size of the field $\mathbb{F}_q$.
+
+By Fermat's little theorem, if $a \in \mathbb{F}_q^\times$, then
+$a^{q-1} = 1$, while $0^{q-1} = 0$ \cite{EulerFermatLittleTheorem1736}. 
+Hence:
+\begin{equation}
+  \label{eq:true}
+\mathsf{C}_{\mathsf{confirm}_i} = C \;\rightarrow\; (\mathsf{C}_{\mathsf{confirm}_i} - C)^{q-1} = 0 \;\rightarrow\; D_i = 1
+\end{equation}
+\begin{equation}
+  \label{eq:false}
+\mathsf{C}_{\mathsf{confirm}_i} \ne C \;\rightarrow\; (\mathsf{C}_{\mathsf{confirm}_i} - C)^{q-1} = 1 \;\rightarrow\; D_i = 0\end{equation}
+  
+These evaluations are performed locally. It is important to note this operation reveals nothing about any of the confirmation codes associated with ballot $\mathcal{B}_j$. 
+
+
+The EA commits to the helper polynomial $\mathsf{D}(X)$ to prove it is correctly formed. It generates a random challenge $\zeta\in\mathbb{F}_q$ via Fiat-Shamir and reveals $C(\zeta)$, and $D(\zeta)$ for the verifier to check the relationship below:
+\[
+\mathsf{D}(\zeta) \stackrel{?}{=} 1 - (\mathsf{C}_{\mathsf{confirm}_i}(\zeta) - C)^{q - 1}.
+\]
+
+If this holds, then by the Shwartz-Zippel lemma we can assume the helper array $\mathsf{D}$ was formed correctly. 
+
+
+
+
+
+
+
+
+
+
+
+\paragraph{Disputed code verification}\mbox{}\newline
+The EA needs to show the disputed code $C$ does not correspond to the voter's ballot $\mathcal{B}_j$.
+As shown in (\ref{eq:true}), $\mathsf{D}(X)$ is set to 1 at every index where the committed code matches $C$.
+
+We isolate these matches by summing the multiplication of $\mathsf{D}(X)$ and $\mathsf{Sel}(X)$. 
+We define the sum $z$ below:
+
+\begin{equation}
+  z = \sum_{i=0}^{n-1} \mathsf{Sel}(X) \cdot \mathsf{D}(X).
+\end{equation}
+Because $\mathsf{Sel}(X)$ corresponds to 1 exactly on the indices of ballot $\mathcal{B}_j$, $z$ sums the number of positions on that
+ballot where $\mathsf{confirm}_i = C$. If $z = 0$, the disputed code $c$ does not appear on ballot $\mathcal{B}_j$.
+
+This shows that no committed confirmation code on the
+voter's ballot matches the disputed code $C$, all without revealing which codes
+actually appear on ballot $\mathcal{B}_j$.
 
 
 \section{Voatz}
