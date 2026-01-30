@@ -1,6 +1,19 @@
 % !TEX root = ../main.tex
 
 \clearpage
+
+\section{Protocol Diagram}
+
+\begin{figure}[ht!]
+    %---------------------------------------left, bottom, right, top
+    \vspace{-1cm}
+    \includegraphics[width=\linewidth, trim={0.02cm, 0cm, 20.7cm, 0.04cm}, clip]{figures/protocol.pdf}
+    \caption{Protocol Diagram.}
+    \label{fig:protocol-diagram}
+\end{figure}
+
+\clearpage
+
 \section{A}
 As shown in Fig. \ref{fig:zklevel}, there are several ways of building a SNARK system. SNARKs are typically implemented at a higher abstraction level with a \emph{circuit}, or a \emph{program} running inside a zkVM.
 The program is first converted into a circuit representation. The circuit is then compiled into a constraint system represented by Poly-IOP gadgets. 
