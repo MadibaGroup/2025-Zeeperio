@@ -141,11 +141,6 @@ guarantee in the random-oracle model.
 In Zeeperio, $\mathcal{P}_{\mathrm{auth}}$ is \emph{defined} as $\bot$-filled projections of a single induced election table $E^Z$.
 The table $E^Z$ is deterministically computed from the committed witness columns together with the public template.
 
-Recall (from the BDGR discussion of the merge operator $?_{\mathsf{Key}}(\cdot)$) that
-$?_{\{U\}}(\cdot)\neq\emptyset$ is an \emph{existential consistency} statement: there exists at least one
-completion/merge consistent with all $\bot$-filled inputs, and $?_{\{U\}}(\cdot)=\emptyset$ iff the inputs contradict.
-
-
 \begin{lemma}[Zeeperio implies $\psi_0$]
 \label{lem:psi0-alone-fixed}
 Assume the contract accepts $\Pi_{\mathrm{main}}$ and that (A2) holds. 
