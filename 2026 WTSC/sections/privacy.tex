@@ -1,0 +1,39 @@
+% !TEX root = ../main.tex
+\clearpage
+
+We now turn to Zeeprio and begin with coercion resistance. The key observation we call non-expansivity: Zeeprio does not reveal any information beyond what is already revealed by Eperio. More precisely, any information available to a coercer from a Zeeprio transcript can be derived from an Eperio transcript, possibly with weaker assurance. Consequently, Zeeprio cannot be less coercion resistant than Eperio: any privacy property that holds for Eperio continues to hold when augmented with Zeeprio’s additional verification artifacts. 
+
+In particular, if non-expansivity holds, Zeeprio inherits at least the level of privacy established for Eperio by Basin \etal~\cite{BDGR21}, namely receipt-freeness under their table-based definition. Moreover, Zeeprio may also inherit coercion resistance in the stronger sense of Küsters \etal~\cite{KTV10c}, provided one accepts the conjecture that replacing Scantegrity II’s switchboard with Eperio does not reduce privacy in any meaningful way.
+
+We formalize this in the following lemma:
+
+\begin{lemma}[Non-Expansive Privacy under Transcript Augmentation]
+Let $\Pi$ be a protocol and let $\Pi^{+}$ be an augmentation that, on the same underlying execution, produces a coercer view
+$T^{+} := (T,Z)$, where $T$ is the coercer view in $\Pi$ and $Z$ is an additional transcript component.
+Assume that for every probabilistic polynomial-time distinguisher $\mathcal{D}$ and every security parameter $\lambda$,
+there exists a probabilistic polynomial-time algorithm $\mathsf{Sim}$ such that
+\[
+\Bigl|\Pr[\mathcal{D}(T,Z)=1] - \Pr[\mathcal{D}(T,\mathsf{Sim}(T))=1]\Bigr|
+\]
+is negligible as a function of $\lambda$.
+\end{lemma}
+
+Under this lemma, $\Pi^{+}$ is not less private than $\Pi$ for any privacy notion whose experiment depends on the protocol only through
+the coercer view. In particular, for any such privacy experiment and any probabilistic polynomial-time adversary
+$\mathcal{A}$ interacting with $\Pi^{+}$, there exists a probabilistic polynomial-time adversary
+$\mathcal{B}$ interacting with $\Pi$ such that the difference between the success probabilities of
+$\mathcal{A}$ and $\mathcal{B}$ in their respective experiments is negligible in $\lambda$.
+
+ In the special case where $Z$ is efficiently computable from $T$ (and public parameters), the simulator
+$\mathsf{Sim}$ may be chosen to simply compute $Z$ from $T$. In other words, $\mathsf{Sim}$ is pure post-processing. This will be the dominant case for Zeeperio.
+
+To reason about the non-expansive privacy of Zeeprio, we separate two concerns: (i) the \emph{cryptographic} claim that the proof a polynomial vanishes is zero-knowledge and proves nothing beyond the statement that the polynomial vanishes; and (i) the \emph{semantic} claim that the constraints implied by Zeeperio are non-expansive over an Eperio transcript.
+
+Starting with the \emph{cryptographic} claim, we directly assume the PIOP used by Zeeprio satisfies the standard zero-knowledge property: its proof transcript reveals no information beyond the fact that the asserted algebraic relations are true. Concretely, as formalized for PLONK-style polynomial IOPs, there exists a simulator that, given only the statement that the constraints are satisfied, produces a transcript that is indistinguishable from an honestly generated one. This simulator construction is explicit in the PIOP literature~\cite{Sef24,Lip25} and does not depend on the particular semantics of the underlying constraints, so we do not reprove anything regarding this.
+
+We do however add two important implementation details that allow the simulation to go through. The first is that the polynomial commitment scheme needs to be hiding. When using KZG commitments~\cite{KZG10}, it is sufficient to use their second construction informally referred to as the Pedersen-variant of KZG. The second is that the PIOP proof will open committed polynomials at random challenge points. If the adversary has a guess as to the specific polynomial under commitment, it can use this random challenge to confirm its guess. To prevent this, polynomials should incorporate extra random points (off-domain) at interpolation time, where the number of points exceed the number of points that will be eventually opened on the given polynomial. This lacks a standard name in the literature and we propose calling it the MBKM heuristic~\cite{MBKM19} after it was popularized in the zk-SNARK system Sonic.
+
+We spend the rest of the proof dealing with the \emph{semantic} claim: the algebraic relations asserted by Zeeprio’s constraint system encode no more information than what is already revealed by Eperio’s verification logic.
+
+
+\clearpage
