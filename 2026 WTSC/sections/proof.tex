@@ -89,6 +89,7 @@ The BDGR model identifies six predicates $\psi_i$ that should evaluate to true i
 
 \begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
 \begin{definition}[Definition 4]
+\label{def:bdgr}
 Given a non-empty sort $Key$ of unique keys, $P_{\mathrm{auth}}$, $\mathrm{Views}$, and $P_{\mathrm{con}}$ as in Section~3, let
 \[
 C = \owedge^{Key}(P_{\mathrm{auth}}\cup \mathrm{Views}) \cap P_{\mathrm{con}}.
@@ -124,11 +125,9 @@ There exists a soundness error bound $\epsilon$ such that
 \mathsf{VanishProof}(\mathrm{pub},\pi)\Rightarrow_{\epsilon}\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right).
 \]
 
-\[
-\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right)\Rightarrow \bigwedge_i \psi_i(\mathcal{P}_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).
-\]
 
 
+$\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right)\Rightarrow \bigwedge_i \psi_i(\mathcal{P}_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).$
 
 
 
@@ -204,9 +203,12 @@ We show that vanishing implies the Basin verification predicates:
 
 \textblue{Argue that Zeeperio's constraints satisfy this property.}
 
-\BDGR{\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}}&\Rightarrow\varphi}
+\vanishP{
+\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right)\Rightarrow \bigwedge_i \psi_i(\mathcal{P}_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).\\
+\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}}&\Rightarrow\varphi
+}
 
-
+We prove Zeeperio's constraints imply Basin's predicates. Basin \etal prove that if these predicates hold, then the security definition $\phi$ which is provided as Definition~\ref{def:bdgr} above, is satisfied. \qed
 
 
 \clearpage{Security Proof}
