@@ -174,94 +174,37 @@ We show that vanishing implies the Basin verification predicates:
 
 \subsection{Aikam see here}
 
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
-\[
-\footnotesize
-\begin{aligned}
-\psi_{0}&:=\owedge^{\{U\}}\mathcal{P}_{\mathrm{auth}}\cap\bigcap_{P\in \mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset
-\end{aligned}
-\]
-\end{mdframed}
-\clearpage
+% NOTE: use \owedge for the combine operator (as you already do).
+% Here we write it consistently with a superscript key, and as a function \owedge^{Key}(\cdot).
+
+% assuming you defined:
+% \newcommand{\BDGR}[1]{...}
+
+\BDGR{\psi_{0}&:=\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
 
 \textblue{Argue that Zeeperio's constraints satisfy this property.}
 
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
-\[
-\footnotesize
-\begin{aligned}
-\psi_{1}&:=\bigwedge_{v\in V}\bigwedge_{P\in P_{\mathrm{auth}}}\pi_{U,M}P\in T(\pi_{U,M}R_v\subseteq^\#\pi_{U,M}P)
-\end{aligned}
-\]
-\end{mdframed}
+\BDGR{\psi_{1}&:=\bigwedge_{v\in V}\bigwedge_{P\in\mathcal{P}_{\mathrm{auth}}}\bigl(\pi_{U,M}R_v\subseteq^{\#}\pi_{U,M}P\bigr)}
 
 \textblue{Argue that Zeeperio's constraints satisfy this property.}
 
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
-\[
-\footnotesize
-\begin{aligned}
-\psi_{\mathrm{print\text{-}audit}}&:=?_{\{U\}}\{\pi_{U,S}(R)|R\in\mathrm{Views}\}\cap?_{\{U\}}P_{\mathrm{auth}}\cap\bigcap_{P\in P_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset
-\end{aligned}
-\]
-\end{mdframed}
+\BDGR{\psi_{\mathrm{print\text{-}audit}}&:=\owedge^{\{U\}}\bigl(\{\pi_{U,S}(R)\mid R\in\mathrm{Views}\}\bigr)\cap\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
 
 \textblue{Argue that Zeeperio's constraints satisfy this property.}
 
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
-\[
-\footnotesize
-\begin{aligned}
-\psi_{\mathrm{tally}}&:=t\in\bigcap_{P\in P_{\mathrm{auth}}}\mathrm{Ind}^{qu}_{P}(\{\pi_S\sigma_{M=1}\})
-\end{aligned}
-\]
-\end{mdframed}
+\BDGR{\psi_{\mathrm{tally}}&:=t\in\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{Ind}^{qu}_{P}\bigl(\{\pi_{S}\sigma_{M=1}\}\bigr)}
 
 \textblue{Argue that Zeeperio's constraints satisfy this property.}
 
-
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
-\[
-\footnotesize
-\begin{aligned}
-\psi&:=\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}
-\end{aligned}
-\]
-\end{mdframed}
+\BDGR{\psi_{\mathrm{unique}}&:=\owedge^{\{U\}}\bigl(\{\pi_{V,U}R\mid R\in\mathrm{Views}\}\bigr)\neq\emptyset}
 
 \textblue{Argue that Zeeperio's constraints satisfy this property.}
 
-
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
-\[
-\footnotesize
-\begin{aligned}
-\psi_{\mathrm{unique}}&:=?_{\{U\}}\{\pi_{V,U}R|R\in\mathrm{Views}\}\neq\emptyset
-\end{aligned}
-\]
-\end{mdframed}
+\BDGR{\psi_{\mathrm{no\text{-}stuffing}}&:=\forall P\in\mathcal{P}_{\mathrm{auth}}:\#\sigma_{M=1}\pi_{M}P=\#\sigma_{M=1}\pi_{M}V}
 
 \textblue{Argue that Zeeperio's constraints satisfy this property.}
 
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
-\[
-\footnotesize
-\begin{aligned}
-\psi_{\mathrm{no\text{-}stuffing}}&:=\forall P\in P_{\mathrm{auth}}:\#\sigma_{M=1}\pi_MP=\#\sigma_{M=1}\pi_MV
-\end{aligned}
-\]
-\end{mdframed}
-
-\textblue{Argue that Zeeperio's constraints satisfy this property.}
-
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
-\[
-\footnotesize
-\begin{aligned}
-\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}}&\Rightarrow\varphi
-\end{aligned}
-\]
-\end{mdframed}
+\BDGR{\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}}&\Rightarrow\varphi}
 
 
 
