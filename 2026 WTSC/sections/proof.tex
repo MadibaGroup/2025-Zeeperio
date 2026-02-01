@@ -105,71 +105,25 @@ where $tal$ denotes the tally function.
 \end{definition}
 \end{mdframed}
 
-To relate the BDGR model to Zeeperio's PIOP constraints, we specify some additional notation. Let $\mathrm{pub}$ denote the public input to Zeeperio. Let $w$ denote the witness. Let $\pi$ denote the PIOP proof transcript (or its non-interactive form), and let $\mathsf{Acc}(\mathrm{pub},\pi)\in\{\mathsf{true},\mathsf{false}\}$ be the verifier’s acceptance predicate.
+To relate the BDGR model to Zeeperio's PIOP constraints, we introduce notation that separates two concerns:
+(i) the \emph{cryptographic} claim that a verifier acceptance implies the asserted polynomials really vanish (up to negligible error), and
+(ii) the \emph{semantic} claim that these vanishing relations faithfully encode Eperio which we will prove via the 6 BDGR predicates.
 
-For each constraint family indexed by $j$, let $V_{c_j}(X;\mathrm{pub},w)$ be the associated constraint polynomial.
+Let $\mathrm{pub}$ denote the public input to Zeeperio and let $w$ denote the witness. Let $\pi$ denote the PIOP proof transcript (or its non-interactive form), and let $\mathsf{Acc}(\mathrm{pub},\pi)\in\{\mathsf{true},\mathsf{false}\}$ be the verifier’s acceptance predicate.
 
-Let $H$ be the evaluation domain, and define the vanishing predicate
+Zeeperio enforces $\constraints$ algebraic constraints. We write each constraint $c\in\constraints$ as a polynomial identity over a fixed evaluation domain: for every constraint $c$, there is a corresponding \emph{constraint polynomial}: $V_{c}(X;\mathrm{pub},w)$. Intuitively, $V_c$ is constructed so that the constraint $c$ holds exactly when $V_c$ evaluates to $0$ on every point of the domain (or vanishes). If w let $H$ be the evaluation domain, we can define the vanishing predicate as: $\mathsf{Vanish}(f)\;:\Leftrightarrow\;\forall x\in H:\; f(x)=0$. $\mathsf{Acc}(\mathrm{pub},\pi)$ is the event that the verifier accepts the proof, while $\mathsf{Vanish}$ is the underlying mathematical statement that the claimed polynomials vanish on $H$.
+
+We now state the standard soundness guarantee for polynomial IOPs. There exists a soundness error bound $\epsilon$ such that:
 \[
-\mathsf{Vanish}(f) \;:\Leftrightarrow\; \forall x\in H:\; f(x)=0.
+\mathsf{Acc}(\mathrm{pub},\pi)\Rightarrow_{\epsilon}\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right).
 \]
+In words, except with probability at most $\epsilon$, an accepted proof implies the existence of a witness $w$ for which all constraint polynomials vanish on $H$. Proof of this can be found in the Plonk paper~\cite{GWC19}, which also uses vanishing polynomials to prove knowledge of values that satisfy any arithmetic circuit (and this can be transformed into a general purpose SNARK). While Zeeperio could be defined as a circuit and turned into a SNARK through Plonk, it is more efficient to define custom vanishing polynomials for Eperio directly, creating a special purpose SNARK. 
 
-Define the proof-level predicate
+Next we turn our attention to showing that satisfying the Zeeperio constraints is strong enough to imply the BDGR verification predicates:
 \[
-\mathsf{VanishProof}(\mathrm{pub},\pi) \;:\Leftrightarrow\; \mathsf{Acc}(\mathrm{pub},\pi).
+\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right)\Rightarrow \bigwedge_i \psi_i(\mathcal{P}_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).
 \]
-
-
-There exists a soundness error bound $\epsilon$ such that
-\[
-\mathsf{VanishProof}(\mathrm{pub},\pi)\Rightarrow_{\epsilon}\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right).
-\]
-
-
-
-$\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right)\Rightarrow \bigwedge_i \psi_i(\mathcal{P}_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).$
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Next we will describe each predicate one-by-one and then describe how Zeeperio's constraints, the \constraints vanishing polynomials $V_{c_i}(X)$, also satisfy each predicate.
-
-$\Bigl(\bigwedge_j \mathsf{VanishProof}(V_{c_j}(X))\Bigr)\Rightarrow \Bigl(\bigwedge_i \psi_i\Bigr)$
-
-
-We structure the argument in two steps.
-
-\textbf{Step 1 (PIOP soundness).}
-Let $\mathsf{Acc}$ be the event that the Zeeperio verifier accepts.
-By PIOP soundness,
-\[
-\mathsf{Acc} \Rightarrow_{\epsilon} \exists w:\bigwedge_j \mathsf{Van}\!\left(V_{c_j}(\mathrm{pub},w)\right),
-\]
-i.e., except with probability at most $\epsilon$, acceptance implies the existence of a witness $w$ for which all constraint polynomials vanish on the evaluation domain.
-
-\textbf{Step 2 (encoding correctness).}
-We show that vanishing implies the Basin verification predicates:
-\[
-\exists w:\bigwedge_j \mathsf{Van}\!\left(V_{c_j}(\mathrm{pub},w)\right)
-\Rightarrow
-\bigwedge_i \psi_i(P_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).
-\]
-
+This implication is not cryptographic; it is a semantic correspondence argument. Concretely, we interpret each witness polynomial as a column of an underlying table (via evaluation on $H$), and prove that each vanishing constraint enforces the corresponding BDGR table property (e.g., inclusion, uniqueness, tally consistency, and no-stuffing), thereby establishing each $\psi_i$.
 
 \subsection{Aikam see here}
 
@@ -204,7 +158,7 @@ We show that vanishing implies the Basin verification predicates:
 \textblue{Argue that Zeeperio's constraints satisfy this property.}
 
 \vanishP{
-\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right)\Rightarrow \bigwedge_i \psi_i(\mathcal{P}_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).\\
+\Bigl(\bigwedge_j \mathsf{Acc}(\mathrm{pub},\pi)&\Rightarrow \Bigl(\bigwedge_i \psi_i\Bigr)\\
 \psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}}&\Rightarrow\varphi
 }
 
