@@ -124,80 +124,69 @@ Next we turn our attention to showing that satisfying the Zeeperio constraints i
 This implication is not cryptographic; it is a semantic correspondence argument. Concretely, we interpret each witness polynomial as a column of an underlying table (via evaluation on $H$), and prove that each vanishing constraint enforces the corresponding BDGR table property (e.g., inclusion, uniqueness, tally consistency, and no-stuffing), thereby establishing each $\psi_i$.
 
 \subsection{Aikam see here}
-
-We rely on standard properties of pairing-based polynomial commitments and SNARKs:
-\begin{enumerate}
-\item[(A1)] \textbf{PCS binding.} The polynomial commitment scheme used by Zeeperio is computationally binding.
-For KZG commitments this follows from standard pairing assumptions.
-\item[(A2)] \textbf{Knowledge soundness.} If the verifier (smart contract) accepts a Zeeperio proof,
-then there exists a witness assignment
-satisfying all enforced polynomial identities on~$H$, except with negligible probability.
-For Fiat-Shamir transformed PIOP/SNARK systems this is the standard soundness
-guarantee in the random-oracle model.
-\end{enumerate}
-
 \BDGR{\psi_{0}&:=\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
+This predicate asserts that the tables in $\mathcal{P}_{\mathrm{auth}}$ can be merged consistently
+on the key $U$, and that each published table satisfies its prescribed shape constraints.
 
-In Zeeperio, $\mathcal{P}_{\mathrm{auth}}$ is \emph{defined} as $\bot$-filled projections of a single induced election table $E^Z$.
-The table $E^Z$ is deterministically computed from the committed witness columns together with the public template.
-
-\begin{lemma}[Zeeperio implies $\psi_0$]
-\label{lem:psi0-alone-fixed}
-Assume the contract accepts $\Pi_{\mathrm{main}}$ and that (A2) holds. 
-Then, except with negligible probability, there exists a witness (committed/auxiliary polynomials) consistent with the public commitments such that all enforced Zeeperio polynomial identities hold on~$H$. 
-From this witness assignment and the public template, the induced table $E^Z$ over attributes $\{U,M,S\}$is deterministically defined.
-Define the authenticated publication tables
-\[
-P^{UM}\ :=\ \{\langle U:U(i),\,M:M(i),\,S:\bot\rangle \mid 0\le i<P\},
-\]
-\[
-P^{MS}\ :=\ \{\langle U:\bot,\,M:M(i),\,S:S(i)\rangle \mid 0\le i<P\},
-\]
-and set $P_{\mathrm{auth}}^{Z}:=\{P^{UM},P^{MS}\}$.
-Then $\psi_0(P_{\mathrm{auth}}^{Z})$ holds.
-\end{lemma}
-
-\begin{proof}
-By construction, $P^{UM}$ and $P^{MS}$ are $\bot$-filled projections of the same table $E^Z$ onto the attribute set $\{U,M,S\}$. 
-Hence they both have the same $\mathrm{shape}$, so $\mathrm{shape}_{P^{UM}}\cap \mathrm{shape}_{P^{MS}}\neq\emptyset$. 
-Therefore $\bigcap_{P\in P_{\mathrm{auth}}^{Z}}\mathrm{shape}_{P}\neq\emptyset$.
-
-Now, consider $\owedge^{\{U\}}(P_{\mathrm{auth}}^{Z})$.
-Because both tables originate from the same $E^Z$, the $U$-keyed tuples in $P^{UM}$ and the corresponding $M,S$ information in $P^{MS}$ are jointly consistent.
-This is because a valid completion is given explicitly by the table $E^Z$ itself, which simultaneously extends both $\bot$-filled projections.
-Therefore, the set of joint completions under key $U$ is nonempty, and thus
-\[
-\owedge^{\{U\}}(P_{\mathrm{auth}}^{Z})\ \cap\ \bigcap_{P\in P_{\mathrm{auth}}^{Z}}\mathrm{shape}_{P}\ \neq\ \emptyset.
-\]
-
-\end{proof}
-
-\BDGR{\psi_{1}\ :=\ \bigwedge_{v\in V}\ \bigwedge_{P\in\mathcal{P}_{\mathrm{auth}}}\ 
-\bigl(\pi_{U,M}R_v\ \subseteq^{\#}\ \pi_{U,M}P\bigr).}
-
-
-
-
+In Zeeperio, acceptance of $\Pi_{\mathrm{main}}$ implies the committed columns are consistent with a single induced table $E^Z$. 
+$\mathcal{P}_{\mathrm{auth}}^Z$ is obtained by projecting $E^Z$ onto the published columns, so the merge
+$\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}}^Z)$ is non-empty. 
+Additionally, the Section~3 constraints enforce the
+required well-formedness conditions, which supply the corresponding
+$\mathrm{shape}_P$ predicates. 
+Therefore, $\psi_0$ holds for Zeeperio.
 
 
 \BDGR{\psi_{1}&:=\bigwedge_{v\in V}\bigwedge_{P\in\mathcal{P}_{\mathrm{auth}}}\bigl(\pi_{U,M}R_v\subseteq^{\#}\pi_{U,M}P\bigr)}
 
+This predicate models votes \emph{recorded as cast} by requiring every $(U,M)$ tuple appearing in a voter-facing view
+to be contained as a multiset in the authenticated $(U,M)$ publication.
+
+In Zeeperio, a voter-facing view is accepted only together with a verifying opening proof against the
+public commitments to the relevant committed columns. In a \emph{print-audit} check, the EA
+opens the committed columns at the ballot's indices. In a \emph{receipt-check}, it opens the shuffled committed
+columns at the voter’s index. By the binding property of the PCS, any accepted opening
+fixes the revealed values to the unique committed witness polynomials at those points. 
+Since acceptance of $\Pi_{\mathrm{main}}$ yields a consistent induced table $E^Z$ matching those commitments, every $(U,M)$ tuple
+revealed in an accepted voter view $R_v$ must belong to $\pi_{U,M}(E^Z)$. 
+Thus, $P^{UM}=\pi_{U,M}(E^Z)$, and therefore $\pi_{U,M}R_v \subseteq^{\#} \pi_{U,M}P^{UM}$ for all voters $v$. 
+
 \BDGR{\psi_{\mathrm{print\text{-}audit}}&:=\owedge^{\{U\}}\bigl(\{\pi_{U,S}(R)\mid R\in\mathrm{Views}\}\bigr)\cap\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
 
+The print-audit predicate requires that all print-audit disclosures (projected to $(U,S)$) are mutually consistent under key $U$, and consistent with $\mathcal{P}_{\mathrm{auth}}$ and its \emph{shapes}.
+For Zeeperio’s print-audit check, the EA opens the committed polynomials at the $C$ indices of ballot $b$ and returns those evaluations with valid opening proofs.
+The binding property of the PCS implies the opened values are exactly those of the committed witness table $E^Z$ at those $U$-positions.
+Since the candidate labeling $S$ is determined by the public ballot structure, the tuples disclosed by the print-audit view determine a $(U,S)$-projection that must match $\pi_{U,S}(E^Z)$ on the opened rows. 
+Thus all such $\pi_{U,S}(R)$ are consistent with each other under key $U$, and consistent with $P_{\mathrm{auth}}^{Z}$.
+Finally, the constraints from (Section 3) give the required \emph{shape} conditions.
 
 \BDGR{\psi_{\mathrm{tally}}&:=t\in\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{Ind}^{qu}_{P}\bigl(\{\pi_{S}\sigma_{M=1}\}\bigr)}
 
+The tally predicate requires the announced tally table $t$ to be consistent with what we get by selecting marked rows ($M=1$), projecting to $S$, and applying the indistinguishability operator.
+The constraints introduced in (Section 3.4, 3.5) enforce that the mark column is well-formed for each ballot, and no ballot is both audited and voted.
+Then the tally constraints build an accumulator that sums over the marks per candidate, and enforce equality to the published per-candidate totals $\mathrm{Tally}[j]$.
+On the induced table $E^Z$, the multiset of $S$-labels in rows with $M=1$ has exactly $\mathrm{Tally}[j]$ occurrences of each candidate $j$.
+This is exactly the BDGR requirement that the announced tally $t$ agrees with $\pi_S\sigma_{M=1}$ under the constraints. 
 
 \BDGR{\psi_{\mathrm{unique}}&:=\owedge^{\{U\}}\bigl(\{\pi_{V,U}R\mid R\in\mathrm{Views}\}\bigr)\neq\emptyset}
 
+The \emph{unique} predicate defines if we take every voter-facing view $R$ and keep only the
+columns $(V,U)$, then all of these partial tables can be \emph{merged consistently} on the key $U$.
+
+Zeeperio binds voter-facing queries to the publicly defined ballot ID column.
+For ballot $b$ and the $k$ positions within a ballot, $\mathrm{ballot-ID}(\omega^{bC+k})=b$, with padding set to $0$. 
+Additionally, any accepted voter check from (Section 4) is accepted only if the disclosed values open correctly against the committed columns.
+Therefore, any accepted view is cryptographically consistent with a single committed election instance.
+Since the election uses distinct ballot identifiers per voter, these bindings ensure that different voters’ $(V,U)$ disclosures do not conflict under key $U$, so the merge is non-empty.
 
 
 
 \BDGR{\psi_{\mathrm{no\text{-}stuffing}}&:=\forall P\in\mathcal{P}_{\mathrm{auth}}:\#\sigma_{M=1}\pi_{M}P=\#\sigma_{M=1}\pi_{M}V}
 $\quad\text{where }V=\min\bigl(\owedge^{\{U\}}(Views)\bigr).$
 
-
-
+This predicate is asserting an \emph{equality of counts}.
+It states that $P_{\mathrm{auth}}^{Z}$ contains \emph{no more} marked rows than are accounted for by the merged voter views. 
+Therefore, the EA cannot \emph{stuff} extra votes into the authenticated data without it being reflected in voter-facing evidence.
 
 \vanishP{
 \Bigl(\bigwedge_j \mathsf{Acc}(\mathrm{pub},\pi)&\Rightarrow \Bigl(\bigwedge_i \psi_i\Bigr)\\
