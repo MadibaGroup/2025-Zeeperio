@@ -164,6 +164,292 @@ This implication is not cryptographic; it is a semantic correspondence argument.
 
 We prove Zeeperio's constraints imply Basin's predicates. Basin \etal prove that if these predicates hold, then the security definition $\phi$ which is provided as Definition~\ref{def:bdgr} above, is satisfied. \qed
 
+\section{Security of Zeeperio via Basin et al.'s table-based soundness theorem}
+
+\subsection{Basin et al.'s integrity property and the fixed-Eperio soundness theorem}
+
+We work in the table framework of Basin et al.
+An election is represented by multisets of tuples ("tables") possibly containing
+unknown placeholder values~$\bot$; joins and consistency are expressed using
+the merge operator $\owedge^{\mathrm{Key}}$ under a designated unique key sort~$\mathrm{Key}$.
+
+\paragraph{Eperio election table and tally query.}
+In Basin et al.'s formalization of \emph{Eperio}, the (secret) election table has sort
+$\{U,M,S\}$, where $U$ is the ballot-position identifier (serial number together with an
+in-ballot position), $S$ is a candidate/selection label, and
+$M\in\{1,0,-1\}$ denotes \emph{marked}, \emph{unmarked}, and \emph{print-audit}, respectively. 
+The tally is the SP-query
+\[
+\mathrm{tal} \;:=\; \pi_S \sigma_{M=1},
+\]
+which means: select marked entries and project to the candidate column~$S$.
+
+\paragraph{Global integrity property.}
+Let $P_{\mathrm{auth}}$ be the tables published by the election authority,
+$P_{\mathrm{con}}$ be the set of tables satisfying public protocol constraints (including the announced tally),
+and $Views=\{R_v\mid v\in V\}$ be the collection of voters' view tables.
+For a nonempty key sort $\mathrm{Key}$, Basin et al.\ define
+\[
+C \;:=\; \owedge^{\mathrm{Key}}\bigl(P_{\mathrm{auth}}\cup Views\bigr)\ \cap\ P_{\mathrm{con}}.
+\]
+The integrity property $\phi_{\mathrm{Key},\mathrm{tal}}(P_{\mathrm{auth}},P_{\mathrm{con}},Views)$ holds iff
+(i) $C\neq\emptyset$, and (ii) every completion $T\in C$ yields the same tally as every
+minimal completion of the voters' combined view:
+\[
+\forall T\in C,\ \forall T'\in \min\bigl(\owedge^{\mathrm{Key}}Views\bigr):\quad
+\mathrm{tal}(T)=\mathrm{tal}(T').
+\]
+This is Basin et al.'s Definition~4:
+\emph{all mutually consistent explanations of the published data and the voters' views
+satisfy the announced constraints and induce the same outcome as the voters' intent}.
+
+\paragraph{Local checks and soundness for Eperio.}
+Basin et al.\ decompose $\phi$ into locally checkable properties ("checks")~$\psi_i$
+that correspond to the protocol's verification steps.
+For Eperio, the checks include:
+\begin{align*}
+\psi_0 \ &:=\ \owedge^{\{U\}}P_{\mathrm{auth}}\ \cap\ \bigcap_{P\in P_{\mathrm{auth}}}\mathrm{shape}_P \ \neq\ \emptyset,\\
+\psi_1 \ &:=\ \bigwedge_{v\in V}\ \bigwedge_{P\in P_{\mathrm{auth}}}\Bigl(\pi_{U,M}R_v\ \subseteq_{\#}\ \pi_{U,M}P\Bigr),\\
+\psi_{\mathrm{tally}} \ &:=\ t\ \in\ \bigcap_{P\in P_{\mathrm{auth}}}\mathrm{Ind}^{\mathrm{qu}}_{P}\bigl(\{\pi_S\sigma_{M=1}\}\bigr),\\
+\psi_{\mathrm{print\text{-}audit}} \ &:=\
+\owedge^{\{U\}}\{\pi_{U,S}(R)\mid R\in Views\}\ \cap\ \owedge^{\{U\}}P_{\mathrm{auth}}\ \cap\
+\bigcap_{P\in P_{\mathrm{auth}}}\mathrm{shape}_P\ \neq\ \emptyset,
+\end{align*}
+and Basin et al.\ additionally identify two \emph{missing} checks needed for soundness:
+\begin{align*}
+\psi_{\mathrm{unique}} \ &:=\ \owedge^{\{U\}}\{\pi_{V,U}R \mid R\in Views\}\ \neq\ \emptyset,\\
+\psi_{\mathrm{no\text{-}stuffing}} \ &:=\
+\forall P\in P_{\mathrm{auth}}:\ \#\sigma_{M=1}\pi_M P\ =\ \#\sigma_{M=1}\pi_M V,
+\quad\text{where }V=\min\bigl(\owedge^{\{U\}}Views\bigr).
+\end{align*}
+With these additions, they show that the verification procedure is sound in their possibilistic model:
+\[
+\psi_0\wedge\psi_1\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}
+\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}}
+\ \Longrightarrow\ \phi_{\{U\},\pi_S\sigma_{M=1}}.
+\]
+This implication is stated in the Basin paper and proved in their appendix.
+
+\subsection{Zeeperio commitments, proof soundness, and induced Eperio table}
+\label{sec:zeeeperio-model}
+
+Fix template parameters $B$ ballots and $C$ candidate positions per ballot, and let $P:=BC$.
+Let $n\ge P$ be a power of two and let $H=\{\omega^0,\dots,\omega^{n-1}\}\subset\mathbb{F}_q$
+be a multiplicative subgroup of size~$n$.
+
+Zeeperio commits to witness polynomials $Code(X),Audit(X),Mark(X)$ whose evaluations on~$H$
+encode table columns, padded with zeros on indices $i\ge P$.
+Write $Code_i:=Code(\omega^i)$, $Audit_i:=Audit(\omega^i)$, and $Mark_i:=Mark(\omega^i)$.
+
+\paragraph{Cryptographic soundness model.}
+Let $\Pi_{\mathrm{main}}$ denote the Zeeperio election proof, and let $\Pi_{\mathrm{receipt}}$ and
+$\Pi_{\mathrm{audit}}$ denote the voter-facing proofs for receipt checking and print-audit openings.
+We rely on standard properties of pairing-based polynomial commitments and SNARKs:
+\begin{enumerate}
+\item[(A1)] \textbf{PCS binding.} The polynomial commitment scheme used by Zeeperio is computationally binding.
+For KZG commitments this follows from standard pairing assumptions.
+\item[(A2)] \textbf{Knowledge soundness.} If the verifier (smart contract) accepts a Zeeperio proof,
+then there exists a witness assignment (in particular, the committed polynomials and auxiliary polynomials)
+satisfying all enforced polynomial identities on~$H$, except with negligible probability.
+For Fiat-Shamir transformed PIOP/SNARK systems this is the standard soundness/extractability
+guarantee in the random-oracle model.
+\end{enumerate}
+
+\paragraph{Public key and candidate columns.}
+Since Zeeperio does not shuffle rows, the ballot identifier and in-ballot position are public.
+For each $i\in\{0,\dots,P-1\}$ define
+\[
+b(i):=\left\lfloor i/C\right\rfloor,\qquad k(i):= i\bmod C,\qquad
+U(i):=(b(i),k(i)).
+\]
+Let $S(k)$ be the publicly known candidate label at position~$k$ in the ballot template
+(with $k\in\{0,\dots,C-1\}$), and write $S(i):=S(k(i))$.
+
+\paragraph{Induced Eperio-style mark column and table.}
+Define an Eperio-style entry $M(i)\in\{-1,0,1\}$ by
+\[
+M(i)\;:=\;
+\begin{cases}
+-1 & \text{if }Audit_i=1,\\
+1  & \text{if }Audit_i=0 \text{ and }Mark_i=1,\\
+0  & \text{if }Audit_i=0 \text{ and }Mark_i=0.
+\end{cases}
+\]
+The induced known election table is
+\[
+E^{Z}:=\{\langle U:U(i),\,M:M(i),\,S:S(i)\rangle \mid i\in\{0,\dots,P-1\}\}.
+\]
+
+\subsection{Zeeperio constraints imply Eperio well-formedness and tally correctness}
+\label{sec:constraint-lemmas}
+
+Throughout this subsection, assume that the on-chain verifier accepts $\Pi_{\mathrm{main}}$.
+By (A2), there exist witness polynomials satisfying all enforced Zeeperio polynomial identities on~$H$.
+
+\begin{lemma}[Bitness and padding]
+\label{lem:bitness-padding}
+For all $i\ge P$, $Audit_i=0$ and $Mark_i=0$. For all $i<P$, $Audit_i,Mark_i\in\{0,1\}$.
+\end{lemma}
+\begin{proof}
+Constraint c1.1 enforces $Audit_i=0$ on padding indices and c1.2 enforces $Audit_i\in\{0,1\}$ on~$H$.
+Likewise, c2.1 enforces $Mark_i=0$ on padding indices and c2.2 enforces $Mark_i\in\{0,1\}$ on~$H$.
+\end{proof}
+
+\begin{lemma}[Whole-ballot audit blocks]
+\label{lem:audit-blocks}
+For each ballot $b\in\{0,\dots,B-1\}$ and its block $I_b:=\{bC,\dots,bC+C-1\}$,
+either $Audit_i=1$ for all $i\in I_b$ or $Audit_i=0$ for all $i\in I_b$.
+\end{lemma}
+\begin{proof}
+Constraint c1.3 enforces that the block-sum of $Audit$ at each ballot start is either $0$ or $C$.
+By Lemma~\ref{lem:bitness-padding}, $Audit_i\in\{0,1\}$ on $I_b$, so the sum is $C$ iff all entries are~$1$
+and is $0$ iff all entries are~$0$.
+\end{proof}
+
+\begin{lemma}[At most one mark per ballot]
+\label{lem:no-overvote}
+For each ballot block $I_b$, $\sum_{i\in I_b} Mark_i \in \{0,1\}$.
+\end{lemma}
+\begin{proof}
+Constraint c2.3 enforces that the block-sum of $Mark$ at each ballot start is either $0$ or $1$.
+Since $Mark_i\in\{0,1\}$ by Lemma~\ref{lem:bitness-padding}, this is exactly the stated claim.
+\end{proof}
+
+\begin{lemma}[Audit and mark are disjoint]
+\label{lem:disjoint-audit-mark}
+For all $i<P$, $Audit_i\cdot Mark_i=0$. Hence $M(i)$ is well-defined and belongs to $\{-1,0,1\}$.
+\end{lemma}
+\begin{proof}
+Constraint c3.1 enforces $Audit(X)Mark(X)$ vanishes on $H$, i.e., $Audit_i Mark_i=0$ for each $i$.
+Together with Lemma~\ref{lem:bitness-padding}, this implies the cases in the definition of $M(i)$
+are disjoint.
+\end{proof}
+
+\begin{lemma}[Ballot-level well-formedness of $M$]
+\label{lem:M-wellformed}
+For each ballot block $I_b$, exactly one of the following holds:
+\begin{enumerate}
+\item[(i)] (\emph{print-audit}) $M(i)=-1$ for all $i\in I_b$;
+\item[(ii)] (\emph{cast}) there exists a unique $i^\star\in I_b$ with $M(i^\star)=1$ and $M(i)=0$ for all $i\in I_b\setminus\{i^\star\}$;
+\item[(iii)] (\emph{unused}) $M(i)=0$ for all $i\in I_b$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+By Lemma~\ref{lem:audit-blocks}, either $Audit$ is all-ones or all-zeros on $I_b$.
+If it is all-ones, then by Lemma~\ref{lem:disjoint-audit-mark} we have $Mark_i=0$ for all $i\in I_b$,
+so $M(i)=-1$ throughout the block.
+If $Audit$ is all-zeros, then $M(i)=Mark_i$ for all $i\in I_b$, and Lemma~\ref{lem:no-overvote}
+yields either exactly one $1$ in the block, or all zeros.
+\end{proof}
+
+\begin{lemma}[Tally correctness]
+\label{lem:tally-correct}
+Let $t$ be the announced tally table of sort $S$ where the candidate label $S(j)$
+appears with multiplicity $Tally[j]$ for each $j\in\{0,\dots,C-1\}$.
+Then $\mathrm{tal}(E^{Z}) = t$.
+\end{lemma}
+\begin{proof}
+By Lemma~\ref{lem:disjoint-audit-mark}, rows with $M(i)=1$ are exactly those with $Mark_i=1$.
+For a fixed position $j\in\{0,\dots,C-1\}$, the rows with $S(i)=S(j)$ are precisely the indices
+$i\equiv j\pmod C$. Zeeperio's strided accumulator $Acc_{\mathrm{Vote}}$ sums $Mark$ over exactly these
+indices, and constraint c4.3 enforces $Acc_{\mathrm{Vote}}(\omega^j)=Tally[j]$ for each $j$.
+Since padding indices $i\ge P$ contribute zero by Lemma~\ref{lem:bitness-padding},
+the multiplicity of $S(j)$ in $\pi_S\sigma_{M=1}(E^{Z})$ equals $Tally[j]$ for all $j$, hence
+$\mathrm{tal}(E^{Z})=t$.
+\end{proof}
+
+\subsection{Realizing Basin's checks with Zeeperio verification}
+\label{sec:basin-checks-hold}
+
+We now instantiate Basin's objects $(P_{\mathrm{auth}},P_{\mathrm{con}},Views)$ from a Zeeperio execution.
+
+\paragraph{Virtual publication tables.}
+Define Eperio-style partial publication tables (with missing values~$\bot$) by
+\[
+P^{UM}\ :=\ \{\langle U:U(i),\,M:M(i),\,S:\bot\rangle \mid 0\le i<P\},
+\qquad
+P^{MS}\ :=\ \{\langle U:\bot,\,M:M(i),\,S:S(i)\rangle \mid 0\le i<P\},
+\]
+and set $P_{\mathrm{auth}}^{Z}:=\{P^{UM},P^{MS}\}$.
+
+Let $P_{\mathrm{con}}^{Z}$ be Basin et al.'s Eperio constraint set instantiated for the announced tally~$t$
+and the public template shape \cite[\S3.3]{BasinEtAl2021Tables}.
+
+\paragraph{Voter views and on-chain validation.}
+For each voter $v$, let $R_v$ be the table describing the view that $v$ accepts after running
+Zeeperio's voter-facing verification (receipt check for cast ballots, print-audit check for audited ballots).
+We define $Views^{Z}:=\{R_v\mid v\in V\}$ and require as part of Zeeperio’s verification procedure that:
+(i) each $R_v$ is accompanied by a proof $\Pi_v\in\{\Pi_{\mathrm{receipt}},\Pi_{\mathrm{audit}}\}$ that is verified
+against the same commitments as $\Pi_{\mathrm{main}}$, and
+(ii) the smart contract rejects duplicate ballot identifiers in voter submissions (so the set $Views^{Z}$ is key-consistent).
+
+\begin{lemma}[Zeeperio implies $\psi_0$ and $\psi_{\mathrm{tally}}$]
+\label{lem:psi0-psitally}
+If $\Pi_{\mathrm{main}}$ verifies, then $\psi_0(P_{\mathrm{auth}}^{Z})$ and
+$\psi_{\mathrm{tally}}(P_{\mathrm{auth}}^{Z},t)$ hold.
+\end{lemma}
+\begin{proof}
+Both $P^{UM}$ and $P^{MS}$ are projections of the same known table $E^{Z}$ with $\bot$-filled columns,
+so they have compatible shapes and merge consistently under the key~$U$. This is exactly $\psi_0$.
+For $\psi_{\mathrm{tally}}$, Lemma~\ref{lem:tally-correct} shows that the query $\pi_S\sigma_{M=1}$ applied to
+$E^{Z}$ yields $t$, hence $t$ is uniquely determined by the $\{M,S\}$-view and therefore lies in
+$\mathrm{Ind}^{\mathrm{qu}}_{P}(\{\pi_S\sigma_{M=1}\})$ for each $P\in P_{\mathrm{auth}}^{Z}$.
+\end{proof}
+
+\begin{lemma}[Zeeperio voter proofs imply $\psi_1$ and $\psi_{\mathrm{print\text{-}audit}}$]
+\label{lem:psi1-psiprint}
+Assume $\Pi_{\mathrm{main}}$ verifies and that each voter-facing proof $\Pi_v$ verifies against the same commitments.
+Then $\psi_1(P_{\mathrm{auth}}^{Z},Views^{Z})$ and $\psi_{\mathrm{print\text{-}audit}}(P_{\mathrm{auth}}^{Z},Views^{Z})$ hold.
+\end{lemma}
+\begin{proof}
+By (A1) and (A2), acceptance of a voter-facing proof $\Pi_v$ implies that the tuple(s) recorded in $R_v$
+match the unique witness table $E^{Z}$ on the columns they claim (openings cannot be consistent with two different
+tables). Therefore $\pi_{U,M}R_v\subseteq_{\#}\pi_{U,M}E^{Z}=\pi_{U,M}P^{UM}$ for each voter, yielding~$\psi_1$.
+The same binding argument for print-audit proofs implies that the $\{U,S\}$-subtables contributed by audited ballots
+are merge-consistent with $P_{\mathrm{auth}}^{Z}$ (and preserve the published shape), which is exactly
+$\psi_{\mathrm{print\text{-}audit}}$.
+\end{proof}
+
+\begin{lemma}[Uniqueness and no-stuffing are enforced in Zeeperio]
+\label{lem:unique-nostuff}
+Let $\mathsf{Cast}\subseteq\{0,\dots,B-1\}$ be the public set of ballot identifiers for which a \emph{cast-ballot}
+receipt check has been accepted by the smart contract (equivalently, there exists a verified proof $\Pi_{\mathrm{receipt}}$
+for that ballot). Assume the contract enforces that each ballot identifier can be accepted at most once, i.e., $\mathsf{Cast}$
+is a set. Let $N_{\mathrm{cast}}:=|\mathsf{Cast}|$ and let the contract supply the value $Sum_{\mathrm{Mark}}:=N_{\mathrm{cast}}$
+as a public input to $\Pi_{\mathrm{main}}$. Then $\psi_{\mathrm{unique}}(Views^{Z})$ and
+$\psi_{\mathrm{no\text{-}stuffing}}(P_{\mathrm{auth}}^{Z},Views^{Z})$ hold.
+\end{lemma}
+\begin{proof}
+(\emph{Uniqueness}.) Since each accepted voter view table $R_v\in Views^{Z}$ is tied to a ballot identifier $b$
+appearing in its $U$-column (via $U(i)=(b,k)$ for positions $k$), and the contract rejects duplicate ballot identifiers,
+no two tables in $\{\pi_{V,U}R\mid R\in Views^{Z}\}$ assign conflicting $V$-values to the same key~$U$.
+Hence $?_{\{U\}}\{\pi_{V,U}R\mid R\in Views^{Z}\}\neq\emptyset$, i.e.\ $\psi_{\mathrm{unique}}$ holds.
+
+(\emph{No-stuffing}.) By Lemma~\ref{lem:disjoint-audit-mark}, the $M=1$ rows in $P^{UM}$ correspond exactly to the
+$Mark_i=1$ entries in the witness, so $\#\sigma_{M=1}\pi_M P^{UM}=\sum_{i=0}^{P-1} Mark_i$.
+Constraint c2.6 enforces $\sum_{i=0}^{P-1} Mark_i = Sum_{\mathrm{Mark}} = N_{\mathrm{cast}}$.
+On the other hand, for $V=\min(?_{\{U\}}Views^{Z})$, each $b\in\mathsf{Cast}$ contributes (by receipt-check soundness)
+a row with $M=1$ to $V$, and by Lemma~\ref{lem:no-overvote} no ballot contributes more than one such row.
+Therefore $\#\sigma_{M=1}\pi_M V = |\mathsf{Cast}| = N_{\mathrm{cast}}$, yielding $\psi_{\mathrm{no\text{-}stuffing}}$.
+\end{proof}
+
+\subsection{Main inheritance theorem}
+\label{sec:inheritance-theorem}
+
+\begin{theorem}[Zeeperio inherits Basin et al.'s global integrity property]
+\label{thm:zeeperio-inherits}
+Assume (A1)--(A2). If $\Pi_{\mathrm{main}}$ verifies and all voter-facing proofs verify as specified above, then
+\[
+\phi_{\{U\},\pi_S\sigma_{M=1}}(P_{\mathrm{auth}}^{Z},P_{\mathrm{con}}^{Z},Views^{Z})
+\]
+holds.
+\end{theorem}
+\begin{proof}
+By Lemma~\ref{lem:psi0-psitally} we have $\psi_0$ and $\psi_{\mathrm{tally}}$.
+By Lemma~\ref{lem:psi1-psiprint} we have $\psi_1$ and $\psi_{\mathrm{print\text{-}audit}}$.
+By Lemma~\ref{lem:unique-nostuff} we have $\psi_{\mathrm{unique}}$ and $\psi_{\mathrm{no\text{-}stuffing}}$.
+Therefore the premises of Basin et al.'s Eperio soundness implication are satisfied, yielding the desired $\phi$.
+\end{proof}
 
 \clearpage{Security Proof}
 
