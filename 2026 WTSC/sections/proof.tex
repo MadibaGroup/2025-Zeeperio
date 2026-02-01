@@ -1,0 +1,270 @@
+% !TEX root = ../main.tex
+
+% ====
+
+\section{Security Proof}
+
+\subsection{Overview}
+
+Zeeperio is a component of a voting system, not a full-fledged voting system. We will keep our proof very narrow to the changes Zeeperio introduces because security arguments for most of the other components already exist. Eperio is a `back-end' tabulator that proves the correctness of the election, while leaking no information about how any voter voted from all its transcripts. The `front-end' of the system consists of the paper ballots, how they encode votes, and how voters interact with their voted ballots, audited ballots, and the transcript of the election. The front-end also needs to be receipt-free. Eperio, and by extension Zeeperio, is compatible with multiple front-ends, but we use the example of Scantegrity II.
+
+Scantegrity II is an end-to-end verifiable voting system with paper ballots that are optically scanned. A ballot contains a unique serial number and it contains a unique (per ballot) confirmation code printed beside each candidate in invisible ink. When the voter marks a candidate on the ballot, the voter is able to also read the code. The ballot serial number and the revealed code constitutes the voter's receipt, which they can copy to a piece of paper and bring home. The scanned ballots are provided to a backend system called `the switchboard.' The switchboard prepares a proof that the tally is correct and provides an interface for voters to see if their receipts are recorded correctly and if their print audited ballots contain consistent confirmation codes with what is recorded.
+
+\subsection{Scantegrity II is Coercion Resistant}
+
+For the purposes of this paper, we will assume that Scantegrity II is a secure voting system. Its security is argued in the Scantegrity papers, while a very thorough proof of its \textit{coercion resistance} property is given by Kusters, Truerung, and Vogt. The definition of coercion resistance is from their earlier paper at CSF 2010. We provide a summary of their main theorem, while omitting many of the details and exact models (see their paper).
+
+Let $P_{\mathsf{Sct}}$ denote the Scantegrity~II protocol, and let
+\[
+S = P_{\mathsf{Sct}}(k,m,n,\tilde p)
+\]
+be an election system with the following parameters. $k$ is the number of candidates (excluding abstention), indexed by $i\in\{1,\dots,k\}$. $m$ is the number of dishonest voters whose votes are assumed known to the coercer (static adversary). $n$ is the number of honest voters (excluding one coerced voter). $\tilde p=(p_0,\dots,p_k)$ is the distribution of an honest voter's choice ($p_0$ for abstention, $p_i$ for candidate $i$), with $\sum_{j=0}^k p_j=1$.
+
+
+Kusters \etal define coercion-resistance roughly as: for any strategy $v$ the coercer forces on the voter, there exists a counter-strategy $\tilde v$ such that (i) the resulting run satisfies the voter's goal $\gamma_i$ with overwhelming probability, while (ii) the coercer cannot distinguish whether the voter obeyed the coercer or used its counter-strategy by more than a security parameter $\delta$. The quantity $\delta=\delta^i_{\min}(n,k,\tilde p)$ is the paper's expression for the best-possible distinguishability advantage available to a coercer in this setting (we refer the interested reader to the paper for its exact details).
+
+\begin{theorem}[Main Result from TK]
+Fix $i\in\{1,\dots,k\}$ and let $\delta \;=\; \delta^i_{\min}(n,k,\tilde p).$ Then the Scantegrity~II election system $S=P_{\mathsf{Sct}}(k,m,n,\tilde p)$ is
+$\delta$-coercion-resistant with respect to the goal $\gamma_i$.
+\end{theorem}
+
+
+Under this definition, it does not say ``Scantegrity II is coercion resistant'' writ large. Rather it says, ``Scantegrity II is coercion-resistant for specific family of voter goals $\gamma_i$.'' In general, a system may be proven coercion resistant for certain kinds of goals and not for other goals. For the authors' proof of Scantegrity II, they need a specific goal for the proof. The goal they use, $\gamma_i$, can be informally stated as: \textit{if the coercer’s demand is abstention, the voter abstaining is acceptable; otherwise, if the voter casts a vote, it should be for candidate $i$, regardless of which candidate the coercer instructs them to vote for.}
+
+
+\subsection{Replacing the Switchboard with Eperio} 
+
+As mentioned, the verification back-end in Scantegrity II is referred to as the Switchboard. Eperio was introduced by its authors explicitly as a replacement for the Switchboard. Eperio tables play the same architectural role as the switchboard, while providing proofs that are asserted to be more human-understandable. The paper shows an Eperio proof is simpler to implement (smaller data, less lines of code) than Switchboard proofs and can even be manually checked by a human verifier using a spreadsheet (such as Microsoft Excel) and simple operations.
+
+A blackbox equivalence of Eperio and the Switchboard has not been formally proven. Basin \etal do not seek to prove this, but they do model both Eperio and the Scantegrity switchboard. They show that they operate over the same underlying table structures and for every verification property they prove, they just state the proof would be analogous to Eperio's proof without developing them further. The also show that the same privacy argument applies to both systems. The privacy result they obtain for Eperio, however, comes with two important caveats relative to the Kusters \etal result. First, the notion of privacy is weaker than coercion resistance: it shows that the published verification data does not allow votes to be linked to voters within a table-based model, a property sometimes referred to as receipt freeness, rather than a full game-based coercion-resistance guarantee. Second, their analysis is framed using a simplified Scantegrity-style ballot abstraction rather than the full Scantegrity II ballot format, so the result applies at the level of the switchboard and verification logic, not to the complete human-facing voting protocol.
+
+We state as a conjecture, and without proof, that if the Switchboard is replaced with Eperio, the result from Kuster \etal will continue to hold. We think this is reasonable given the evidence above.
+
+\subsection{Zeeperio is as Coercion Resistant as Eperio}
+
+We now turn to Zeeperio and will start with its coercion resistance. Essentially we will show that whatever a coercer can learn from a Zeeperio transcript, they would already know the same information (perhaps with less assurance) from an Eperio transcript. Therefore whatever level of privacy is achievable by Eperio with Scantegrity-style ballots, the Zeeperio inherits at least the same level. This level is at least receipt-freeness under the definition of Basin \etal and could be coercion resistance under the definition of Kusters \etal if one accepts our conjecture that swapping Scantegrity's Switchboard for Eperio does not reduce privacy in any meaningful way.
+
+
+
+
+\subsection{Zeeperio is as Verifiable as Eperio} 
+
+Basin \etal model Eperio using tables and SP-algebra (selection–projection table algebra) to state verification conditions and prove that these conditions imply integrity (and related) properties through pen-and-paper formal-methods proofs (as opposed to machine-checked verification). In this section, we show the equivalence of Zeeperio's constraints and their model, which we will call the BDGR model or just BDGR. 
+
+The notation we use the main body of our paper and the notation used by BDGR is largely distinct but sometimes a few symbols overlap. Rather than rewriting the BDGR model in our notation, we keep their notation for easier cross-referencing with their paper but we make it easier for the reader to know we are discussing BDGR by placing the main equations in blue boxes, while using pink boxes for Zeeperio.
+
+% Symbols used in the definition of $P_{\mathrm{con}}$.
+
+In BDGR, the election authority reveals a set of Eperio tables but shows only parts of the tables, never the entire table. The entires in the partial table that are unknown are marked with symbol $\bot$. Each artefact $P\in \mathcal{P}_{\mathrm{auth}}$ is in the set of everything published ($\mathcal{P}_{\mathrm{auth}}$). Iterating over each $P$, the model then iterates over every possible $T \in \mathcal{T}_\bot$ from the set of all tables (full or partial). If a table $T$ is consistent with the revealed $P$, which is to say it is the same in possibly permuted order as $P$ with $\bot$ symbols, it is collected. The intersection of all collected tables over each $P$ is denoted $\bigcap_{P\in \mathcal{P}_{\mathrm{auth}}}\{T\in\mathcal{T}_\bot|P\stackrel{\bot}{=}\pi_{\mathrm{sort}(P)}T\}$. 
+
+In their notation, the set of tables that are consistent with the published tally $t$ is denoted $\mathrm{Ind}^{qu}_t(\pi_S\sigma_{M=1})$ which we will not unpack further here, referring the interested reader to their paper. Together, $\mathcal{P}_{\mathrm{con}}$ is a set of full Eperio tables that are consistent with both the tally and the data published in the audit trail. 
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\mathcal{P}_{\mathrm{con}}&:=\mathrm{Ind}^{qu}_t(\pi_S\sigma_{M=1}) \cap \bigcap_{P\in \mathcal{P}_{\mathrm{auth}}}\{T\in\mathcal{T}_\bot|P\stackrel{\bot}{=}\pi_{\mathrm{sort}(P)}T\}
+\end{aligned}
+\]
+\end{mdframed}
+
+Everything a voter $v$ sees across an election is specified as their view of the election $R_v$. The collection of all voters' views is defined as Views.
+
+The BDGR model defines an operation $\owedge$ that works like a key-based merge over a set of tables, allowing the input tables to have unknown entries $\bot$. The key Key specifies when two rows should be treated as the same row. The output $\owedge^{Key}(\cdot)$ is the set of possible tables that are consistent merges of the input tables. If the input tables contradict each other, the output set will be empty. Because merges may leave some information underdetermined, $\owedge^{Key}(\cdot)$ will likely contain many tables. The operator $\min$ is then used to extract the least-informative consistent merged tables. Eventually the model will argue that the min , to talk about a single election outcome, BDGR does not require a single merged table; instead it requires that all candidate tables consistent with the evidence yield the same tally.
+
+In an Eperio table, each row has a unique identifier under the key U (and each row corresponds to a specific markable region on a ballot). Using the unique identifier $U$ as a key, the minimum tables of the combined voter views are as follows. 
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\mathrm{Views}&:=\{R_v|v\in V\}\\
+\bar{V}&:=\min(\owedge^{U}(\mathrm{Views}))\\
+\end{aligned}
+\]
+\end{mdframed}
+
+
+The BDGR model identifies six predicates $\psi_i$ that should evaluate to true if Eperio is verifiable, sound, and complete, which is the security property $\phi$ they attempt to prove.
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\begin{definition}[Definition 4]
+Given a non-empty sort $Key$ of unique keys, $P_{\mathrm{auth}}$, $\mathrm{Views}$, and $P_{\mathrm{con}}$ as in Section~3, let
+\[
+C = \owedge^{Key}(P_{\mathrm{auth}}\cup \mathrm{Views}) \cap P_{\mathrm{con}}.
+\]
+We say that an election’s outcome $tal$ corresponds to the voters’ intent, and denote this property by
+$\varphi_{Key,tal}(P_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views})$, if the following two conditions are satisfied:
+\[
+(1)\;\; C \neq \emptyset
+\qquad\text{and}\qquad
+(2)\;\; \forall T \in C,\; \forall T' \in \min(\owedge^{Key}\mathrm{Views}) : tal(T) = tal(T'),
+\]
+where $tal$ denotes the tally function.
+\end{definition}
+\end{mdframed}
+
+To relate the BDGR model to Zeeperio's PIOP constraints, we specify some additional notation. Let $\mathrm{pub}$ denote the public input to Zeeperio. Let $w$ denote the witness. Let $\pi$ denote the PIOP proof transcript (or its non-interactive form), and let $\mathsf{Acc}(\mathrm{pub},\pi)\in\{\mathsf{true},\mathsf{false}\}$ be the verifier’s acceptance predicate.
+
+For each constraint family indexed by $j$, let $V_{c_j}(X;\mathrm{pub},w)$ be the associated constraint polynomial.
+
+Let $H$ be the evaluation domain, and define the vanishing predicate
+\[
+\mathsf{Vanish}(f) \;:\Leftrightarrow\; \forall x\in H:\; f(x)=0.
+\]
+
+Define the proof-level predicate
+\[
+\mathsf{VanishProof}(\mathrm{pub},\pi) \;:\Leftrightarrow\; \mathsf{Acc}(\mathrm{pub},\pi).
+\]
+
+
+There exists a soundness error bound $\epsilon$ such that
+\[
+\mathsf{VanishProof}(\mathrm{pub},\pi)\Rightarrow_{\epsilon}\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right).
+\]
+
+\[
+\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right)\Rightarrow \bigwedge_i \psi_i(\mathcal{P}_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).
+\]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Next we will describe each predicate one-by-one and then describe how Zeeperio's constraints, the \constraints vanishing polynomials $V_{c_i}(X)$, also satisfy each predicate.
+
+$\Bigl(\bigwedge_j \mathsf{VanishProof}(V_{c_j}(X))\Bigr)\Rightarrow \Bigl(\bigwedge_i \psi_i\Bigr)$
+
+
+We structure the argument in two steps.
+
+\textbf{Step 1 (PIOP soundness).}
+Let $\mathsf{Acc}$ be the event that the Zeeperio verifier accepts.
+By PIOP soundness,
+\[
+\mathsf{Acc} \Rightarrow_{\epsilon} \exists w:\bigwedge_j \mathsf{Van}\!\left(V_{c_j}(\mathrm{pub},w)\right),
+\]
+i.e., except with probability at most $\epsilon$, acceptance implies the existence of a witness $w$ for which all constraint polynomials vanish on the evaluation domain.
+
+\textbf{Step 2 (encoding correctness).}
+We show that vanishing implies the Basin verification predicates:
+\[
+\exists w:\bigwedge_j \mathsf{Van}\!\left(V_{c_j}(\mathrm{pub},w)\right)
+\Rightarrow
+\bigwedge_i \psi_i(P_{\mathrm{auth}},P_{\mathrm{con}},\mathrm{Views}).
+\]
+
+
+\subsection{Aikim see here}
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\psi_{0}&:=\owedge^{\{U\}}\mathcal{P}_{\mathrm{auth}}\cap\bigcap_{P\in \mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset
+\end{aligned}
+\]
+\end{mdframed}
+\clearpage
+
+\textblue{Argue that Zeeperio's constraints satisfy this property.}
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\psi_{1}&:=\bigwedge_{v\in V}\bigwedge_{P\in P_{\mathrm{auth}}}\pi_{U,M}P\in T(\pi_{U,M}R_v\subseteq^\#\pi_{U,M}P)
+\end{aligned}
+\]
+\end{mdframed}
+
+\textblue{Argue that Zeeperio's constraints satisfy this property.}
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\psi_{\mathrm{print\text{-}audit}}&:=?_{\{U\}}\{\pi_{U,S}(R)|R\in\mathrm{Views}\}\cap?_{\{U\}}P_{\mathrm{auth}}\cap\bigcap_{P\in P_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset
+\end{aligned}
+\]
+\end{mdframed}
+
+\textblue{Argue that Zeeperio's constraints satisfy this property.}
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\psi_{\mathrm{tally}}&:=t\in\bigcap_{P\in P_{\mathrm{auth}}}\mathrm{Ind}^{qu}_{P}(\{\pi_S\sigma_{M=1}\})
+\end{aligned}
+\]
+\end{mdframed}
+
+\textblue{Argue that Zeeperio's constraints satisfy this property.}
+
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\psi&:=\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}
+\end{aligned}
+\]
+\end{mdframed}
+
+\textblue{Argue that Zeeperio's constraints satisfy this property.}
+
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\psi_{\mathrm{unique}}&:=?_{\{U\}}\{\pi_{V,U}R|R\in\mathrm{Views}\}\neq\emptyset
+\end{aligned}
+\]
+\end{mdframed}
+
+\textblue{Argue that Zeeperio's constraints satisfy this property.}
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\psi_{\mathrm{no\text{-}stuffing}}&:=\forall P\in P_{\mathrm{auth}}:\#\sigma_{M=1}\pi_MP=\#\sigma_{M=1}\pi_MV
+\end{aligned}
+\]
+\end{mdframed}
+
+\textblue{Argue that Zeeperio's constraints satisfy this property.}
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}}&\Rightarrow\varphi
+\end{aligned}
+\]
+\end{mdframed}
+
+
+
+
+\clearpage{Security Proof}
+
