@@ -331,18 +331,20 @@ $$
 $$
 
  The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sums for some candidates may be one element longer than those for others. Constraint c4.1 demonstrates that the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 shows that the published tally equals the sum of each candidate's votes. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
+ 
+ %JC: moving security to end of paper
 
-\paragraph{Security Properties.}
-A full security analysis of Zeeperio is deferred to the extended thesis version\footnote{Link withheld for anonymity.}, but we sketch how it reduces to standard components.
-Prior work establishes Eperio’s end-to-end verifiability under its stated assumptions~\cite{ECHA10,BDGR21}.
-PIOP-based SNARKs provide completeness, (knowledge) soundness, and (when required) zero knowledge for relations expressed as low-degree polynomial constraints that are checked via vanishing tests at random challenges~\cite{GWC19}.
-Zeeperio uses this framework by encoding Eperio’s table semantics as polynomial identities over an evaluation domain.
-
-The remaining obligation is \emph{constraint faithfulness}: Zeeperio’s constraints must match Eperio’s validity conditions for tally correctness, voter inclusion, and dispute resolution.
-We require (i) \emph{encoding soundness}: any accepted Zeeperio proof implies the existence of a table/witness satisfying Eperio validity; and (ii) \emph{encoding completeness}: any Eperio-valid instance yields a witness making all constraints vanish.
-Given these, the polynomial commitment scheme and general SNARK security implies that a malicious prover cannot cause the contract to accept an outcome that violates Eperio’s rules, except with negligible probability.
-In the thesis, we formalize Eperio validity and prove constraint faithfulness via lemmas mapping each Eperio check to the corresponding Zeeperio constraints.
-We use KZG commitments and Fiat-Shamir in the random-oracle model, matching standard Plonk-style assumptions~\cite{GWC19,KZG10}.% = = = = = = = = = = = = = = = = = %
+%\paragraph{Security Properties.}
+%A full security analysis of Zeeperio is deferred to the extended thesis version\footnote{Link withheld for anonymity.}, but we sketch how it reduces to standard components.
+%Prior work establishes Eperio’s end-to-end verifiability under its stated assumptions~\cite{ECHA10,BDGR21}.
+%PIOP-based SNARKs provide completeness, (knowledge) soundness, and (when required) zero knowledge for relations expressed as low-degree polynomial constraints that are checked via vanishing tests at random challenges~\cite{GWC19}.
+%Zeeperio uses this framework by encoding Eperio’s table semantics as polynomial identities over an evaluation domain.
+%
+%The remaining obligation is \emph{constraint faithfulness}: Zeeperio’s constraints must match Eperio’s validity conditions for tally correctness, voter inclusion, and dispute resolution.
+%We require (i) \emph{encoding soundness}: any accepted Zeeperio proof implies the existence of a table/witness satisfying Eperio validity; and (ii) \emph{encoding completeness}: any Eperio-valid instance yields a witness making all constraints vanish.
+%Given these, the polynomial commitment scheme and general SNARK security implies that a malicious prover cannot cause the contract to accept an outcome that violates Eperio’s rules, except with negligible probability.
+%In the thesis, we formalize Eperio validity and prove constraint faithfulness via lemmas mapping each Eperio check to the corresponding Zeeperio constraints.
+%We use KZG commitments and Fiat-Shamir in the random-oracle model, matching standard Plonk-style assumptions~\cite{GWC19,KZG10}.% = = = = = = = = = = = = = = = = = %
 
 % = = = = = = = = = = = = = = = = = %
 
