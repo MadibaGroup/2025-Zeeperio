@@ -126,18 +126,18 @@ This implication is not cryptographic; it is a semantic correspondence argument.
 \subsection{Aikam see here}
 \BDGR{\psi_{0}&:=\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
 This predicate asserts that the tables in $\mathcal{P}_{\mathrm{auth}}$ can be merged consistently
-on the key $U$, and that each published table satisfies its prescribed shape constraints.
+on the key $U$, that each published table satisfies its prescribed shape constraints, and all publications agree on any overlapping revealed column pairs 
 
-In Zeeperio, acceptance of $\Pi_{\mathrm{main}}$ implies the committed columns are consistent with a single induced table $E^Z$. 
-$\mathcal{P}_{\mathrm{auth}}^Z$ is obtained by projecting $E^Z$ onto the published columns, so the merge
-$\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}}^Z)$ is non-empty. 
+In Zeeperio, the acceptance of $\Pi_{\mathrm{main}}$ implies the committed columns are consistent with a single induced table $E^Z$. 
+$\mathcal{P}_{\mathrm{auth}}^Z$ is obtained by projecting $E^Z$ onto the published columns, so any pair of publications that expose a common column-pair (either 
+$(U,M)$ or $(M,S)$) must agree on that overlap, since both are projections of the same $E^Z$.
 Additionally, the Section~3 constraints enforce the
 required well-formedness conditions, which supply the corresponding
 $\mathrm{shape}_P$ predicates. 
 Therefore, $\psi_0$ holds for Zeeperio.
 
 
-\BDGR{\psi_{1}&:=\bigwedge_{v\in V}\bigwedge_{P\in\mathcal{P}_{\mathrm{auth}}}\bigl(\pi_{U,M}R_v\subseteq^{\#}\pi_{U,M}P\bigr)}
+\BDGR{\psi_{1}&:=\bigwedge_{v\in V}\bigwedge_{P\in\mathcal{P}_{\mathrm{auth}}}\bigl(\pi_{U,M}P \in \mathcal{T} \Rightarrow \pi_{U,M}R_v\subseteq^{\#}\pi_{U,M}P\bigr)}
 
 This predicate models votes \emph{recorded as cast} by requiring every $(U,M)$ tuple appearing in a voter-facing view
 to be contained as a multiset in the authenticated $(U,M)$ publication.
@@ -151,7 +151,7 @@ Since acceptance of $\Pi_{\mathrm{main}}$ yields a consistent induced table $E^Z
 revealed in an accepted voter view $R_v$ must belong to $\pi_{U,M}(E^Z)$. 
 Thus, $P^{UM}=\pi_{U,M}(E^Z)$, and therefore $\pi_{U,M}R_v \subseteq^{\#} \pi_{U,M}P^{UM}$ for all voters $v$. 
 
-\BDGR{\psi_{\mathrm{print\text{-}audit}}&:=\owedge^{\{U\}}\bigl(\{\pi_{U,S}(R)\mid R\in\mathrm{Views}\}\bigr)\cap\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
+\BDGR{\psi_{\mathrm{print\text{-}audit}}&:=\owedge^{\{U\}}\bigl(\{\pi_{U,S}(R)\mid R\in\mathrm{Views}_{audit}\}\bigr)\cap\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
 
 The print-audit predicate requires that all print-audit disclosures (projected to $(U,S)$) are mutually consistent under key $U$, and consistent with $\mathcal{P}_{\mathrm{auth}}$ and its \emph{shapes}.
 For Zeeperio’s print-audit check, the EA opens the committed polynomials at the $C$ indices of ballot $b$ and returns those evaluations with valid opening proofs.
@@ -178,8 +178,6 @@ For ballot $b$ and the $k$ positions within a ballot, $\mathrm{ballot-ID}(\omega
 Additionally, any accepted voter check from (Section 4) is accepted only if the disclosed values open correctly against the committed columns.
 Therefore, any accepted view is cryptographically consistent with a single committed election instance.
 Since the election uses distinct ballot identifiers per voter, these bindings ensure that different voters’ $(V,U)$ disclosures do not conflict under key $U$, so the merge is non-empty.
-
-
 
 \BDGR{\psi_{\mathrm{no\text{-}stuffing}}&:=\forall P\in\mathcal{P}_{\mathrm{auth}}:\#\sigma_{M=1}\pi_{M}P=\#\sigma_{M=1}\pi_{M}V}
 $\quad\text{where }V=\min\bigl(\owedge^{\{U\}}(Views)\bigr).$
