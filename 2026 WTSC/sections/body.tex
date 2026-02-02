@@ -3,18 +3,24 @@
 
 Decades of research on end-to-end verifiable (E2E-V) elections have shown that strong cryptographic guarantees can protect the integrity of governmental elections and the secrecy of voter ballots, even when conducted with paper ballots~\cite{HR16}. 
 In recent years, pilot projects and deployments of E2E-V platforms have also demonstrated that these systems are usable and scalable to an appropriate degree~\cite{AMPQ09,CCC+10,BBB+13,CRST15}. 
-Despite these efforts, some governments continue to conduct elections without meaningful verification or openness to scrutiny, in which voter ballot selections and identities are stored together within the election service (see, e.g., Cardillo et al. \cite{cae19}).
+Despite these efforts, some governments continue to conduct elections without meaningful verification or openness to scrutiny.
 
-Within this context, a common refrain is that blockchain technology can help solve this problem. 
-Blockchain voting typically falls into two categories: (1) voting on-chain for on-chain events, such as actions taken by a DAO; and (2) supporting an off-chain election, such as a governmental election. 
-In this paper, we are concerned with the second category. We suggest thinking of the research in (2) as being split between (2a) blockchain maximalists that want to conduct as much of the voting process as possible on a blockchain, and (2b) blockchain pragmatists that envision a largely conventional election that brings in blockchains for specific, narrowly-scoped security goals.
+%JC: removing this for now, more about realcryptik framing:
+%in which voter ballot selections and identities are stored together within the election service (see, e.g., Cardillo et al. \cite{cae19}).
 
-Blockchain maximalism has not found success in the voting world yet.
-There is a lot of vapourware and overhyped projects [polys, follow my vote], and actual deployments have been small-scale and littered with security issues [Voatz, Breaking the Encryption Scheme of the Moscow Internet Voting System].
-Reason? Voting is hard and you have tons of requirements.
+Within this context, a common refrain is that blockchain technology can solve the governmental voting problem. However after many years of vapourware and defunct projects~\cite{KSM21,Ern25}, actual deployments have been small-scale and littered with security issues~\cite{SKW20,GG20}. We argue these projects tried to \textit{maximize} the role of smart contracts in the voting system. Unlike DAO voting, which is a sensible application of on-chain voting for a system that is already on-chain, governmental elections have a large real-world component that could include anything from paper ballots to polling stations to physical identities. Moving everything online, let alone on-chain, is controversial and introduces new security challenges like over-the-shoulder coercion, vote selling, denial of service, and the threat of malware on voter's personal devices. 
 
-In this paper, we turn to blockchain pragmatism.
-What is a pain-point with voting that blockchains could actually solve? Verification.
+In this paper, we consider a \textit{pragmatic} approach to blockchain voting. The core idea is to introduce or expand the role of blockchain for specific, narrowly-scoped security goals. We start with a well-known cryptographically secure E2E-V voting system called Scantegrity II~\cite{CCC+08} which was the first of its kind deployed in a real-world election~\cite{CCC+10}. Blockchains already play a small role in Scantegrity II: for the 2011 municipal election in Takoma Park, USA, commitments to election data were put into Bitcoin's blockchain to unequivocally demonstrate they were made before the election began~\cite{CE12}.
+
+Scantegrity II produces a set of cryptographic proofs that the election result is correct, while preserving ballot secrecy for every voter~\cite{KTV10c,BDGR21}. Voters consult these proofs to ensure their ballots (cast and/or audited) are recorded correctly, and anyone can use the proofs to verify that the tally was computed correctly. Verifying a proof requires downloading the proof data (MBs) and the technical knowledge of cryptography to check it. Scantegrity II's main data structure, used in the proof, is called a Switchboard. Researchers later simplified the Switchboard to a new table-based data-structure in a protocol called Eperio~\cite{ECHA10}.
+
+Eperio is an attempt to simplify the cryptography of Scantegrity II by making larger, aggregated commitments that could be implemented with file-based encryption, enabling more practical implementations of the proof verification using pre-existing and commonplace software. 
+For example, the paper demonstrated an implementation of the verifier using only the built-in features of Microsoft Excel. 
+The security of both Eperio and Scantegrity's Switchboard were studied in detail using formal methods in a CCS 2021 paper and found to be equivalent~\cite{BDGR21}. 
+Like Scantegrity (and related schemes of the era), Eperio still required election authorities (EAs) to organize an independent and explicit proof-checking effort to ensure {\em someone} checked the proof at all. What if the proof could be automatically checked by a smart contract, giving EAs automatic assurance that at least {\em someone} checked it? In this paper, that someone is the Ethereum network, which ties the acceptability of the election proof to the network's \$100+B USD market capitalization. 
+
+The design challenge of this work is to fit the proof within the highly restricted computational limits of the smart contract setting. While compact relative to other cryptographic voting systems, Scantegrity and Eperio proofs are too large to store on-chain economically and tally verification is linear in the number of ballots. The contribution of this paper is, Zeeperio, which provides Eperio-equivalent proofs using succinct (zk-SNARK) arguments. The size of a Zeeperio proof is constant in the number of ballots and the time to verify is also constant in the number of ballots, enabling on-chain verification. 
+
 
 
 
@@ -38,17 +44,7 @@ What is a pain-point with voting that blockchains could actually solve? Verifica
 %This shifts the protocol away from multiparty computation and threshold cryptography toward an all-encompassing zero-knowledge proof (ZKP). 
 %While ZKPs have been used in voting systems since their invention in the 1980s, we focus on modern succinct ZKPs called zk-SNARKs.
 
-\paragraph{Zeeperio.}
 
-Zeeperio is a modernization of the Eperio E2E-V backend~\cite{ECHA10}. 
-Eperio was an attempt to simplify the cryptography of Scantegrity II by making larger, aggregated commitments that could be implemented with file-based encryption, enabling more practical implementations of the proof verification using pre-existing and commonplace software. 
-For example, the paper demonstrated an implementation of the verifier using only the built-in features of Microsoft Excel. 
-Eperio's security was studied in detail using formal methods in a CCS 2021 paper~\cite{BDGR21}. 
-Like Scantegrity (and related schemes of the era), Eperio still required election authorities (EAs) to organize an independent and explicit proof-checking effort to ensure {\em someone} checked the proof at all.
-
-If, however, verification could be reduced to a succinct (zk-SNARK) argument, voters and candidates can still independently verify the election (if they choose). However, the proof could now be automatically checked by a smart contract, giving EAs automatic assurance that at least {\em someone} checked it. 
-In this paper, that someone is the Ethereum network, which ties the acceptability of the election proof to the network's \$100+B USD market capitalization. 
-The design challenge of this work is to fit the proof within the highly restricted computational limits of the smart contract setting.
 
 \subsection{Contribution}
 
