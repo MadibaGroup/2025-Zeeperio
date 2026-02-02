@@ -1,5 +1,5 @@
 \section{Foundations of Secure E2E-V Voting Protocols}
-The goal of end-to-end verifiable (E2E-V) voting protocols is to guarantee the integrity of an election that can be \emph{verified} by voters and observers alike, all without relying on a central authority \cite{chaum2004secret,kremer2010election,benaloh1987verifiable}.
+The goal of end-to-end verifiable (E2E-V) voting protocols is to guarantee the integrity of an election that can be \emph{verified} by voters and observers alike, all without relying on a central authority \cite{Cha02,kremer2010election,Ben87}.
 E2E verifiability requires two levels of verification: 
 
 \begin{itemize}
@@ -34,7 +34,7 @@ where $\lambda$ is the security parameter and $\text{negl}(\lambda)$ denotes a n
 A voting protocol satisfies this property if every voter can independently confirm that their cast ballot has been correctly \emph{recorded} in the public election record.
 In typical E2E-V voting protocols, this is achieved by providing the voter with a receipt that contains a \emph{tracking code} for their ballot that can be used to check a public list of ballot records known as the \emph{public bulletin board} \cite{guasch2016challenge}.
 The bulletin board must be \textit{publicly verifiable} 
-This ensures once a ballot is recorded, it cannot be deleted or modified without detection \cite{culnane2015vvoteverifiablevoting}.
+This ensures once a ballot is recorded, it cannot be deleted or modified without detection \cite{CRST15}.
 If the code appears in the bulletin board, the voter is assured their vote is included in the election.
 We describe this property formally as follows:
 
@@ -50,7 +50,7 @@ where $H$ is a cryptographic hash function.
 \subsubsection{Counted-as-Collected}
 A voting protocol satisfies this property if any observer can verify that all collected ballots are \emph{correctly included} in the final tally. 
 In typical E2E-V protocols, this is achieved by using cryptographic tools such as homomorphic encryption (where encrypted values can be summed without decryption), or mix-nets (where ballots are shuffled and re-encrypted).
-The protocol then provides some proofs to show the correctness of the tally, all without revealing individual votes \cite{hirt2000efficient}.
+The protocol then provides some proofs to show the correctness of the tally, all without revealing individual votes \cite{HS00}.
 We describe this property formally as follows:
 
 \begin{definition}
@@ -71,15 +71,15 @@ Each of these notions are important for free and fair elections.
 Ballot secrecy (also known as voter anonymity or privacy) requires that no party learns how an individual voter voted, beyond what can be inferred from the overall outcome.
 In this notion, the adversary is assumed to be \emph{passive}. 
 It should not be able to link a cast ballot back to it's voter from the from the observable.
-Josh Benaloh, a senior cryptographer at Microsoft Research emphasized "A secret ballot requires that \dots no voter's choices can be surreptitiously released or inferred. The goal of a secret ballot is to provide an election free from undue influence" \cite{benaloh2006simple}.
+Josh Benaloh, a senior cryptographer at Microsoft Research emphasized "A secret ballot requires that \dots no voter's choices can be surreptitiously released or inferred. The goal of a secret ballot is to provide an election free from undue influence" \cite{Ben06}.
 Ballot secrecy is implemented by encrypting or anonymizing ballots, and ensuring any published results do not reveal individual vote contents.
 However, ballot secrecy alone does not prevent coercion or vote-selling, as a voter might still be able to prove their vote to a third party. 
 
 \subsubsection{Receipt Freeness}
 Receipt freeness is a stronger notion that requires a voter to not be able to obtain any proof or \emph{receipt} that would credibly show how they voted to a third party.
 Here, the assumption is that the adversary is post-factum, where it can \emph{check in} with the voter after the election and ask for evidence of how they voted. 
-This property was first introduced by Benaloh and Tuinstra to prevent vote-selling and coercion \cite{benaloh1994receipt}.
-Ron Rivest, a pioneer in cryptographic voting, emphasized "the voter must not be given a 'receipt' that would allow them to prove how they voted to someone else-otherwise the voter could be coerced or bribed" \cite{rivest2007three}.
+This property was first introduced by Benaloh and Tuinstra to prevent vote-selling and coercion \cite{BT94}.
+Ron Rivest, a pioneer in cryptographic voting, emphasized "the voter must not be given a 'receipt' that would allow them to prove how they voted to someone else-otherwise the voter could be coerced or bribed" \cite{RS07}.
 Receipt freeness is implemented by ensuring that any data a voter can retain does not allow them to prove how they voted.
 Additionally, it ensures no voter has access to the secret \emph{randomness} used to encrypt their vote. 
 However, receipt freeness does not protect against more powerful coercion attacks where the adversary can pressure the voter during the voting process itself.
@@ -93,6 +93,6 @@ Coercion-resistant protocols are implemented by giving voters \emph{deniable} wa
 This can include issuing fake, but indistinguishable credentials or alternative transcripts so that any behaviour observed by the coercer cannot be linked to the voter's true intent.
 
 Most E2E-V protocols cannot achieve full coercion resistance in the strongest sense, especially internet voting schemes.
-In practice, many protocols aim for weaker threat assumptions or combine E2E verifiability with procedural safeguards such as supervised polling places to reduce real-world risk \cite{lueks2020voteagain}.
+In practice, many protocols aim for weaker threat assumptions or combine E2E verifiability with procedural safeguards such as supervised polling places to reduce real-world risk \cite{255242}.
 Even though full coercion resistance is impractical, it remains as a valuable \emph{design benchmark} that guides how protocols handle voter influence, how much information they expose to observers, and what assumptions they make about the voting environmenent.
 
