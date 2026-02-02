@@ -7,13 +7,13 @@
 
 \subsection{Overview}
 
-Zeeperio is a component of a voting system, not a full-fledged voting system. We will keep our proof very narrow to the changes Zeeperio introduces because security arguments for most of the other components already exist. Eperio is a `back-end' tabulator that proves the correctness of the election, while leaking no information about how any voter voted from all its transcripts. The `front-end' of the system consists of the paper ballots, how they encode votes, and how voters interact with their voted ballots, audited ballots, and the transcript of the election. The front-end also needs to be receipt-free. Eperio, and by extension Zeeperio, is compatible with multiple front-ends, but we use the example of Scantegrity II.
+Zeeperio is a component of a voting system, not a full-fledged voting system. We will keep our proof very narrow to the changes Zeeperio introduces because security arguments for most of the other components already exist. Eperio~\cite{ECHA10} is a `back-end' tabulator that proves the correctness of the election, while leaking no information about how any voter voted from all its transcripts. The `front-end' of the system consists of the paper ballots, how they encode votes, and how voters interact with their voted ballots, audited ballots, and the transcript of the election. The front-end also needs to be receipt-free. Eperio, and by extension Zeeperio, is compatible with multiple front-ends, but we use the example of Scantegrity II~\cite{CCC+08}.
 
 Scantegrity II is an end-to-end verifiable voting system with paper ballots that are optically scanned. A ballot contains a unique serial number and it contains a unique (per ballot) confirmation code printed beside each candidate in invisible ink. When the voter marks a candidate on the ballot, the voter is able to also read the code. The ballot serial number and the revealed code constitutes the voter's receipt, which they can copy to a piece of paper and bring home. The scanned ballots are provided to a backend system called `the switchboard.' The switchboard prepares a proof that the tally is correct and provides an interface for voters to see if their receipts are recorded correctly and if their print audited ballots contain consistent confirmation codes with what is recorded.
 
 \subsection{Scantegrity II is Coercion Resistant}
 
-For the purposes of this paper, we will assume that Scantegrity II is a secure voting system. Its security is argued in the Scantegrity papers, while a very thorough proof of its \textit{coercion resistance} property is given by Kusters, Truerung, and Vogt. The definition of coercion resistance is from their earlier paper at CSF 2010. We provide a summary of their main theorem, while omitting many of the details and exact models (see their paper).
+For the purposes of this paper, we will assume that Scantegrity II is a secure voting system. Its security is argued in the Scantegrity papers, while a very thorough proof of its \textit{coercion resistance} property is given by Küsters, Truerung, and Vogt~\cite{KTV10c}. The definition of coercion resistance is from their earlier paper at CSF 2010~\cite{KTV10}. We provide a summary of their main theorem, while omitting many of the details and exact models (see their paper).
 
 Let $P_{\mathsf{Sct}}$ denote the Scantegrity~II protocol, and let
 \[
@@ -24,7 +24,7 @@ be an election system with the following parameters. $k$ is the number of candid
 
 Kusters \etal define coercion-resistance roughly as: for any strategy $v$ the coercer forces on the voter, there exists a counter-strategy $\tilde v$ such that (i) the resulting run satisfies the voter's goal $\gamma_i$ with overwhelming probability, while (ii) the coercer cannot distinguish whether the voter obeyed the coercer or used its counter-strategy by more than a security parameter $\delta$. The quantity $\delta=\delta^i_{\min}(n,k,\tilde p)$ is the paper's expression for the best-possible distinguishability advantage available to a coercer in this setting (we refer the interested reader to the paper for its exact details).
 
-\begin{theorem}[Main Result from TK]
+\begin{theorem}[Main Result from~\cite{KTV10c}]
 Fix $i\in\{1,\dots,k\}$ and let $\delta \;=\; \delta^i_{\min}(n,k,\tilde p).$ Then the Scantegrity~II election system $S=P_{\mathsf{Sct}}(k,m,n,\tilde p)$ is
 $\delta$-coercion-resistant with respect to the goal $\gamma_i$.
 \end{theorem}
@@ -37,14 +37,13 @@ Under this definition, it does not say ``Scantegrity II is coercion resistant'' 
 
 As mentioned, the verification back-end in Scantegrity II is referred to as the Switchboard. Eperio was introduced by its authors explicitly as a replacement for the Switchboard. Eperio tables play the same architectural role as the switchboard, while providing proofs that are asserted to be more human-understandable. The paper shows an Eperio proof is simpler to implement (smaller data, less lines of code) than Switchboard proofs and can even be manually checked by a human verifier using a spreadsheet (such as Microsoft Excel) and simple operations.
 
-A blackbox equivalence of Eperio and the Switchboard has not been formally proven. Basin \etal do not seek to prove this, but they do model both Eperio and the Scantegrity switchboard. They show that they operate over the same underlying table structures and for every verification property they prove, they just state the proof would be analogous to Eperio's proof without developing them further. The also show that the same privacy argument applies to both systems. The privacy result they obtain for Eperio, however, comes with two important caveats relative to the Kusters \etal result. First, the notion of privacy is weaker than coercion resistance: it shows that the published verification data does not allow votes to be linked to voters within a table-based model, a property sometimes referred to as receipt freeness, rather than a full game-based coercion-resistance guarantee. Second, their analysis is framed using a simplified Scantegrity-style ballot abstraction rather than the full Scantegrity II ballot format, so the result applies at the level of the switchboard and verification logic, not to the complete human-facing voting protocol.
+A blackbox equivalence of Eperio and the Switchboard has not been formally proven. Basin \etal do not seek to prove this, but they do model both Eperio and the Scantegrity switchboard. They show that they operate over the same underlying table structures and for every verification property they prove, they just state the proof would be analogous to Eperio's proof without developing them further. The also show that the same privacy argument applies to both systems. The privacy result they obtain for Eperio, however, comes with two important caveats relative to the Küsters \etal result. First, the notion of privacy is weaker than coercion resistance: it shows that the published verification data does not allow votes to be linked to voters within a table-based model, a property sometimes referred to as receipt freeness, rather than a full game-based coercion-resistance guarantee. Second, their analysis is framed using a simplified Scantegrity-style ballot abstraction rather than the full Scantegrity II ballot format, so the result applies at the level of the switchboard and verification logic, not to the complete human-facing voting protocol.
 
-We state as a conjecture, and without proof, that if the Switchboard is replaced with Eperio, the result from Kuster \etal will continue to hold. We think this is reasonable given the evidence above.
+We state as a conjecture, and without proof, that if the Switchboard is replaced with Eperio, the result from Küsters \etal will continue to hold. We think this is reasonable given the evidence above.
 
 \subsection{Zeeperio is as Coercion Resistant as Eperio}
 
 \input{sections/privacy.tex}
-
 
 \subsection{Zeeperio is as Verifiable as Eperio} 
 
@@ -126,6 +125,7 @@ This implication is not cryptographic; it is a semantic correspondence argument.
 
 %\subsection{Aikam see here}
 \BDGR{\psi_{0}&:=\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
+
 This predicate asserts that the tables in $\mathcal{P}_{\mathrm{auth}}$ can be merged consistently
 on the key $U$, that each published table satisfies its prescribed shape constraints, and all publications agree on any overlapping revealed column pairs 
 
