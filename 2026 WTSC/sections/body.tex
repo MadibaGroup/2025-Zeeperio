@@ -129,7 +129,7 @@ In this paper, we pose Zeeperio in the context of optically-scanned paper ballot
 
 A Zeeperio election consists of several phases: (1) an initial election setup, defining the table structure, generating confirmation codes, printing the paper ballots and initializing the proof, (2) printing of ballots, (3) voting, (4) constructing the off-chain proof component, (5) generating and publishing the on-chain smart contract, and (6) the election verification activities, which consist of voter-led receipt checks, auditing the confirmation codes on the printed ballots, resolving disputes between voters and the election authority. A description of these phases is given in Figure~\ref{fig:protocol-diagram}.
 
-We do not consider details of ballot printing with invisible ink (2), or the conventional voting phase (3). See Appendix~\ref{e2e-v-properties} for a review of E2E-V properties and terminology, and Appendix~\ref{app:vv} for a discussion of the off-chain verification activities (receipt checks, dispute resolution and print audits). Finally, Appendix~\ref{sec:eperio-exp} provides a summary of Eperio for additional background and context on the design motivation of Zeeperio. The main contribution and focus of this paper pertains to the proofs and verification (i.e., phases 1 and 4-6).
+We do not consider details of ballot printing with invisible ink (2), or the conventional voting phase (3). See Appendix~\ref{e2e-v-properties} for a review of E2E-V properties and terminology, and Appendix~\ref{app:vv} for a discussion of the off-chain verification activities (receipt checks, dispute resolution and print audits). Finally, Appendix~\ref{sec:eperio-exp} provides a summary of Eperio for additional background and context on the design motivation of Zeeperio. The main contribution of this paper pertains to the proofs and verification (i.e., phases 1 and 4-6), which we now describe.
 
 % \subsection{Preliminaries}
 
@@ -381,6 +381,7 @@ It commits to all polynomials using the \emph{hiding} variant of KZG, where each
 The prover also uses \emph{off-domain masking} where it randomizes witness polynomials with additional masking to prevent any information leakage.
 To maximize cost efficiency, the prover batches all polynomial evaluations using a random scalar $\gamma$ into a single KZG opening proof.
 This allows the verifier to check all evaluations simultaneously with a single pairing check.
+
 
 \paragraph{Calldata encoding.}
 Proofs are serialized into a single \texttt{bytes} payload using Ethereum ABI encoding. The payload contains:
