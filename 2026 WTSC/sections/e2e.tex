@@ -1,4 +1,5 @@
-\section{Foundations of Secure E2E-V Voting Protocols}
+\section{Properties of Secure E2E-V Voting Protocols}
+\label{e2e-v-properties}
 The goal of end-to-end verifiable (E2E-V) voting protocols is to guarantee the integrity of an election that can be \emph{verified} by voters and observers alike, all without relying on a central authority \cite{Cha02,kremer2010election,Ben87}.
 E2E verifiability requires two levels of verification: 
 
@@ -79,7 +80,7 @@ However, ballot secrecy alone does not prevent coercion or vote-selling, as a vo
 Receipt freeness is a stronger notion that requires a voter to not be able to obtain any proof or \emph{receipt} that would credibly show how they voted to a third party.
 Here, the assumption is that the adversary is post-factum, where it can \emph{check in} with the voter after the election and ask for evidence of how they voted. 
 This property was first introduced by Benaloh and Tuinstra to prevent vote-selling and coercion \cite{BT94}.
-Ron Rivest, a pioneer in cryptographic voting, emphasized "the voter must not be given a 'receipt' that would allow them to prove how they voted to someone else-otherwise the voter could be coerced or bribed" \cite{RS07}.
+Ron Rivest, a pioneer in cryptographic voting, emphasized ``the voter must not be given a 'receipt' that would allow them to prove how they voted to someone else-otherwise the voter could be coerced or bribed'' \cite{RS07}.
 Receipt freeness is implemented by ensuring that any data a voter can retain does not allow them to prove how they voted.
 Additionally, it ensures no voter has access to the secret \emph{randomness} used to encrypt their vote. 
 However, receipt freeness does not protect against more powerful coercion attacks where the adversary can pressure the voter during the voting process itself.
@@ -98,6 +99,7 @@ Even though full coercion resistance is impractical, it remains as a valuable \e
 
 
 \section{Overview of Eperio}
+\label{sec:eperio-exp}
 
 \paragraph{Pre-election.}
 Let $b$ be the number of ballots and $s$ the number of candidates, and let $u := s\cdot b$.

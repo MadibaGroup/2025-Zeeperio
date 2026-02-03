@@ -125,9 +125,13 @@ On Ethereum's testnet, support for curve \bls has been staged for future deploym
 \section{Zeeperio}
 \label{sec:constraints} 
 
-In this paper, we pose Zeeperio in the context of optically-scanned paper ballots, which is a widely used voting method in the US and elsewhere. This distinguishes it from ``blockchain voting'' in that the various election activities (marking ballots, casting, counting, reporting, etc.) are largely preserved in the underlying method, with Zeeperio acting an E2E-V add-on. Importantly, the role of blockchains in this context is to deliver efficient and {\em automatic} proof verification only.
+In this paper, we pose Zeeperio in the context of optically-scanned paper ballots, which is a widely used voting method in the US and elsewhere. This distinguishes it from outright ``blockchain voting'' in that the various election activities (marking ballots, casting, counting, reporting, etc.) are largely preserved in the underlying method, with Zeeperio acting an E2E-V add-on.
 
+A Zeeperio election consists of several phases: (1) an initial election setup, defining the table structure, generating confirmation codes, printing the paper ballots and initializing the proof, (2) printing of ballots, (3) voting, (4) constructing the off-chain proof component, (5) generating and publishing the on-chain smart contract, and (6) the election verification activities, which consist of voter-led receipt checks, auditing the confirmation codes on the printed ballots, resolving disputes between voters and the election authority. A description of these phases is given in Figure~\ref{fig:protocol-diagram}.
 
+We do not consider details of ballot printing with invisible ink (2), or the conventional voting phase (3). See Appendix~\ref{e2e-v-properties} for a review of E2E-V properties and terminology, and Appendix~\ref{app:vv} for a discussion of the off-chain verification activities (receipt checks, dispute resolution and print audits). Finally, Appendix~\ref{sec:eperio-exp} provides a summary of Eperio for additional background and context on the design motivation of Zeeperio. The main contribution and focus of this paper pertains to the proofs and verification (i.e., phases 1 and 4-6).
+
+% \subsection{Preliminaries}
 
 \paragraph{Parameters.}
 Let $\mathcal{B}$ be the number of printed ballots and $\mathcal{C}$ the number of candidates per ballot. 
