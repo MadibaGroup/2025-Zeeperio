@@ -96,3 +96,57 @@ Most E2E-V protocols cannot achieve full coercion resistance in the strongest se
 In practice, many protocols aim for weaker threat assumptions or combine E2E verifiability with procedural safeguards such as supervised polling places to reduce real-world risk \cite{255242}.
 Even though full coercion resistance is impractical, it remains as a valuable \emph{design benchmark} that guides how protocols handle voter influence, how much information they expose to observers, and what assumptions they make about the voting environmenent.
 
+
+\subsection{Eperio protocol}
+
+\paragraph{Pre-election.}
+Let $b$ be the number of ballots and $s$ the number of candidates, and let $u := s\cdot b$.
+Let $U$ be the ordered list of all unique markable regions (UMRs) (all ballot-serial-number/position pairs).
+Let $S$ be the list of candidates, and let $M$ be the marks list (initially empty) indexed by $U$.
+
+A set of $n$ trustees run distributed key generation to obtain secret shares $(y_1,\dots,y_n)$ and a shared election secret $\kappa$.
+Using $\kappa$ as a seed for a PRNG, the trustees construct a candidate \emph{list} (one candidate per UMR) by repeating the list
+across ballots and applying a permutation so that there is a randomized candidate ordering for each ballot.
+
+The trustees form the \emph{print table} $P\in(\cdot)^{u\times 3}$ by joining the three aligned lists
+\[
+P(:,1):=U,\qquad P(:,2):=M, 
+P(:,3):=\text{(candidate list)}.
+\]
+They then generate the \emph{Eperio table} $E\in(\cdot)^{u\times 3\times x}$ consisting of $x$ independent
+row-wise shufflings of $P$.
+For each instance $k\in[x]$, a fresh random permutation is applied
+to all three columns, producing $E(:,1,k),E(:,2,k),E(:,3,k)$.
+
+Finally, the trustees commit to the first and third columns of each instance.
+For each $k\in[x]$ they sample randomness $R(1,k),R(2,k)$ and publish commitments
+\[
+C(1,k) := \mathsf{Commit}(E(:,1,k),R(1,k)),
+C(2,k) := \mathsf{Commit}(E(:,3,k),R(2,k)).
+\]
+
+\paragraph{Voting}
+Voters receive a paper ballot with the randomized candidate order from $P$.
+After marking the ballot, the candidate list is detached and destroyed.
+The remaining strip is scanned and retained by the voter as a receipt. 
+After the election, the \emph{marks list} $M$ is completed as marked ($1$), unmarked ($0$), or selected for print-audit ($-1$). 
+$M$ is then published.
+
+\paragraph{Post-election tally publication.}
+At least $t{+}1$ trustees reconstruct $\kappa$ and regenerate $E$ (now shuffling the completed marks list along with the table).
+They publish the marks columns for all instances, where each $E(:,2,k)$ is a shuffled version of the public $M$. 
+A tally $\tau$ is then computed from any pair $(E(:,2,k),E(:,3,k))$ and published as the asserted outcome. 
+
+\paragraph{Print-Audits.}
+Trustees publish a \emph{linkage list} $L$ giving the row index $a$ such that $E(a,1,k)=U_i$ for each audited UMR index $i$ with $M_i=-1$. 
+This lets a print auditor locate the relevant row across each shuffled instance and check consistency against their physical ballot, without revealing complete columns.  
+
+\paragraph{cut-and-choose challenge/response.}
+After $\tau$ is posted, the trustees prove consistency via cut-and-choose.
+They regenerate $\kappa$ and $E$, then for each instance $k\in[x]$ obtain a public random challenge bit $z\leftarrow\mathrm{PublicCoin}()$.
+They publish the corresponding opening randomness and the challenged committed column:
+\[
+\text{publish } R(z{+}1,k)\ \text{ and }\ E(:,2z{+}1,k).
+\]
+If $z=0$ they open the commitment to $E(:,1,k)$, and if $z=1$ they open the commitment to $E(:,3,k)$. 
+The marks column $E(:,2,:)$ is already public.
