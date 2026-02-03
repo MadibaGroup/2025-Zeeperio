@@ -75,7 +75,7 @@ Additionally we also clean up a few issues that were not fully resolved in Scant
 \begin{figure}[t!]
 \begin{center}
 \includegraphics[clip, trim=0cm 15cm 0cm 10cm,width=0.9\textwidth]{figures/zeeperio.pdf}
-\caption{({\bf Left}) Scantegrity~II paper ballots. When marked, invisible ink reveals a hidden confirmation code for each selection. ({\bf Right}) State information (ballot, confirmation code, whether marked or audited, etc.) is encoded into a table. Eperio proved the table's correctness using a basic cut-and-choose commitment-based construction involving numerous independently row-wise shuffled copies. Zeeperio replaces this method with a modern zk-SNARK demonstrating certain constraints hold for each column allowing verification to be conducted efficiently and automatically in a smart contract setting.\label{fig:eperio}}
+\caption{({\bf Left}) Scantegrity~II paper ballots. When marked, invisible ink reveals a hidden confirmation code for each selection. ({\bf Right}) State information (ballot, confirmation code, whether marked or audited, etc.) is encoded into a table. Properties of this table are proven in zero-knowledge as part of a public post-election audit of the election's correctness.  Eperio used a basic cut-and-choose approach involving openings of commitments to numerous independently row-wise shuffled table copies. Zeeperio replaces this method with a modern zk-SNARK, demonstrating that certain constraints hold for each column, enabling efficient verification in a smart contract setting.\label{fig:eperio}}
 \end{center}
 \end{figure}
 
@@ -124,6 +124,10 @@ On Ethereum's testnet, support for curve \bls has been staged for future deploym
 
 \section{Zeeperio}
 \label{sec:constraints} 
+
+In this paper, we pose Zeeperio in the context of optically-scanned paper ballots, which is a widely used voting method in the US and elsewhere. This distinguishes it from ``blockchain voting'' in that the various election activities (marking ballots, casting, counting, reporting, etc.) are largely preserved in the underlying method, with Zeeperio acting an E2E-V add-on. Importantly, the role of blockchains in this context is to deliver efficient and {\em automatic} proof verification only.
+
+
 
 \paragraph{Parameters.}
 Let $\mathcal{B}$ be the number of printed ballots and $\mathcal{C}$ the number of candidates per ballot. 
