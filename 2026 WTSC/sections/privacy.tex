@@ -1,10 +1,8 @@
 % !TEX root = ../main.tex
 
-We now turn to Zeeprio and begin with coercion resistance. The key observation we call non-expansivity: Zeeprio does not reveal any information beyond what is already revealed by Eperio. More precisely, any information available to a coercer from a Zeeprio transcript can be derived from an Eperio transcript, possibly with weaker assurance. Consequently, Zeeprio cannot be less coercion resistant than Eperio: any ballot secrecy property that holds for Eperio continues to hold when augmented with Zeeprio’s additional verification artifacts. 
+We now turn to Zeeprio and begin with coercion resistance. The key observation we call {\em non-expansivity}: Zeeprio does not reveal any information beyond what is already revealed by Eperio. More precisely, any information available to a coercer from a Zeeprio transcript can be derived from an Eperio transcript, possibly with weaker assurance. Consequently, Zeeprio cannot be less coercion resistant than Eperio: any ballot secrecy property that holds for Eperio continues to hold when augmented with Zeeprio’s additional verification artifacts. 
 
-In particular, if non-expansivity holds, Zeeprio inherits at least the level of ballot secrecy established for Eperio by Basin \etal~\cite{BDGR21}, namely receipt-freeness under their table-based definition. Moreover, Zeeprio may also inherit coercion resistance in the stronger sense of Küsters \etal~\cite{KTV10c}, provided one accepts the conjecture that replacing Scantegrity II’s switchboard with Eperio does not reduce ballot secrecy in any meaningful way.
-
-We formalize this in the following lemma:
+In particular, if non-expansivity holds, Zeeprio inherits at least the level of ballot secrecy established for Eperio by Basin \etal~\cite{BDGR21}, namely {\em receipt-freeness} under their table-based definition. Moreover, Zeeprio may also inherit coercion resistance in the stronger sense of K{\"u}sters \etal~\cite{KTV10c}, provided one accepts the conjecture that replacing Scantegrity II’s switchboard with Eperio does not reduce ballot secrecy in any meaningful way. We formalize this in the following lemma:
 
 \begin{lemma}[Non-Expansive Ballot Secrecy under Transcript Augmentation]
 Let $\Pi$ be a protocol and let $\Pi^{+}$ be an augmentation that, on the same underlying execution, produces a coercer view
@@ -30,13 +28,13 @@ To reason about the non-expansive ballot secrecy of Zeeprio, we separate two con
 
 Starting with the \emph{cryptographic} claim, we directly assume the PIOP used by Zeeprio satisfies the standard zero-knowledge property: its proof transcript reveals no information beyond the fact that the asserted algebraic relations are true. Concretely, as formalized for PLONK-style polynomial IOPs, there exists a simulator that, given only the statement that the constraints are satisfied, produces a transcript that is indistinguishable from an honestly generated one. This simulator construction is explicit in the PIOP literature~\cite{Sef24,Lip25} and does not depend on the particular semantics of the underlying constraints, so we do not reprove anything regarding this.
 
-We do however add two important implementation details that allow the simulation to go through. The first is that the polynomial commitment scheme needs to be hiding. When using KZG commitments~\cite{KZG10}, it is sufficient to use their second construction informally referred to as the Pedersen-variant of KZG. The second is that the PIOP proof will open committed polynomials at random challenge points. If the adversary has a guess as to the specific polynomial under commitment, it can use this random challenge to confirm its guess. To prevent this, polynomials should incorporate extra random points (off-domain) at interpolation time, where the number of points exceed the number of points that will be eventually opened on the given polynomial. This lacks a standard name in the literature and we propose calling it the MBKM heuristic~\cite{MBKM19} after it was popularized in the zk-SNARK system Sonic.
+We do, however, add two important implementation details that allow the simulation to go through. The first is that the polynomial commitment scheme needs to be hiding. When using KZG commitments~\cite{KZG10}, it is sufficient to use their second construction informally referred to as the Pedersen-variant of KZG. The second is that the PIOP proof will open committed polynomials at random challenge points. If the adversary has a guess as to the specific polynomial under commitment, it can use this random challenge to confirm its guess. To prevent this, polynomials should incorporate extra random points (off-domain) at interpolation time, where the number of points exceeds the number of points that will eventually be opened on the given polynomial. This lacks a standard name in the literature, and we propose calling it the MBKM heuristic~\cite{MBKM19} after it was popularized in the zk-SNARK system Sonic.
 
 We spend the rest of the proof dealing with the \emph{semantic} claim: the algebraic relations asserted by Zeeprio’s constraint system encode no more information than what is already revealed by Eperio’s verification logic.
 
 Following the original paper~\cite{ECHA10} and the Basin \etal paper~\cite{BDGR21}, we model Eperio's data structure as an election table for $B$ ballots (ranging over  $b \in \{1,\dots,B\}$) and $C$ candidates ranging over $j \in \{1,\dots,C\}$. The table has the following columns:
 
-Following the original Eperio paper~\cite{ECHA10} and the formulation of Basin \etal~\cite{BDGR21}, we model Eperio’s data structure as a canoncical election table with a single row index $r \in \{1,\dots,B\cdot C\}$ where each row corresponds to a unique ballot–position pair. Intuitively, rows are ordered first by ballot and then by candidate position: for ballot $b$, its $C$ candidate slots occupy $C$ consecutive rows, and advancing the row index past these $C$ positions corresponds to moving to the next ballot. We write the table as having the following columns:
+Following the original Eperio paper~\cite{ECHA10} and the formulation of Basin \etal~\cite{BDGR21}, we model Eperio’s data structure as a canonical election table with a single row index $r \in \{1,\dots,B\cdot C\}$ where each row corresponds to a unique ballot–position pair. Intuitively, rows are ordered first by ballot and then by candidate position: for ballot $b$, its $C$ candidate slots occupy $C$ consecutive rows, and advancing the row index past these $C$ positions corresponds to moving to the next ballot. We write the table as having the following columns:
 
 \begin{itemize}
 \item $\mathsf{U}[r]$ contains a unique identifier for the $j$th candidate slot on ballot $b$.
@@ -51,15 +49,15 @@ Following the original Eperio paper~\cite{ECHA10} and the formulation of Basin \
 
 Both the original paper~\cite{ECHA10} and the Basin \etal paper~\cite{BDGR21} model Eperio with a ballot where the order of the candidates in random on each ballot (so knowing a voter voted for the second candidate in the list does not reveal which candidate was voted for). Such a ballot is associated with the Pret a Voter system and are called Pret a Voter ballots~\cite{RBH+09}. For Eperio to work with confirmation codes instead (ballots based on Scantegrity and Scantegrity II), a code column can be added as above. 
 
-Eperio works out-of-the-box with Scantegrity ballots but does not work with Scantegrity II ballots. The reason is not in the semantics of the table, it is because Eperio commits to data at the granularity of an entire column. Scantegrity II is the same as Scantegrity I with two differences: (1) only the marked codes are revealed and the unmarked codes are secret, and (2) as a consequence, the codes need to be harder to guess and thus longer than Scantegrity. Columnwise commitments are central to Eperio's efficiency and verifiability claims, and are the key cryptographic distinguisher from Scantegrity's Switchboard which it is replacing. In Zeeperio, polynomial commitments provide the best of both worlds: a single commitment can bind an entire column of data, and at reveal time, selective elements can be opened while leaving others hidden. 
+Eperio works out of the box with Scantegrity ballots, but does not work with Scantegrity II ballots. The reason is not in the semantics of the table, it is because Eperio commits to data at the granularity of an entire column. Scantegrity II is the same as Scantegrity I with two differences: (1) only the marked codes are revealed, and the unmarked codes are secret, and (2) as a consequence, the codes need to be harder to guess and thus longer than Scantegrity. Columnwise commitments are central to Eperio's efficiency and verifiability claims, and are the key cryptographic distinguisher from Scantegrity's Switchboard, which it is replacing. In Zeeperio, polynomial commitments provide the best of both worlds: a single commitment can bind an entire column of data, and at reveal time, selective elements can be opened while leaving others hidden. 
 
-The Eperio election table is never revealed in its entirety or all notions of ballot secrecy would be defeated. Instead $\ell$ copies of the table are permuted randomly by row and committed to before the election (with a blank $\widetilde{\mathsf{M}}[r]$ column). After the election, the election authority fills in $\widetilde{\mathsf{M}}[r]$ for each permuted table and commits to it. After committing, a cut-and-choose mechanism reveals either $(\widetilde{\mathsf{U}}[r], \widetilde{\mathsf{C}}[r],\widetilde{\mathsf{M}}[r])$ or it reveals $(\widetilde{\mathsf{M}}[r], \widetilde{\mathsf{S}}[r])$. The former is used by voters to check their receipt. The latter is used to compute the final tally. Every table should be consistent with the same receipt information and election result, and analysis shows that inconsistencies will be caught with probability $2^{-\ell}$. Since the protocol never reveals both the unique identifier or confirmation code and the selected candidate for the same table, it preserve a secret ballot. 
+The Eperio election table is never revealed in its entirety or all notions of ballot secrecy would be defeated. Instead, $\ell$ copies of the table are permuted randomly by row and committed to before the election (with a blank $\widetilde{\mathsf{M}}[r]$ column). After the election, the election authority fills in $\widetilde{\mathsf{M}}[r]$ for each permuted table and commits to it. After committing, a cut-and-choose mechanism reveals either $(\widetilde{\mathsf{U}}[r], \widetilde{\mathsf{C}}[r],\widetilde{\mathsf{M}}[r])$ or it reveals $(\widetilde{\mathsf{M}}[r], \widetilde{\mathsf{S}}[r])$. The former is used by voters to check their receipt. The latter is used to compute the final tally. Every table should be consistent with the same receipt information and election result, and analysis shows that inconsistencies will be caught with probability $2^{-\ell}$. Since the protocol never reveals both the unique identifier or confirmation code and the selected candidate for the same table, it preserves a secret ballot. 
 
-Eperio supports different ballot styles. For Pret a Voter ballots, there is no $\widetilde{\mathsf{C}}[r]$ column and the protocol works the same otherwise. For Scantegrity ballots, $\widetilde{\mathsf{C}}[r]$ is revealed in its entirety as specified above. For Scantegrity II ballots, only marked codes are revealed: $\widetilde{\mathsf{C}}[r]\leftarrow\widetilde{\mathsf{C}}[r]\circ\widetilde{\mathsf{M}}[r]$. Zeeperio provides the same support but since the main body of the paper describes Scantegrity II ballots, we will align Zeeperio's constraints with a description of Eperio for Scantegrity II ballots. 
+Eperio supports different ballot styles. For Pret a Voter ballots, there is no $\widetilde{\mathsf{C}}[r]$ column and the protocol works the same otherwise. For Scantegrity ballots, $\widetilde{\mathsf{C}}[r]$ is revealed in its entirety as specified above. For Scantegrity II ballots, only marked codes are revealed: $\widetilde{\mathsf{C}}[r]\leftarrow\widetilde{\mathsf{C}}[r]\circ\widetilde{\mathsf{M}}[r]$. Zeeperio provides the same support, but since the main body of the paper describes Scantegrity II ballots, we will align Zeeperio's constraints with a description of Eperio for Scantegrity II ballots. 
 
-Eperio handles print audit ballots differently (but equivalently as we will prove below) from Zeeperio. Eperio introduces an auxiliary \emph{linkage list}. For each print audit position $r$, the EA specifies the row index $\rho$ such that $\widetilde{\mathsf{U}}[\rho]$ corresponds to that audited position in every table copy. It does this after updating the mark column and before the cut-and-choose. This effectively allows the entire ballot to be opened up for just these specified ballots, which enables the auditor to check that the confirmation codes are printed beside the correct candidate names (where correct means consistent with the Eperio table). 
+Eperio handles print audit ballots differently (but equivalently, as we will prove below) from Zeeperio. Eperio introduces an auxiliary \emph{linkage list}. For each print audit position $r$, the EA specifies the row index $\rho$ such that $\widetilde{\mathsf{U}}[\rho]$ corresponds to that audited position in every table copy. It does this after updating the mark column and before the cut-and-choose. This effectively allows the entire ballot to be opened up for just these specified ballots, which enables the auditor to check that the confirmation codes are printed beside the correct candidate names (where correct means consistent with the Eperio table). 
 
-We are now ready to walk through each Zeeperio constraint and argue the constraint is non-expansive over what Eperio provides.  
+We are now ready to walk through each Zeeperio constraint and argue that the constraint is non-expansive over what Eperio provides.  
 
 \vanishP{V_{c1.1}(X)\ &:=\ \mathsf{Audit}(X)\,\mathsf{Z}_{\mathsf{head}}(X)}
 
@@ -69,7 +67,7 @@ To deterministically construct a Zeeprio witness from an Eperio execution, the s
 
 \vanishP{V_{c1.2}(X)\ &:=\ \mathsf{Audit}(X)\bigl(\mathsf{Audit}(X)-1\bigr) }
 
-This constraint enforces that the audit indicator is boolean. Given the construction above, this is immediate: the simulator defines $\mathsf{Audit}(r):=\mathbf{1}[M(r)=-1]$ on real ballot-position rows and sets $\mathsf{Audit}(r)=0$ on padding rows. Since the Eperio mark column $M(r)$ takes values in $\{-1,0,1\}$, the indicator map ensures $\mathsf{Audit}(r)\in\{0,1\}$ for all rows, and therefore $\mathsf{Audit}(r)\bigl(\mathsf{Audit}(r)-1\bigr)=0$ holds identically. As with the previous constraint, this property is enforced by the deterministic embedding and padding procedure and does not correspond to any additional Eperio verification condition. Consequently, it constitutes a benign transcript augmentation and does not expand the information available to a coercer.
+This constraint enforces that the audit indicator is Boolean. Given the construction above, this is immediate: the simulator defines $\mathsf{Audit}(r):=\mathbf{1}[M(r)=-1]$ on real ballot-position rows and sets $\mathsf{Audit}(r)=0$ on padding rows. Since the Eperio mark column $M(r)$ takes values in $\{-1,0,1\}$, the indicator map ensures $\mathsf{Audit}(r)\in\{0,1\}$ for all rows, and therefore $\mathsf{Audit}(r)\bigl(\mathsf{Audit}(r)-1\bigr)=0$ holds identically. As with the previous constraint, this property is enforced by the deterministic embedding and padding procedure and does not correspond to any additional Eperio verification condition. Consequently, it constitutes a benign transcript augmentation and does not expand the information available to a coercer.
 
 \vanishP{V_{c1.3}(X)\ &:=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)-\mathcal{C}\bigr)}
 
@@ -79,12 +77,12 @@ In Eperio, audit status is encoded in the mark column by a distinguished value (
 table copy, either the receipt-facing view $(\widetilde{\mathsf{U}},\widetilde{\mathsf{C}},\widetilde{\mathsf{M}})$ or the tally-facing view $(\widetilde{\mathsf{M}},\widetilde{\mathsf{S}})$. From any copy in which $(\widetilde{\mathsf{U}},\widetilde{\mathsf{C}},\widetilde{\mathsf{M}})$ is opened, the simulator reads the values
 $\widetilde{\mathsf{U}}$ and $\widetilde{\mathsf{M}}$ and deterministically reconstructs the audit indicator $\mathsf{Audit}(r):=\mathbf{1}[M(r)=-1]$ indexed by the underlying row identifiers. Using $\mathsf{U}$, the simulator then places these rows into a fixed canonical order in which the $\mathcal{C}$ positions of each ballot occupy a contiguous block.
 
-Because the Eperio transcript fixes print audits at the ballot level, the reconstructed audit indicator has the property that, within each such block, either all $\mathcal{C}$ rows have $\mathsf{Audit}=1$ or none do. The simulator therefore computes, for each block, a block sum that is always either $0$ or $\mathcal{C}$, and the polynomial
+Because the Eperio transcript fixes print audits at the ballot level, the reconstructed audit indicator has the property that, within each such block, either all $\mathcal{C}$ rows have $\mathsf{Audit}=1$ or none do. The simulator therefore, computes, for each block, a block sum that is always either $0$ or $\mathcal{C}$, and the polynomial
 $\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)$ takes only these two values. Consequently, the constraint polynomial vanishes identically. This reasoning relies only on information already present in the Eperio transcript and the simulator’s deterministic reindexing, and does not introduce any additional information beyond the Eperio view.
 
 \vanishP{V_{c1.4}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)+\mathsf{Acc}_{\mathsf{Audit}}(\omega X)\bigr)\cdot(X-\omega^{n-1})}
 
-This constraint enforces contiguity of audit blocks: within the canonical row ordering used by Zeeprio, the audit indicator is constant across consecutive rows belonging to the same ballot block. Informally, it states that $\mathsf{Audit}(r)$ can change value only at block boundaries and nowhere else.
+This constraint enforces the contiguity of audit blocks: within the canonical row ordering used by Zeeprio, the audit indicator is constant across consecutive rows in the same ballot block. Informally, it states that $\mathsf{Audit}(r)$ can change value only at block boundaries and nowhere else.
 
 Starting from an Eperio execution, the simulator reconstructs the audit indicator $\mathsf{Audit}(r):=\mathbf{1}[M(r)=-1]$ as before and then reindexes rows using the identifier column $\mathsf{U}$ so that the $\mathcal{C}$ positions of each ballot occupy $\mathcal{C}$ consecutive rows. By construction of this canonical
 ordering, $\mathsf{Audit}(r)$ is constant on each block and may change only between the last row of one block and the first row of the next. The accumulator polynomial $\mathsf{Acc}_{\mathsf{Audit}}$ is then defined by the simulator so that it increments exactly when $\mathsf{Audit}$ transitions between blocks. The factor $(X-\omega^{n-1})$ excludes the wraparound case at the end of the domain, ensuring the relation is enforced only for valid adjacent rows.
@@ -100,7 +98,7 @@ After reconstructing the canonical audit indicator $\mathsf{Audit}(r)$ (from the
 data) and fixing the canonical row order, the simulator defines the accumulator column $\mathsf{Acc}_{\mathsf{Audit}}$
 so that it satisfies the intended recurrence across adjacent rows; it then sets the initial value
 $\mathsf{Acc}_{\mathsf{Audit}}$ on the masked start row to equal $\mathsf{Audit}$ on that row. With this explicit
-initialization, the masked product is identically zero and the constraint holds by construction. As with the previous
+initialization, the masked product is identically zero, and the constraint holds by construction. As with the previous
 accumulator constraints, this is an embedding/consistency check internal to Zeeprio’s witness representation and does not
 assert any new election-specific fact beyond what the Eperio transcript already fixes.
 
@@ -114,7 +112,7 @@ compute the total number of audited positions deterministically as $\sum_r \math
 consistency (c1.3), this is equal to $\mathcal{C}$ times the number of audited ballots. The simulator then sets the
 public value $\mathsf{Sum}_{\mathsf{Audit}\times\mathcal{C}}$ to this same quantity and defines
 $\mathsf{Acc}_{\mathsf{Audit}}$ so that its last entry equals the computed total. With these choices, the masked
-difference is zero and the constraint holds by construction, relying only on information already present in the Eperio
+difference is zero, and the constraint holds by construction, relying only on information already present in the Eperio
 transcript.
 
 \vanishP{V_{c2.1}(X)\ &:=\ \mathsf{Mark}(X)\,\mathsf{Z}_{\mathsf{head}}(X)}
@@ -129,7 +127,7 @@ information available to a coercer.
 
 \vanishP{V_{c2.2}(X)\ &:=\ \mathsf{Mark}(X)\bigl(\mathsf{Mark}(X)-1\bigr)}
 
-This constraint enforces that the mark indicator is boolean. Given the simulator’s construction, this is immediate.
+This constraint enforces that the mark indicator is Boolean. Given the simulator’s construction, this is immediate.
 In Eperio, the mark column $M(r)$ takes values in $\{-1,0,1\}$, where $1$ denotes a marked position. The simulator defines
 $\mathsf{Mark}(r):=\mathbf{1}[M(r)=1]$ on real ballot-position rows and sets $\mathsf{Mark}(r)=0$ on padding rows. Hence
 $\mathsf{Mark}(r)\in\{0,1\}$ for all rows, and $\mathsf{Mark}(r)\bigl(\mathsf{Mark}(r)-1\bigr)=0$ holds identically.
@@ -165,7 +163,7 @@ the Eperio transcript.
 This constraint fixes the initialization of the mark accumulator: it enforces that on the first row of the domain
 (selected by $\mathsf{Mask}_{n-1}$), the accumulator $\mathsf{Acc}_{\mathsf{Mark}}$ equals the mark indicator
 $\mathsf{Mark}$. In the simulator’s construction, once $\mathsf{Mark}(r):=\mathbf{1}[M(r)=1]$ has been reconstructed from
-the Eperio transcript and rows have been placed into the canonical block ordering, the simulator defines the accumulator
+the Eperio transcript, and rows have been placed into the canonical block ordering, the simulator defines the accumulator
 $\mathsf{Acc}_{\mathsf{Mark}}$ to satisfy the intended recurrence across adjacent rows and explicitly sets its initial
 value to match $\mathsf{Mark}$ on the first row. With this deterministic initialization, the masked difference is zero and
 the constraint holds identically. As with the corresponding audit constraint c1.5, this is an internal consistency
@@ -177,7 +175,7 @@ Eperio transcript.
 This constraint fixes the final value of the mark accumulator: it enforces that on the last row of the domain (selected by
 $\mathsf{Mask}_{0}$), the accumulator $\mathsf{Acc}_{\mathsf{Mark}}$ equals the total number of marked positions,
 denoted $\mathsf{Sum}_{\mathsf{Mark}}$. In the simulator’s construction, once the canonical mark indicator
-$\mathsf{Mark}(r):=\mathbf{1}[M(r)=1]$ has been reconstructed and rows have been placed into contiguous ballot blocks,
+$\mathsf{Mark}(r):=\mathbf{1}[M(r)=1]$ has been reconstructed, and rows have been placed into contiguous ballot blocks,
 the simulator computes $\mathsf{Sum}_{\mathsf{Mark}}=\sum_r \mathsf{Mark}(r)$ deterministically from the Eperio transcript.
 Because Eperio allows at most one marked position per ballot, this sum equals the total number of cast ballots. The
 simulator then defines $\mathsf{Acc}_{\mathsf{Mark}}$ so that its final entry equals this value, and the masked difference
@@ -190,7 +188,7 @@ This constraint enforces mutual exclusion between auditing and voting: no ballot
 designated for audit. In the Eperio model, this property is built into the semantics of the mark column $M(r)$, which takes
 values in $\{-1,0,1\}$, where $-1$ denotes a print-audited position and $1$ denotes a marked (voted) position. These cases
 are disjoint by definition. Under the simulator’s construction, $\mathsf{Audit}(r):=\mathbf{1}[M(r)=-1]$ and
-$\mathsf{Mark}(r):=\mathbf{1}[M(r)=1]$, so for every row at most one of these indicators can be $1$. Consequently,
+$\mathsf{Mark}(r):=\mathbf{1}[M(r)=1]$, so for every row, at most one of these indicators can be $1$. Consequently,
 $\mathsf{Audit}(r)\,\mathsf{Mark}(r)=0$ holds identically on all real ballot-position rows, and also on padding rows where
 both indicators are set to $0$. As with the previous constraints, this condition follows directly from the Eperio mark
 semantics and the simulator’s deterministic embedding, and does not introduce any additional information beyond what is
@@ -225,7 +223,7 @@ present in the Eperio transcript.
 
 \vanishP{V_{c4.3,j}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[j]\bigr)\cdot \frac{\mathsf{Z}_H(X)}{X-\omega^{j}}}
 
-This constraint enforces correctness of the published tally for candidate $j$. It states that, at the designated row
+This constraint enforces the correctness of the published tally for candidate $j$. It states that, at the designated row
 corresponding to candidate $j$, the vote accumulator equals the publicly reported tally value $\mathsf{Tally}[j]$.
 
 Starting from the Eperio transcript, the simulator reconstructs the canonical mark indicator
@@ -237,13 +235,13 @@ $j$. Independently, Eperio publishes the final election result, which fixes the 
 The factor $\mathsf{Z}_H(X)/(X-\omega^{j})$ restricts the equality to the unique row associated with candidate $j$.
 Because the simulator computes $\mathsf{Acc}_{\mathsf{Vote}}$ directly from the Eperio mark data and the canonical
 candidate ordering, its value at that row is exactly the number of ballots marked for candidate $j$, which matches the
-published tally. Hence the constraint polynomial vanishes identically. As with the previous tally constraints, this
+published tally. Hence, the constraint polynomial vanishes identically. As with the previous tally constraints, this
 condition relies only on information already present in the Eperio transcript and the simulator’s deterministic
 construction, and does not expand the information available to a coercer.
 
 \vanishP{V_{\mathsf{dispute}}(X)\ :=\ \bigl((\mathsf{Code}(X)-c)\cdot \mathsf{Inv}_b(X)-1\bigr)\cdot \mathsf{Mask}^{(b)}_{\mathsf{ballot}}(X)}
 
-This constraint enforces correctness of a voter dispute for ballot $b$: given a confirmation code $c$ presented by the
+This constraint enforces the correctness of a voter dispute for ballot $b$: given a confirmation code $c$ presented by the
 voter, it checks that $c$ equals the code recorded at the unique marked position on ballot $b$. Note that this
 \emph{minimal-disclosure} dispute check is not supported by Eperio in its original Pr\^{e}t-\`a-Voter instantiation,
 since that setting has no code column at all. However, Eperio can be instantiated with Scantegrity-style ballots, in
@@ -256,7 +254,7 @@ $c$ at the marked position of ballot $b$, and is vacuous everywhere else.
 
 Concretely, $\mathsf{Mask}^{(b)}_{\mathsf{ballot}}$ restricts the check to the $\mathcal{C}$ rows corresponding to ballot
 $b$, and $\mathsf{Inv}_b$ is chosen so that it is nonzero exactly at the marked row of ballot $b$, thereby isolating that
-single table entry. On that row, the constraint reduces to $\mathsf{Code}(X)=c$; on all other rows it imposes no
+single table entry. On that row, the constraint reduces to $\mathsf{Code}(X)=c$; on all other rows, it imposes no
 condition. Thus, in a Scantegrity~I-style Eperio transcript where the code column is available on the receipt-facing
 openings, a simulator can reconstruct the relevant $\mathsf{Code}$ value and satisfy the constraint directly. In the
 Scantegrity~II-style view (where unmarked codes are masked), the constraint still expresses precisely what is checkable:
@@ -289,27 +287,17 @@ First, using only the information already present in $T$ (in particular, the pub
 views from cut-and-choose, and any public election parameters), the simulator deterministically constructs the Zeeprio
 witness representation: it reconstructs the relevant table columns (e.g., the mark and audit indicators derived from the
 Eperio mark column), reindexes rows into the canonical ballot-block ordering using the identifier information, and pads
-to the fixed evaluation domain. Just above we proved, constraint by constraint, that this
+to the fixed evaluation domain. Just above, we proved, constraint by constraint, that this
 constructed witness satisfies each Zeeprio vanishing relation (including the dispute constraint when applicable to the
 ballot style). Therefore, the simulator obtains a valid Zeeprio statement---namely, that there exists a witness for
 which all constraint polynomials vanish on the evaluation domain.
 
 Second, the simulator produces the remaining cryptographic artifacts in $Z$ by simulation: it outputs commitments and
 openings consistent with the constructed witness, and it invokes the zero-knowledge simulator of the underlying
-PIOP/SNARK to generate a proof transcript accepting for the corresponding public statement. By the hiding and
+PIOP/SNARK to generate a proof transcript accepting the corresponding public statement. By the hiding and
 zero-knowledge properties of these primitives, the resulting $Z$ is computationally indistinguishable from the transcript
 generated by an honest Zeeprio prover on the same underlying Eperio execution.
 
-Thus for every PPT distinguisher $\mathcal{D}$, the views $(T,Z)$ and $(T,\mathsf{Sim}(T))$ are indistinguishable up to
+Thus, for every PPT distinguisher $\mathcal{D}$, the views $(T,Z)$ and $(T,\mathsf{Sim}(T))$ are indistinguishable up to
 negligible error, establishing the non-expansive transcript augmentation property claimed. \qed
 \end{proof} 
-
-
-
-
-
-
-
-
-
-
