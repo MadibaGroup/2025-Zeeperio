@@ -1,8 +1,8 @@
 % !TEX root = ../main.tex
 
-We now turn to Zeeprio and begin with coercion resistance. The key observation we call {\em non-expansivity}: Zeeprio does not reveal any information beyond what is already revealed by Eperio. More precisely, any information available to a coercer from a Zeeprio transcript can be derived from an Eperio transcript, possibly with weaker assurance. Consequently, Zeeprio cannot be less coercion resistant than Eperio: any ballot secrecy property that holds for Eperio continues to hold when augmented with Zeeprio’s additional verification artifacts. 
+We now turn to Zeeperio and begin with coercion resistance. The key observation we call {\em non-expansivity}: Zeeperio does not reveal any information beyond what is already revealed by Eperio. More precisely, any information available to a coercer from a Zeeperio transcript can be derived from an Eperio transcript, possibly with weaker assurance. Consequently, Zeeperio cannot be less coercion resistant than Eperio: any ballot secrecy property that holds for Eperio continues to hold when augmented with Zeeperio’s additional verification artifacts. 
 
-In particular, if non-expansivity holds, Zeeprio inherits at least the level of ballot secrecy established for Eperio by Basin \etal~\cite{BDGR21}, namely {\em receipt-freeness} under their table-based definition. Moreover, Zeeprio may also inherit coercion resistance in the stronger sense of K{\"u}sters \etal~\cite{KTV10c}, provided one accepts the conjecture that replacing Scantegrity II’s switchboard with Eperio does not reduce ballot secrecy in any meaningful way. We formalize this in the following lemma:
+In particular, if non-expansivity holds, Zeeperio inherits at least the level of ballot secrecy established for Eperio by Basin \etal~\cite{BDGR21}, namely {\em receipt-freeness} under their table-based definition. Moreover, Zeeperio may also inherit coercion resistance in the stronger sense of K{\"u}sters \etal~\cite{KTV10c}, provided one accepts the conjecture that replacing Scantegrity II’s switchboard with Eperio does not reduce ballot secrecy in any meaningful way. We formalize this in the following lemma:
 
 \begin{lemma}[Non-Expansive Ballot Secrecy under Transcript Augmentation]
 Let $\Pi$ be a protocol and let $\Pi^{+}$ be an augmentation that, on the same underlying execution, produces a coercer view
@@ -24,13 +24,13 @@ $\mathcal{A}$ and $\mathcal{B}$ in their respective experiments is negligible in
  In the special case where $Z$ is efficiently computable from $T$ (and public parameters), the simulator
 $\mathsf{Sim}$ may be chosen to simply compute $Z$ from $T$. In other words, $\mathsf{Sim}$ is pure post-processing. This will be the dominant case for Zeeperio.
 
-To reason about the non-expansive ballot secrecy of Zeeprio, we separate two concerns: (i) the \emph{cryptographic} claim that the proof a polynomial vanishes is zero-knowledge and proves nothing beyond the statement that the polynomial vanishes; and (i) the \emph{semantic} claim that the constraints implied by Zeeperio are non-expansive over an Eperio transcript.
+To reason about the non-expansive ballot secrecy of Zeeperio, we separate two concerns: (i) the \emph{cryptographic} claim that the proof a polynomial vanishes is zero-knowledge and proves nothing beyond the statement that the polynomial vanishes; and (ii) the \emph{semantic} claim that the constraints implied by Zeeperio are non-expansive over an Eperio transcript.
 
-Starting with the \emph{cryptographic} claim, we directly assume the PIOP used by Zeeprio satisfies the standard zero-knowledge property: its proof transcript reveals no information beyond the fact that the asserted algebraic relations are true. Concretely, as formalized for PLONK-style polynomial IOPs, there exists a simulator that, given only the statement that the constraints are satisfied, produces a transcript that is indistinguishable from an honestly generated one. This simulator construction is explicit in the PIOP literature~\cite{Sef24,Lip25} and does not depend on the particular semantics of the underlying constraints, so we do not reprove anything regarding this.
+Starting with the \emph{cryptographic} claim, we directly assume the PIOP used by Zeeperio satisfies the standard zero-knowledge property: its proof transcript reveals no information beyond the fact that the asserted algebraic relations are true. Concretely, as formalized for PLONK-style polynomial IOPs, there exists a simulator that, given only the statement that the constraints are satisfied, produces a transcript that is indistinguishable from an honestly generated one. This simulator construction is explicit in the PIOP literature~\cite{Sef24,Lip25} and does not depend on the particular semantics of the underlying constraints, so we do not reprove anything regarding this.
 
 We do, however, add two important implementation details that allow the simulation to go through. The first is that the polynomial commitment scheme needs to be hiding. When using KZG commitments~\cite{KZG10}, it is sufficient to use their second construction informally referred to as the Pedersen-variant of KZG. The second is that the PIOP proof will open committed polynomials at random challenge points. If the adversary has a guess as to the specific polynomial under commitment, it can use this random challenge to confirm its guess. To prevent this, polynomials should incorporate extra random points (off-domain) at interpolation time, where the number of points exceeds the number of points that will eventually be opened on the given polynomial. This lacks a standard name in the literature, and we propose calling it the MBKM heuristic~\cite{MBKM19} after it was popularized in the zk-SNARK system Sonic.
 
-We spend the rest of the proof dealing with the \emph{semantic} claim: the algebraic relations asserted by Zeeprio’s constraint system encode no more information than what is already revealed by Eperio’s verification logic.
+We spend the rest of the proof dealing with the \emph{semantic} claim: the algebraic relations asserted by Zeeperio’s constraint system encode no more information than what is already revealed by Eperio’s verification logic.
 
 Following the original paper~\cite{ECHA10} and the Basin \etal paper~\cite{BDGR21}, we model Eperio's data structure as an election table for $B$ ballots (ranging over  $b \in \{1,\dots,B\}$) and $C$ candidates ranging over $j \in \{1,\dots,C\}$. The table has the following columns:
 
@@ -63,7 +63,7 @@ We are now ready to walk through each Zeeperio constraint and argue that the con
 
 This constraint enforces that the audit indicator is zero on all padding rows. Unlike other constraints, this statement is not an Eperio verification condition: Eperio has no padding rows and therefore makes no claim about them. Instead, this constraint is an artifact of embedding the Eperio table into a fixed-size polynomial domain. From a privacy perspective, the constraint is a benign transcript augmentation. 
 
-To deterministically construct a Zeeprio witness from an Eperio execution, the simulator first derives the Zeeprio indicator columns from the Eperio mark column by defining $\mathsf{Audit}(r):=\mathbf{1}[M(r)=-1]$ and $\mathsf{Mark}(r):=\mathbf{1}[M(r)=1]$. The simulator then embeds these values into a fixed evaluation domain of size $N$ by placing the $B\cdot C$ real ballot-position rows into the non-padding region of the domain and appending $N-(B\cdot C)$ padding rows on which it sets $\mathsf{Audit}=0$ (and likewise $\mathsf{Mark}=0$). This construction depends only on the public parameters $N$, $B$, and $C$, and not on any voting data; consequently, the padding rows are fully simulatable and the constraint cannot expand the information available to a coercer.
+To deterministically construct a Zeeperio witness from an Eperio execution, the simulator first derives the Zeeperio indicator columns from the Eperio mark column by defining $\mathsf{Audit}(r):=\mathbf{1}[M(r)=-1]$ and $\mathsf{Mark}(r):=\mathbf{1}[M(r)=1]$. The simulator then embeds these values into a fixed evaluation domain of size $N$ by placing the $B\cdot C$ real ballot-position rows into the non-padding region of the domain and appending $N-(B\cdot C)$ padding rows on which it sets $\mathsf{Audit}=0$ (and likewise $\mathsf{Mark}=0$). This construction depends only on the public parameters $N$, $B$, and $C$, and not on any voting data; consequently, the padding rows are fully simulatable and the constraint cannot expand the information available to a coercer.
 
 \vanishP{V_{c1.2}(X)\ &:=\ \mathsf{Audit}(X)\bigl(\mathsf{Audit}(X)-1\bigr) }
 
@@ -82,7 +82,7 @@ $\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)$ takes only t
 
 \vanishP{V_{c1.4}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)+\mathsf{Acc}_{\mathsf{Audit}}(\omega X)\bigr)\cdot(X-\omega^{n-1})}
 
-This constraint enforces the contiguity of audit blocks: within the canonical row ordering used by Zeeprio, the audit indicator is constant across consecutive rows in the same ballot block. Informally, it states that $\mathsf{Audit}(r)$ can change value only at block boundaries and nowhere else.
+This constraint enforces the contiguity of audit blocks: within the canonical row ordering used by Zeeperio, the audit indicator is constant across consecutive rows in the same ballot block. Informally, it states that $\mathsf{Audit}(r)$ can change value only at block boundaries and nowhere else.
 
 Starting from an Eperio execution, the simulator reconstructs the audit indicator $\mathsf{Audit}(r):=\mathbf{1}[M(r)=-1]$ as before and then reindexes rows using the identifier column $\mathsf{U}$ so that the $\mathcal{C}$ positions of each ballot occupy $\mathcal{C}$ consecutive rows. By construction of this canonical
 ordering, $\mathsf{Audit}(r)$ is constant on each block and may change only between the last row of one block and the first row of the next. The accumulator polynomial $\mathsf{Acc}_{\mathsf{Audit}}$ is then defined by the simulator so that it increments exactly when $\mathsf{Audit}$ transitions between blocks. The factor $(X-\omega^{n-1})$ excludes the wraparound case at the end of the domain, ensuring the relation is enforced only for valid adjacent rows.
@@ -99,7 +99,7 @@ data) and fixing the canonical row order, the simulator defines the accumulator 
 so that it satisfies the intended recurrence across adjacent rows; it then sets the initial value
 $\mathsf{Acc}_{\mathsf{Audit}}$ on the masked start row to equal $\mathsf{Audit}$ on that row. With this explicit
 initialization, the masked product is identically zero, and the constraint holds by construction. As with the previous
-accumulator constraints, this is an embedding/consistency check internal to Zeeprio’s witness representation and does not
+accumulator constraints, this is an embedding/consistency check internal to Zeeperio’s witness representation and does not
 assert any new election-specific fact beyond what the Eperio transcript already fixes.
 
 \vanishP{V_{c1.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Sum}_{\mathsf{Audit}\times\mathcal{C}}\bigr)\cdot \mathsf{Mask}_{0}(X)}
@@ -262,11 +262,11 @@ it refers only to the marked code that the voter actually learns. In either case
 resolution as a minimal disclosure statement, extracting from the Eperio-style code revelations only the single code value
 needed to validate the voter’s claim.
 
-\begin{theorem}[Non-expansive ballot secrecy of Zeeprio relative to Eperio]
+\begin{theorem}[Non-expansive ballot secrecy of Zeeperio relative to Eperio]
 Let $\Pi$ denote an Eperio election protocol (for the ballot style under consideration) and let $\Pi^{+}$ denote the
-augmented protocol that runs the same Eperio execution and additionally publishes a Zeeprio transcript component $Z$
-consisting of (i) the Zeeprio commitments and openings corresponding to the embedded election table, and (ii) a
-zero-knowledge PIOP/SNARK transcript attesting that the Zeeprio constraints hold for that embedded table.
+augmented protocol that runs the same Eperio execution and additionally publishes a Zeeperio transcript component $Z$
+consisting of (i) the Zeeperio commitments and openings corresponding to the embedded election table, and (ii) a
+zero-knowledge PIOP/SNARK transcript attesting that the Zeeperio constraints hold for that embedded table.
 
 Then $\Pi^{+}$ is a transcript augmentation of $\Pi$ that is non-expansive for ballot secrecy: for every probabilistic
 polynomial-time distinguisher $\mathcal{D}$ and security parameter $\lambda$, there exists a probabilistic
@@ -280,23 +280,23 @@ is negligible in $\lambda$.
 
 \begin{proof}
 Fix any Eperio execution and let $T$ denote the resulting coercer view. We define a simulator $\mathsf{Sim}(T)$ that
-produces a Zeeprio transcript component $Z$ distributed indistinguishably from a real Zeeprio augmentation of that same
+produces a Zeeperio transcript component $Z$ distributed indistinguishably from a real Zeeperio augmentation of that same
 execution.
 
 First, using only the information already present in $T$ (in particular, the published Eperio verification data, opened
-views from cut-and-choose, and any public election parameters), the simulator deterministically constructs the Zeeprio
+views from cut-and-choose, and any public election parameters), the simulator deterministically constructs the Zeeperio
 witness representation: it reconstructs the relevant table columns (e.g., the mark and audit indicators derived from the
 Eperio mark column), reindexes rows into the canonical ballot-block ordering using the identifier information, and pads
 to the fixed evaluation domain. Just above, we proved, constraint by constraint, that this
-constructed witness satisfies each Zeeprio vanishing relation (including the dispute constraint when applicable to the
-ballot style). Therefore, the simulator obtains a valid Zeeprio statement---namely, that there exists a witness for
+constructed witness satisfies each Zeeperio vanishing relation (including the dispute constraint when applicable to the
+ballot style). Therefore, the simulator obtains a valid Zeeperio statement---namely, that there exists a witness for
 which all constraint polynomials vanish on the evaluation domain.
 
 Second, the simulator produces the remaining cryptographic artifacts in $Z$ by simulation: it outputs commitments and
 openings consistent with the constructed witness, and it invokes the zero-knowledge simulator of the underlying
 PIOP/SNARK to generate a proof transcript accepting the corresponding public statement. By the hiding and
 zero-knowledge properties of these primitives, the resulting $Z$ is computationally indistinguishable from the transcript
-generated by an honest Zeeprio prover on the same underlying Eperio execution.
+generated by an honest Zeeperio prover on the same underlying Eperio execution.
 
 Thus, for every PPT distinguisher $\mathcal{D}$, the views $(T,Z)$ and $(T,\mathsf{Sim}(T))$ are indistinguishable up to
 negligible error, establishing the non-expansive transcript augmentation property claimed. \qed
