@@ -48,7 +48,7 @@ The design challenge of this work is to fit the proof within the highly restrict
 
 \subsection{Contribution}
 
-Zeeperio is a modernization of the Eperio election-verification approach, replacing antiquated cut-and-choose full-open commitments with modern, succinct knowledge arguments for automated verification in a smart-contract setting:
+Zeeperio is a modernization of the Eperio election-verification approach, replacing cut-and-choose full-open commitments with modern, succinct knowledge arguments for automated verification in a smart-contract setting:
 
 \begin{enumerate}
  	\item \textbf{Succinct universal verification:} Election constraints are encoded in a single polynomial interactive proof (PIOP) using a zk-SNARK approach from Plonk~\cite{GWC19} with a proof size and verification runtime constant in the number of ballots (for fixed template parameters, with only small $O(C)$ subchecks arising from per-ballot block constraints).
@@ -57,15 +57,9 @@ Zeeperio is a modernization of the Eperio election-verification approach, replac
  	\item \textbf{Enhanced dispute resolution}: As a result of confirmation code commitments made within a single polynomial, Zeeperio improves the dispute-resolution process by enabling a succinct proof that a disputed code is incorrect without revealing any other codes or the voter’s selections.
  \end{enumerate}
  
-Additionally we also clean up a few issues that were not fully resolved in Scantegrity II and Eperio:
-
-\begin{itemize}
-
-\item As pointed out by Basin \etal~\cite{BDGR21}, Eperio does not prove ballots were not overvoted; Zeeperio does (\S\ref{sec:tally}).
-\item As acknowledged by Essex \etal~\cite{ECHA10}, Eperio does not support Scantegrity II ballots; Zeeperio does (\S\ref{sec:receipt}).
-\item Scantegrity II~\cite{CCC+08} supports dispute resolution, but requires all confirmation codes on the ballot to be revealed. Zeeperio offers a simple proof of an incorrect code without revealing information about all codes (\S\ref{sec:dispute}).
+\noindent Additionally we also clean up a few issues that were not fully resolved in Scantegrity II and Eperio. As pointed out by Basin \etal~\cite{BDGR21}, Eperio does not prove ballots were not overvoted; Zeeperio does (\S\ref{sec:tally}). As acknowledged by Essex \etal~\cite{ECHA10}, Eperio does not support Scantegrity II ballots; Zeeperio does (\S\ref{sec:receipt}). Scantegrity II~\cite{CCC+08} supports dispute resolution, but requires all confirmation codes on the ballot to be revealed. Zeeperio offers a simple proof of an incorrect code without revealing information about all codes (\S\ref{sec:dispute}).
 % \item As Basin et al.~\cite{BDGR21} point out, clash attacks~\cite{KTV12} are not explicitly addressed by Eperio. However, they apply to all major E2E-V voting systems and are mitigated through strict polling-place policies that specify which ballot is given to which voter.
-\end{itemize}
+
 
 %----------------------------------------------------------------
 \section{Background and Related Work}
@@ -107,16 +101,14 @@ In practice, zk-SNARKs for a specific computation can be deployed in different w
 In each case, these representations are fed into a general-purpose (GPZKP) proof system for circuits or zkVMs. 
 Each level of abstraction adds overhead and costs for the prover. 
 Our approach is \emph{closer to the metal}. 
-Rather than using circuits or Plonk directly, we use the same building blocks to design a custom PIOP argument for Zeeperio
-
-For online voting, where voters prove ballot validity, GPZKPs are studied, and we note a customized ZKP (which Zeeperio uses) is expected to be faster~\cite{HKJR24}. 
+Rather than using circuits or Plonk directly, we use the same building blocks to design a custom PIOP argument. For online voting, where voters prove ballot validity, GPZKPs are studied, and we note a customized ZKP (which Zeeperio uses) is expected to be faster~\cite{HKJR24}. 
 Closer to Zeeperio, another design for succinct proofs uses zk-{\em STARKs}, which do not have a trusted setup and are expected to have post-quantum security~\cite{HT25}. 
 However, because this work uses GPZKPs, Zeeperio's custom PIOP approach can prove counted-as-cast for an election with 5 candidates/100,000 ballots in under 5 hours (single core), compared with around 150 (single core) to 5000 (multicore) ballots.
 
 \subsection{Smart Contracts}
 
 Smart contracts are programs deployed on a blockchain, such as Ethereum. 
-The blockchain's consensus mechanism ensures the function call executes correctly and updates the state accordingly. 
+The blockchain's consensus mechanism ensures functions execute correctly and updates the state accordingly. 
 In Zeeperio, a smart contract will accept an election proof and verify it, reporting whether it is correct or not. 
 Since smart contracts can implement arbitrary code, they can support cryptographic operations, though this approach is usually prohibitively expensive. 
 Ethereum offers cheaper \emph{precompiles} for pairing-based operations on the elliptic curve \altbn, which were introduced in EIPs 196 and 197.
@@ -294,7 +286,7 @@ V_{c2.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Sum}_{\mathsf{Ma
 \]
 \end{mdframed}
 
- The constraints are as follows: padding elements are zero (c2.1), column elements are binary (c2.2), and the total number of votes matches the sum announced by the election authority $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). Since elements are binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, by c2.3. We assume that over-voted ballots are rejected by the scanner or automatically converted into print-audit ballots.
+ The constraints are as follows: padding elements are zero (c2.1), column elements are binary (c2.2), and the total number of votes matches the sum announced by the EA $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). As elements are binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, by c2.3. We assume that over-voted ballots are rejected by the scanner or automatically converted into print-audit ballots.
 
 
 
@@ -427,9 +419,9 @@ where the offsets point to the appropriate sections (commitments, openings, publ
 	\[
 	\texttt{len} \,\|\, \underbrace{(\texttt{label}, x, y)}_{0x60~\text{bytes}} \,\|\, \cdots
 	\]
-	Each element has three strings concatenated together.
-	The first string is truncated to \texttt{uint16 label}, followed by two field elements for the BN254 $G_1$ point $(x,y)$.
-	The labels are used to look up commitments when forming linear combinations for KZG batch openings.
+	Each element has 3 concatenated strings.
+	The first is truncated to \texttt{uint16 label}, followed by two field elements for the BN254 $G_1$ point.
+	Labels are used to look up commitments when forming linear combinations for KZG batch openings.
 	
 \paragraph{Openings section.}
 	At \texttt{openingsOffset}, the contract decodes the \emph{KZG openings} array using the ABI style of \emph{array-of-offsets} layout:
@@ -454,13 +446,13 @@ where the offsets point to the appropriate sections (commitments, openings, publ
 	For the \texttt{Receipt} proof, the \texttt{disputedCode} and \texttt{ballotIndex} fields are used to bind the proof statement to the specific dispute instance.
 
 
-After decoding, the verifier recomputes the Fiat-Shamir challenges by hashing the proof-specific transcript.
+After decoding, the verifier recomputes the Fiat-Shamir challenges by hashing the proof transcript.
 The contract rejects if recomputed challenges do not match the prover-supplied \texttt{alpha/beta/zeta} (mod $\mathbb{F}_r$). 
-The contract also recomputes a challenge \texttt{r} deterministically from the decoded openings (hash of each opening's \texttt{point}, $\gamma$, witness, and the \texttt{values}/\texttt{blindings}) and rejects if it does not match the supplied \texttt{r}.
+The contract also recomputes challenge \texttt{r} deterministically from the decoded openings (hash of each opening's \texttt{point}, $\gamma$, witness, and the \texttt{values}/\texttt{blindings}), rejecting if it does not match \texttt{r}.
 
  Finally, the contract verifies each opening with a KZG pairing equation. 
-For each \texttt{Opening}, it forms the linear combination of the referenced commitments with the random $\gamma$ and the values (\texttt{labels}, \texttt{values}, \texttt{blindings}) and checks the resulting batched opening using one BN254 pairing check per opening point. 
-This is the mechanism that keeps on-chain verification practical while still validating many polynomial evaluations.
+For each \texttt{Opening}, it forms the linear combination of the referenced commitments with the random $\gamma$, values (\texttt{labels}, \texttt{values}, \texttt{blindings}) and checks the resulting batched opening using one BN254 pairing check per point. 
+This mechanism keeps on-chain verification practical while still validating many polynomial evaluations.
 
 \paragraph{Evaluation on Sepolia.}
 We deploy to Sepolia because it is free (test ETH can be obtained from public faucets), which makes it practical to repeatedly measure gas.
