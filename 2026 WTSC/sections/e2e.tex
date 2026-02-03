@@ -125,7 +125,7 @@ C(1,k) := \mathsf{Commit}(E(:,1,k),R(1,k)),
 C(2,k) := \mathsf{Commit}(E(:,3,k),R(2,k)).
 \]
 
-\paragraph{Voting}
+\paragraph{Voting.}
 Voters receive a paper ballot with the randomized candidate order from $P$.
 After marking the ballot, the candidate list is detached and destroyed.
 The remaining strip is scanned and retained by the voter as a receipt. 
@@ -141,7 +141,7 @@ A tally $\tau$ is then computed from any pair $(E(:,2,k),E(:,3,k))$ and publishe
 Trustees publish a \emph{linkage list} $L$ giving the row index $a$ such that $E(a,1,k)=U_i$ for each audited UMR index $i$ with $M_i=-1$. 
 This lets a print auditor locate the relevant row across each shuffled instance and check consistency against their physical ballot, without revealing complete columns.  
 
-\paragraph{cut-and-choose challenge/response.}
+\paragraph{Cut-And-Choose Challenge/Response.}
 After $\tau$ is posted, the trustees prove consistency via cut-and-choose.
 They regenerate $\kappa$ and $E$, then for each instance $k\in[x]$ obtain a public random challenge bit $z\leftarrow\mathrm{PublicCoin}()$.
 They publish the corresponding opening randomness and the challenged committed column:
@@ -150,3 +150,20 @@ They publish the corresponding opening randomness and the challenged committed c
 \]
 If $z=0$ they open the commitment to $E(:,1,k)$, and if $z=1$ they open the commitment to $E(:,3,k)$. 
 The marks column $E(:,2,:)$ is already public.
+
+\paragraph{Verification.}
+There are three levels of verification.
+
+\emph{Receipt Checks (V1):} a voter checks that their scanned receipt’s marked/unmarked pattern matches the corresponding
+entries in the published $M$ for that ballot’s UMRs.
+
+\emph{Print-Audit Checks (V2):} using $L(i,k)$ to locate the row $a$ for each audited UMR $i$ and each instance $k$,
+the auditor checks the revealed value is consistent with the physical ballot.
+If instance $k$ revealed $E(:,1,k)$, then check $E(a,1,k)=U_i$.
+Otherwise, check $E(a,3,k)$ equals the candidate printed at that position.
+
+\emph{Gobal Checks (V3):} for each instance $k$, verifiers 
+(i) validate the opening $\mathsf{Reveal}(C(z{+}1,k),R(z{+}1,k),E(:,2z{+}1,k))=1$,
+(ii) check isomorphism of the revealed pairs:
+if $z=0$, check $\{(E(:,1,k),E(:,2,k))\}$ is a permutation of $\{(U,M)\}$. 
+If $z=1$, check $\{(E(:,2,k),E(:,3,k))\}$ is consistent with $\tau$.
