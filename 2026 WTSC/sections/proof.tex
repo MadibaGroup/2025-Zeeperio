@@ -85,7 +85,7 @@ In an Eperio table, each row has a unique identifier under the key U (and each r
 
 The BDGR model identifies six predicates $\psi_i$ that should evaluate to true if Eperio is verifiable, sound, and complete, which is the security property $\phi$ they attempt to prove.
 
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt,nobreak=true]
 \begin{definition}[BDGR Definition of $\phi$~\cite{BDGR21}]
 \label{def:bdgr}
 Given a non-empty sort $Key$ of unique keys, $P_{\mathrm{auth}}$, $\mathrm{Views}$, and $P_{\mathrm{con}}$ as in Section~3, let
@@ -181,15 +181,14 @@ Therefore, any accepted view is cryptographically consistent with a single commi
 Since the election uses distinct ballot identifiers per voter, these bindings ensure that different voters’ $(V,U)$ disclosures do not conflict under key $U$, so the merge is non-empty.
 
 \BDGR{\psi_{\mathrm{no\text{-}stuffing}}&:=\forall P\in\mathcal{P}_{\mathrm{auth}}:\#\sigma_{M=1}\pi_{M}P=\#\sigma_{M=1}\pi_{M}V}
-$\quad\text{where }V=\min\bigl(\owedge^{\{U\}}(Views)\bigr).$
-
-This predicate is asserting an \emph{equality of counts}.
+$\quad\text{where }V=\min\bigl(\owedge^{\{U\}}(Views)\bigr).$ This predicate is asserting an \emph{equality of counts}.
 It states that $P_{\mathrm{auth}}^{Z}$ contains \emph{no more} marked rows than are accounted for by the merged voter views. 
 Therefore, the EA cannot \emph{stuff} extra votes into the authenticated data without it being reflected in voter-facing evidence.
 
 \vanishP{
-\Bigl(\bigwedge_j \mathsf{Acc}(\mathrm{pub},\pi)&\Rightarrow \Bigl(\bigwedge_i \psi_i\Bigr)\\
-\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}}&\Rightarrow\varphi
+\Bigl(\bigwedge_j \mathsf{Acc}(\mathrm{pub},\pi) \Rightarrow \Bigl(\bigwedge_i \psi_i\Bigr)
+
+\psi_{0}\wedge\psi_{1}\wedge\psi_{\mathrm{tally}}\wedge\psi_{\mathrm{print\text{-}audit}}\wedge\psi_{\mathrm{unique}}\wedge\psi_{\mathrm{no\text{-}stuffing}} \Rightarrow\varphi
 }
 
 

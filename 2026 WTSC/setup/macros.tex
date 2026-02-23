@@ -79,7 +79,7 @@
 \definecolor{verylightblue}{RGB}{238,244,250}
 
 \newcommand{\BDGR}[1]{%
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]%
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt,nobreak=true]%
 \[
 \footnotesize
 \begin{aligned}
@@ -90,14 +90,15 @@
 }
 
 \newcommand{\vanishP}[1]{%
-\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]%
+{\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt,nobreak=true]%
 \[
 \footnotesize
-\begin{aligned}
+% \begin{aligned}
 #1
-\end{aligned}
+% \end{aligned}
 \]
 \end{mdframed}%
+}
 }
 
 
