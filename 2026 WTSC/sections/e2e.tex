@@ -9,6 +9,8 @@ E2E verifiability requires two levels of verification:
     \item \textbf{Universal Verifiability:} Any observer can verify the overall election outcome is correct based on the recorded votes \cite{DBLP:journals/corr/AliM16}.
 \end{itemize}
 
+\subsection{Verifiability Properties}
+\label{sec:verifiability_properties}
 To achieve E2E verifiability, we require three core properties: \emph{cast-as-intended}, \emph{recorded-as-cast}, and \emph{counted-as-collected} \cite{regenscheid-e2e-vvsg2-tgdc-2023}.
 Together, these properties give confidence to voters that their vote was captured and counted correctly in the election.  
 If any error or tampering occurs at any stage of the election, it will be detected by the voter or auditors. 
@@ -63,8 +65,8 @@ A voting protocol provides counted-as-collected verifiability iff there exists a
 \end{equation*}
 \end{definition}
 
-\subsection{Levels of Ballot Secrecy}
-
+\subsection{Ballot Secrecy}
+\label{sec:ballot_secrecy}
 Along with verifiability, E2E-V voting protocols must also satisfy strong privacy and security properties to protect voters against vote-selling and coercion.
 These core properties are \emph{ballot secrecy}, \emph{receipt freeness}, and \emph{coercion resistance}.
 Each of these notions are important for free and fair elections. 

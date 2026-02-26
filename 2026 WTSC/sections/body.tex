@@ -410,25 +410,16 @@ and transcript scalars. Verification decodes the blob, recomputes Fiat-Shamir ch
 pairing check per opening point while batching multiple evaluations at the same point.
 Full encoding and decoding details and the contract implementation are provided in Appendix~\ref{app:implementation}.
 
-
-% \section{Security Proofs}
-
-% Drawing on the integrity and ballot secrecy of Eperio established in prior work, we approach Zeeperio's security by way of reduction. We prove that an adversary with access to an Eperio transcript learns nothing that cannot be simulated from also being given a Zeeperio transcript (we say Zeeperio is \textit{non-expansive} over Eperio). We also show it satisfies the integrity predicates of Basin \etal's security model~\cite{BDGR21}. Due to space, we defer the (lengthy) security proof to Appendix~\ref{app:sec}.
-
-\section{Security Proofs}
+\section{Security Proof}
 \label{sec:security}
 
-We defer full formal proofs to Appendix~D.
-However, we summarize the guarantees that Zeeperio
-targets and the structure of the security argument.
 At a high level, Zeeperio preserves Eperio's privacy guarantees and provides succinct,
 universally verifiable evidence that the published tally is consistent with a committed election
 table satisfying the protocol constraints from Section~\ref{sec:constraints}.
 Table~\ref{tab:properties} summarizes which voting properties Zeeperio aims to satisfy.
 \input{figures/properties.tex}
 
-\subsection{Proof strategy}
-Our formal argument has two components.
+Due to space, we defer the security proof to Appendix~\ref{app:sec}. Our security proof has two components.
 First, we show \emph{non-expansivity} over Eperio: given an Eperio transcript, an adversary
 learns nothing additional from the Zeeperio transcript beyond what can be simulated, up to negligible
 probability. Second, we show integrity by relating acceptance of the main proof and the voter-check
@@ -436,20 +427,7 @@ verification conditions to the integrity predicates of Basin et al.'s model~\cit
 
 
 \section{Conclusion}
-Zeeperio modernizes Eperio-style post-election audits by replacing
-cut-and-choose openings with succinct polynomial arguments that can be verified
-on-chain. Our design binds voter checks to the
-same committed election table used by the main verification proof, and we implement
-an E2E prototype with constant-size verification costs.
-
-\paragraph{Limitations.}
-Zeeperio strengthens \emph{verifiability} but largely inherits Eperio’s operational/privacy assumptions rather than providing cryptographic ballot privacy on its own. 
-It also relies on the adequacy of our algebraic constraints to make sure that the vanishing checks match the intended Eperio relation.
-
-
-\paragraph{Future work.}
-An immediate direction is to harden ballot secrecy while keeping the same on-chain verification interface towards full E2E-V. 
-Further work includes tighter proofs around constraint adequacy and continued prover/verification-cost optimizations.
+Zeeperio modernizes Eperio-style post-election audits by replacing conventional cut-and-choose commitments with modern succinct polynomial arguments that are verified on-chain. Our design introduces automated verification and constant-size proofs. Zeeperio considered the optically-scanned paper ballot setting as an initial starting point. Future work could look to extend this approach to the online voting setting, especially around the design challenge of maintaining coercion resistance in an unsupervised voting setting. 
 
 %----------------------------------------------------------------
 %\section{Concluding Remarks}

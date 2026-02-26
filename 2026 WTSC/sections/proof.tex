@@ -12,7 +12,7 @@ Zeeperio is a component of a voting system, not a full-fledged voting system. We
 Scantegrity II is an end-to-end verifiable voting system with paper ballots that are optically scanned. A ballot contains a unique serial number and a unique (per-ballot) confirmation code printed beside each candidate in invisible ink. When the voter marks a candidate on the ballot, the voter is also able to read the code. The ballot serial number and the revealed code constitute the voter's receipt, which they can copy to a piece of paper and bring home. The scanned ballots are provided to a backend system called `the switchboard.' The switchboard prepares a proof that the tally is correct and provides an interface for voters to see if their receipts are recorded correctly and if their print-audited ballots contain consistent confirmation codes with what is recorded.
 
 \subsection{Scantegrity II is Coercion Resistant}
-
+\label{sec:stii-coercion}
 For the purposes of this paper, we will assume that Scantegrity II is a secure voting system. Its security is argued in the Scantegrity papers, while K{\"u}sters, Truerung, and Vogt~\cite {KTV10c} provide a very thorough proof of its \textit{coercion resistance} property. The definition of coercion resistance is from their earlier paper at CSF 2010~\cite{KTV10}. We provide a summary of their main theorem, while omitting many of the details and exact models (see their paper).
 
 Let $P_{\mathsf{Sct}}$ denote the Scantegrity~II protocol, and let
@@ -34,7 +34,7 @@ Under this definition, it does not say ``Scantegrity II is coercion resistant'' 
 
 
 \subsection{Replacing the Switchboard with Eperio} 
-
+\label{sec:eperio-coercion}
 As mentioned, the verification back end in Scantegrity II is called the {\em Switchboard}. Eperio was introduced by its authors explicitly as a replacement for the Switchboard. Eperio tables play the same architectural role as the switchboard, while providing proofs that are asserted to be more human-understandable. The paper shows that an Eperio proof is simpler to implement (smaller data, fewer lines of code) than Switchboard proofs and can even be manually checked by a human verifier using a spreadsheet (such as Microsoft Excel) and simple operations.
 
 A blackbox equivalence of Eperio and the Switchboard has not been formally proven. Basin \etal do not seek to prove this, but they do model both Eperio and the Scantegrity switchboard. They show that they operate over the same underlying table structures, and for every verification property they prove, they just state that the proof would be analogous to Eperio's proof without developing it further. They also show that the same privacy argument applies to both systems. The privacy result they obtain for Eperio, however, comes with two important caveats relative to the K{\"u}sters \etal result. First, the notion of privacy is weaker than coercion resistance: it shows that the published verification data does not allow votes to be linked to voters within a table-based model, a property sometimes referred to as receipt freeness, rather than a full game-based coercion-resistance guarantee. Second, their analysis is framed using a simplified Scantegrity-style ballot abstraction rather than the full Scantegrity II ballot format, so the result applies at the level of the switchboard and verification logic, not to the complete human-facing voting protocol.
@@ -42,10 +42,11 @@ A blackbox equivalence of Eperio and the Switchboard has not been formally prove
 We state as a conjecture, and without proof, that if the Switchboard is replaced with Eperio, the result from K{\"u}sters \etal will continue to hold. We think this is reasonable given the evidence above.
 
 \subsection{Zeeperio is as Coercion Resistant as Eperio}
-
+\label{sec:coercion}
 \input{sections/privacy.tex}
 
 \subsection{Zeeperio is as Verifiable as Eperio} 
+\label{sec:verifiable}
 
 Basin \etal model Eperio using tables and SP-algebra (selection–projection table algebra) to state verification conditions and prove that these conditions imply integrity (and related) properties through pen-and-paper formal-methods proofs (as opposed to machine-checked verification). In this section, we show the equivalence of Zeeperio's constraints and their model, which we will call the BDGR model or just BDGR. 
 
