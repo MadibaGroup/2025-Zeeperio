@@ -123,17 +123,20 @@ A Zeeperio election consists of several phases: (1) an initial election setup, d
 
 We do not consider details of ballot printing with invisible ink (2) or the conventional voting phase (3). See Appendix~\ref{e2e-v-properties} for a review of E2E-V properties and terminology, and Appendix~\ref{app:vv} for a discussion of the off-chain verification activities (receipt checks, dispute resolution and print audits). Finally, Appendix~\ref{sec:eperio-exp} provides a summary of Eperio for additional background and context on the design motivation of Zeeperio. The main contribution of this paper pertains to the proofs and verification (i.e., phases 1 and 4-6), which we now describe.
 
-% \subsection{Preliminaries}
 
-\paragraph{Parameters.}
+\subsection{Zeeperio constraints} 
+
+Zeeperio's approach involves proving multiple concurrent constraints about the election in zero-knowledge, with the combined validity of the individual constraints representing the overarching proof of the correctness of the election result. As an intuition about these constraints, consider a single contest in a conventional $k$-candidate plurality (i.e., vote for {\em one}) setting. There are $k$ constraints to prove: each of the $k$ ballot positions are marked or unmarked, and the total number of marked candidates is either zero or one. Additional constraints are required to demonstrate the ballot was cast-as-intended and counted-as-cast. Furthermore, these constraints are proven in zero-knowledge toward enforcing ballot secrecy properties like receipt-freeness and coercion resistance. Due to space, we do not review these properties here, referring the reader instead to Appendix~\ref{e2e-v-properties}.
+
+
+\paragraph{Election Parameters.}
 Let $\mathcal{B}$ be the number of printed ballots and $\mathcal{C}$ the number of candidates per ballot. 
 Let $\mathcal{P}=\mathcal{B}\mathcal{C}$ be the number of ballot positions. 
 Let $n$ be the padded column length (a power of two) with $n\ge \mathcal{P}$ (the need is explained below). 
 Let $\mathbb{F}_q$ be a finite field of size $q$. 
 A ballot has ID $b\in\{0,\dots,\mathcal{B}-1\}$ and occupies a \emph{block}: $I_b=\{\,b\mathcal{C},\,b\mathcal{C}+1,\,\dots,\,b\mathcal{C}+(\mathcal{C}-1)\,\}\subseteq\{0,\dots,n-1\}.$
 
-\paragraph{Walkthrough of a constraint.} 
-
+\paragraph{Walkthrough of a Zeeperio Constraint .}
 As shown in Figure~\ref{fig:eperio}, the mark column entries are all required to be either 0 or 1. 
 With ZKPs, we call this a \textit{constraint}. 
 Zeeperio consists of \constraints similar constraints that must all hold in any valid election table. 
@@ -207,7 +210,7 @@ $$
 \mathsf{Batch}(Y)=\sum_{i=1}^{m}Y^{i}\Bigl(V_i(X)-Q_i(X)\,\mathsf{Z}_H(X)\Bigr).
 $$
 
- A polynomial with all coefficients 0 is a zero polynomial. 
+\noindent  A polynomial with all coefficients 0 is a zero polynomial. 
 Therefore, the verifier (or prover via strong Fiat-Shamir) will choose a random $\zeta\in \mathbb{F}_q\notin H$ as before and set $X=\zeta$, which makes every coefficient 0 with overwhelming probability. 
 To check whether every coefficient is 0, it will also choose a random $\alpha\in\mathbb{F}_q$ and set $Y=\alpha$. 
 If every $V_i(X)$ vanishes, then $\mathsf{Batch}(Y)$ is a zero polynomial and: 
@@ -330,7 +333,7 @@ $$
 \qquad i\in\{0,\ldots,n-1\}.
 $$
 
- The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sums for some candidates may be one element longer than those for others. Constraint c4.1 demonstrates that the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 shows that the published tally equals the sum of each candidate's votes. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
+\noindent  The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sums for some candidates may be one element longer than those for others. Constraint c4.1 demonstrates that the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 shows that the published tally equals the sum of each candidate's votes. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
  
  %JC: moving security to end of paper
 
@@ -436,7 +439,7 @@ The \texttt{labels} selects which commitments are needed, \texttt{values} contai
 	For the \texttt{Dispute} proof, the \texttt{disputedCode} and \texttt{ballotIndex} fields are used to bind the proof statement to the specific dispute instance.
 
 \paragraph{Transcript checks and KZG verification.}
-After decoding, the verifier recomputes Fiat--Shamir challenges using \texttt{sha256}-based hashing into $\mathbb{F}_r$.
+After decoding, the verifier recomputes Fiat-Shamir challenges using \texttt{sha256}-based hashing into $\mathbb{F}_r$.
 It checks $\alpha$ and $\zeta$ for all proof kinds, and additionally checks $\beta$ for the receipt proof.
 It also recomputes $r$ deterministically from the decoded openings (hashing each opening's \texttt{point}, $\gamma$, witness,
 and all \texttt{values}/\texttt{blindings}), rejecting if $r$ does not match the prover-supplied field.
@@ -449,7 +452,7 @@ Deploying on the Ethereum mainnet requires no protocol changes, as the BN254 pre
 
 \section{Security Proofs}
 
-We defer the proof of security to Appendix~\ref{app:sec}. As Eperio already has provable security, we prove that an adversary with access to an Eperio transcript learns nothing that cannot be simulated from also being given a Zeeperio transcript (we say Zeeperio is \textit{non-expansive} over Eperio). We also show it satisfies the integrity predicates of Basin \etal's security model~\cite{BDGR21}.
+Drawing on the integrity and ballot secrecy of Eperio established in prior work, we approach Zeeperio's security by way of reduction. We prove that an adversary with access to an Eperio transcript learns nothing that cannot be simulated from also being given a Zeeperio transcript (we say Zeeperio is \textit{non-expansive} over Eperio). We also show it satisfies the integrity predicates of Basin \etal's security model~\cite{BDGR21}. Due to space, we defer the (lengthy) security proof to Appendix~\ref{app:sec}.
 
 %----------------------------------------------------------------
 %\section{Concluding Remarks}
