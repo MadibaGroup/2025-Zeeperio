@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{p{3.2cm}p{9.2cm}}
+\toprule
+Property & Zeeperio \\
+\midrule
+Ballot secrecy &
+Targeted in the same sense as Scantegrity/Eperio as the receipts reveal confirmation codes that are
+not publicly linkable to candidates without EA/trustee secrets. Additionally, the ZK proofs reveal no ballot choices
+beyond the information intentionally opened for audits. \\
+Individual verifiability &
+Yes: auditors can print-audit codes for their ballot positions and voters can receipt-check that their
+recorded selection matches the committed table, with dispute capability if not. \\
+Universal verifiability &
+Yes: anyone can verify the succinct proof that the committed election table satisfies all protocol
+constraints and yields the published tally. \\
+Coercion resistance &
+Not a goal: like Scantegrity-style receipt systems, Zeeperio provides voter evidence that can be shown to
+third parties. We do not claim coercion resistance. \\
+\bottomrule
+\end{tabular}
+\caption{Informal voting properties for Zeeperio. Formal definitions and proofs are in the appendices.}
+\label{tab:properties}
+\end{table}

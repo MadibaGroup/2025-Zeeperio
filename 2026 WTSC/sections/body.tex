@@ -351,9 +351,37 @@ $$
 
 % = = = = = = = = = = = = = = = = = %
 
+% \section{Voter Checks}
+% \label{sec:voter}
+% Eperio, like many voting systems, splits the E2E-V proof into two parts: a universal verifiable proof that the tally is correct, and a voter-verifiable proof that receipts are correct. All constraints from Section~\ref{sec:constraints} correspond to the former proof and this is what is verified on-chain with an Ethereum contract. For space reasons, we describe the voter-verifiable checks in Appendix~\ref{app:vv}. Voters use these checks on their receipts and their audited ballots. If a voter finds their receipt is recorded incorrectly, they can use the dispute resolution protocol to check the confirmation code they recorded against the committed ballot. 
+
 \section{Voter Checks}
 \label{sec:voter}
-Eperio, like many voting systems, splits the E2E-V proof into two parts: a universal verifiable proof that the tally is correct, and a voter-verifiable proof that receipts are correct. All constraints from Section~\ref{sec:constraints} correspond to the former proof and this is what is verified on-chain with an Ethereum contract. For space reasons, we describe the voter-verifiable checks in Appendix~\ref{app:vv}. Voters use these checks on their receipts and their audited ballots. If a voter finds their receipt is recorded incorrectly, they can use the dispute resolution protocol to check the confirmation code they recorded against the committed ballot. 
+Zeeperio splits E2E-V into (i) \emph{universal} evidence that the
+published tally is correct, and (ii) \emph{voter-verifiable} evidence that an individual voter’s receipt
+and audited ballot are consistent with the committed election data.
+All constraints from Section~\ref{sec:constraints} correspond to the former proof and this is what is verified on-chain with an Ethereum contract
+This section summarizes the voter-verifiable checks, and the full breakdown can be found in Appendix~\ref{app:vv}.
+
+\paragraph{Print-audit.}
+An auditor reveals a ballot ID, and the EA opens the committed
+audit/mark/code columns at the positions corresponding to that ballot.
+The verifier checks the openings against the public commitments, allowing the voter to confirm
+that the printed confirmation codes on the audited ballot match the committed table.
+
+\paragraph{Receipt-check.}
+Receipt-checks aim to let a voter confirm that their recorded selection is consistent with the committed
+table \emph{without revealing which candidate position was marked}.
+To do so, receipt-checks are answered on a \emph{secretly permuted} copy of the relevant columns.
+The EA proves once that the permuted columns are a permutation of the originals, and then for a given
+query returns a single-point opening showing that (i) the permuted ballot ID equals the voter’s ballot,
+(ii) the permuted mark is $1$, and (iii) the corresponding permuted code equals the voter’s receipt code.
+
+\paragraph{Dispute resolution.}
+If a voter claims their receipt was recorded incorrectly, they can invoke the dispute protocol to check the
+claimed confirmation code against the committed ballot.
+The EA produces a succinct non-membership proof that the disputed code does not appear among the $C$
+codes printed on that ballot, without revealing the other codes on the ballot.
 
 
 % = = = = = = = = = = = = = = = = = %
@@ -361,98 +389,67 @@ Eperio, like many voting systems, splits the E2E-V proof into two parts: a unive
 % = = = = = = = = = = = = = = = = = %
 
 
+
 \section{Implementation and Performance}
-Zeeperio is implemented as an off-chain prover and an on-chain verifier. 
-The proof generation benchmarks were obtained on an Apple MacBook Pro (M3 Pro, 18\,GB RAM), and the gas costs were measured by deploying the verifier to the Sepolia testnet.
-Table~\ref{tab:eval-table2} shows the performance for each of the proofs.\footnotemark 
-\footnotetext{At an ETH price of \$3,000 USD, gas price of 2 Gwei, and using 1 Gwei $=10^{-9}$ ETH, the transaction fees for the proofs are $\sim\$15$, $\sim\$6$, and $\sim\$4$ respectively.}
+Zeeperio is implemented as an off-chain prover and an on-chain verifier.
+Benchmarks were obtained on an Apple MacBook Pro with an M3 Pro CPU and 18\,GB RAM, and gas costs were
+measured by deploying the verifier to the Sepolia testnet.
+Table~\ref{tab:eval-table2} reports proof sizes, proving time, and verification gas for the three proof kinds.\footnotemark
+\footnotetext{At an ETH price of \$3{,}000, gas price of 2 Gwei, and $1$ Gwei $=10^{-9}$ ETH, the fees are
+$\sim\$15$, $\sim\$6$, and $\sim\$4$ respectively.}
 
 \input{figures/evaluations.tex}
 
-\paragraph{Off-chain Prover.}
-The prover is implemented in Rust and uses the \emph{arkworks} toolkit for BN254 pairings. 
-The instance is launched with a CLI that generates all three proof kinds (main, receipt, and dispute) described in Sections~\ref{sec:constraints} and~\ref{sec:voter}.
-It commits to all polynomials using the \emph{hiding} variant of KZG, where each commitment includes a blinding term in the $\gamma$-scaled SRS basis.
-The blinding polynomials are derived from the prover transcript/challenges, while the hiding structure is enabled by the SRS elements.
-Additionally, the prover applies \emph{off-domain masking} by adding random multiples of the domain vanishing polynomial to selected witness polynomials.
-This preserves on-domain evaluations while randomizing coefficients off-domain.
-To reduce proof size and verification cost, each opening batches multiple polynomial evaluations at the \emph{same point}
-using a random scalar $\gamma$ into a single KZG witness. On-chain, this yields one pairing check \emph{per opening point},
-while still validating many evaluations within each opening.
+\paragraph{Prototype.}
+The prover is written in Rust using the arkworks toolkit and the BN254 curve, and produces the three proofs from Sections~\ref{sec:constraints} and~\ref{sec:voter} bycommitting to witness polynomials
+with the hiding KZG variant.
+The on-chain verifier is implemented in Solidity using Foundry and relies on the BN254 precompiles from
+EIP-196 and EIP-197 to verify KZG opening equations directly, all without a SNARK verifying key.
+Proofs are submitted as a single ABI-encoded \texttt{bytes} blob containing commitments, openings, public inputs,
+and transcript scalars. Verification decodes the blob, recomputes Fiat-Shamir challenges, and performs one
+pairing check per opening point while batching multiple evaluations at the same point.
+Full encoding and decoding details and the contract implementation are provided in Appendix~\ref{app:implementation}.
 
-\paragraph{Calldata encoding.}
-Proofs are serialized into a single \texttt{bytes} blob using Ethereum ABI encoding of fields:
-\emph{kind}, \emph{commitments array}, \emph{openings array}, \emph{public-input tuple}, and the transcript scalars $(\alpha,\beta,\zeta,r)$.
-The CLI computes the 4-byte function selector as \texttt{keccak256(methodSignature)[0..4]} via \texttt{tiny-keccak} when forming transaction calldata for verification.
 
-\paragraph{On-chain verifier.}
-The verifier is implemented in Solidity and built with the \texttt{Foundry} toolchain.
-It uses the BN254 precompiles (EIP-196/197) for elliptic-curve operations and pairing checks.
-There is no SNARK circuit/verifying key; instead, the contract stores KZG verifier parameters derived from the SRS
-($g$, $\gamma g$, $h$, and $\beta h$) in \texttt{ZeeperioKzgVk.sol}.
-The contract exposes three entrypoints, \texttt{verifyMain}, \texttt{verifyReceipt}, and \texttt{verifyDispute}.
-Each calls a shared internal routine \texttt{\_verify(expectedKind, proofCalldata)} which decodes the proof and runs verification.
+% \section{Security Proofs}
 
-\paragraph{Custom ABI decoding via \texttt{calldataload}.}
-Proofs are passed as a single \texttt{bytes calldata} argument and decoded manually with \texttt{calldataload}.
-The helper \texttt{\_readWord(data, offset)} reads 32-byte words from calldata at \texttt{data.offset + offset}.
-The proof blob begins with a fixed-size header:
-\[
-\begin{array}{ll}
-\texttt{0x00:}~\texttt{kind} &
-\texttt{0x20:}~\texttt{commitmentsOffset} \\
-\texttt{0x40:}~\texttt{openingsOffset} &
-\texttt{0x60:}~\texttt{publicOffset} \\
-\texttt{0x80:}~\alpha &
-\texttt{0xA0:}~\beta \\
-\texttt{0xC0:}~\zeta &
-\texttt{0xE0:}~r
-\end{array}
-\]
-where offsets point into the same \texttt{bytes} blob.
-	
-\paragraph{Commitments section.}
-At \texttt{commitmentsOffset}, the contract decodes a commitment array of length $\ell$, where each element occupies \texttt{0x60} bytes.
-This includes a 32-byte word whose low 16 bits store \texttt{uint16 label}, followed by two field elements encoding a BN254 $G_1$ point $(x,y)$.
-
-\paragraph{Openings section.}
-	At \texttt{openingsOffset}, the contract decodes the openings array using the ABI \emph{array-of-offsets} layout:
-	\[
-	\texttt{len} \,\|\, \texttt{ptr}_0 \,\|\, \cdots \,\|\, \texttt{ptr}_{\texttt{len}-1}.
-	\]
-	Each pointer is a relative offset to an opening tuple. For each opening, the contract reads a fixed prefix:
-	\[
-	(\texttt{witness.x}, \texttt{witness.y}, \texttt{point}, \gamma, \texttt{labelsOff}, \texttt{valuesOff}, \texttt{blindingsOff}),
-	\]
-followed by three arrays at the given offsets:
-(i) labels encoded as 32-byte words and decoded by truncation to \texttt{uint16[]},
-(ii) \texttt{uint256[] values}, and (iii) \texttt{uint256[] blindings}. 
-The \texttt{labels} selects which commitments are needed, \texttt{values} contains the claimed evaluations, and \texttt{blindings} contains the hiding terms needed for the hiding-KZG verifier equation.
-	
-\paragraph{Public inputs section.}
-	At \texttt{publicOffset}, the contract decodes:
-	\[
-	(n,\; C,\; \texttt{sumA},\; \texttt{sumM},\; \texttt{tallyOffset},\; \texttt{disputedCode},\; \texttt{ballotIndex}),
-	\]
-	where \texttt{tallyOffset} points to the \texttt{uint256[]} tally array. 
-	For the main election proof, \texttt{tally.length} must equal $C$.
-	For the \texttt{Dispute} proof, the \texttt{disputedCode} and \texttt{ballotIndex} fields are used to bind the proof statement to the specific dispute instance.
-
-\paragraph{Transcript checks and KZG verification.}
-After decoding, the verifier recomputes Fiat-Shamir challenges using \texttt{sha256}-based hashing into $\mathbb{F}_r$.
-It checks $\alpha$ and $\zeta$ for all proof kinds, and additionally checks $\beta$ for the receipt proof.
-It also recomputes $r$ deterministically from the decoded openings (hashing each opening's \texttt{point}, $\gamma$, witness,
-and all \texttt{values}/\texttt{blindings}), rejecting if $r$ does not match the prover-supplied field.
-Finally, for each opening point, it verifies a KZG pairing equation (one pairing check per opening), where the referenced commitments
-are combined using the opening's $\gamma$ and the claimed \texttt{values}/\texttt{blindings}.
-
-\paragraph{Evaluation on Sepolia.}
-We deploy to Sepolia because it is free (test ETH can be obtained from public faucets), which makes it practical to repeatedly measure gas.
-Deploying on the Ethereum mainnet requires no protocol changes, as the BN254 precompiles specified in EIP-196/197 are available on both networks.
+% Drawing on the integrity and ballot secrecy of Eperio established in prior work, we approach Zeeperio's security by way of reduction. We prove that an adversary with access to an Eperio transcript learns nothing that cannot be simulated from also being given a Zeeperio transcript (we say Zeeperio is \textit{non-expansive} over Eperio). We also show it satisfies the integrity predicates of Basin \etal's security model~\cite{BDGR21}. Due to space, we defer the (lengthy) security proof to Appendix~\ref{app:sec}.
 
 \section{Security Proofs}
+\label{sec:security}
 
-Drawing on the integrity and ballot secrecy of Eperio established in prior work, we approach Zeeperio's security by way of reduction. We prove that an adversary with access to an Eperio transcript learns nothing that cannot be simulated from also being given a Zeeperio transcript (we say Zeeperio is \textit{non-expansive} over Eperio). We also show it satisfies the integrity predicates of Basin \etal's security model~\cite{BDGR21}. Due to space, we defer the (lengthy) security proof to Appendix~\ref{app:sec}.
+We defer full formal proofs to Appendix~D.
+However, we summarize the guarantees that Zeeperio
+targets and the structure of the security argument.
+At a high level, Zeeperio preserves Eperio's privacy guarantees and provides succinct,
+universally verifiable evidence that the published tally is consistent with a committed election
+table satisfying the protocol constraints from Section~\ref{sec:constraints}.
+Table~\ref{tab:properties} summarizes which voting properties Zeeperio aims to satisfy.
+\input{figures/properties.tex}
+
+\subsection{Proof strategy}
+Our formal argument has two components.
+First, we show \emph{non-expansivity} over Eperio: given an Eperio transcript, an adversary
+learns nothing additional from the Zeeperio transcript beyond what can be simulated, up to negligible
+probability. Second, we show integrity by relating acceptance of the main proof and the voter-check
+verification conditions to the integrity predicates of Basin et al.'s model~\cite{BDGR21}.
+
+
+\section{Conclusion}
+Zeeperio modernizes Eperio-style post-election audits by replacing
+cut-and-choose openings with succinct polynomial arguments that can be verified
+on-chain. Our design binds voter checks to the
+same committed election table used by the main verification proof, and we implement
+an E2E prototype with constant-size verification costs.
+
+\paragraph{Limitations.}
+Zeeperio strengthens \emph{verifiability} but largely inherits Eperio’s operational/privacy assumptions rather than providing cryptographic ballot privacy on its own. 
+It also relies on the adequacy of our algebraic constraints to make sure that the vanishing checks match the intended Eperio relation.
+
+
+\paragraph{Future work.}
+An immediate direction is to harden ballot secrecy while keeping the same on-chain verification interface towards full E2E-V. 
+Further work includes tighter proofs around constraint adequacy and continued prover/verification-cost optimizations.
 
 %----------------------------------------------------------------
 %\section{Concluding Remarks}
