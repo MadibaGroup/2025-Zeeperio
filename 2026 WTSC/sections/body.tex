@@ -429,21 +429,8 @@ verification conditions to the integrity predicates of Basin et al.'s model~\cit
 \section{Conclusion}
 Zeeperio modernizes Eperio-style post-election audits by replacing conventional cut-and-choose commitments with modern succinct polynomial arguments that are verified on-chain. Our design introduces automated verification and constant-size proofs. Zeeperio considered the optically-scanned paper ballot setting as an initial starting point. Future work could look to extend this approach to the online voting setting, especially around the design challenge of maintaining coercion resistance in an unsupervised voting setting. 
 
-%----------------------------------------------------------------
-%\section{Concluding Remarks}
+% \paragraph{Acknowledgements.} The authors thank the reviewers for their feedback. This work was supported by a National Science and Engineering Research Council of Canada (NSERC) Discovery grant.
 
-
-
-%Zeeperio is a succinct proof of an Eperio-encoded election that can be autonomously verified by a smart contract. Even if the reader does not buy the notion of realcryptik, that not hiding raw ballots from the EA can be a stepping stone to full E2E-V elections, Zeeperio is still useful as a drop-in (or complementary) mechanism for standard Eperio. Eperio (like Scantegrity and Punchscan) makes a `blackbox assumption' for ballot privacy that can be extended to Zeeperio. This leads to a natural adoption pathway for vendors and election officials: Zeeperio introduces an initial verifiability component, with automated argument checking via smart contracts, as a first step. Stronger ballot secrecy guarantees can later be integrated with TEE's for full E2E-V.
-
-% Describing the entirety of Zeeperio is challenging in the available page length. We note that a full version of this work, in the form of a thesis,\footnote{URL anonymized for review.} explains each constraint in detail, offers a broader discussion of the implementation, and provides sketches of security arguments. 
-
-
-% Fortunately, the security of Zeeperio makes effective use of existing analysis: Eperio has already been shown to satisfy end-to-end verifiability in both cryptographic~\cite{ECHA10} and formal-methods~\cite{BDGR21} treatments, and modern PIOP-based zk-SNARK constructions justify proving collections of algebraic constraints by reducing them to vanishing-polynomial checks~\cite{GWC19}. Therefore, the security question is relatively straightforward, reducing to whether our specific vanishing constraints characterize the same relations as those enforced by Eperio.
-
-% The thesis argues they do.
-
-%We address this gap by treating Eperio as a semantic relation $R_{\textsf{Eperio}}$ over the bulletin-board data and a private witness (the election tables and auxiliary randomness), and by proving an adequacy theorem for Zeeperio’s constraint system: if all Zeeperio vanishing polynomials vanish on the evaluation domain, then the instance satisfies $R_{\textsf{Eperio}}$ and, in particular, the published tally equals the tally induced by the committed mark column under the canonical ballot layout. In this sense, the proof obligation is the same one that arises for any implementation strategy—whether a software implementation, a circuit in a general-purpose ZK system, or a mechanized formal model—namely, to show that the implemented checks correspond to the intended relation. Our theorem makes this correspondence explicit at the level of the algebraic constraints, leaving only the standard assumptions inherited from the underlying Eperio analysis and the soundness/zero-knowledge guarantees of the PIOP instantiation.
 
 
 
