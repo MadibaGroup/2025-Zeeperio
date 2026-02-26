@@ -413,14 +413,14 @@ Full encoding and decoding details and the contract implementation are provided 
 \section{Security Proof}
 \label{sec:security}
 
+\input{figures/properties.tex} 
+
 At a high level, Zeeperio preserves Eperio's privacy guarantees and provides succinct,
 universally verifiable evidence that the published tally is consistent with a committed election
 table satisfying the protocol constraints from Section~\ref{sec:constraints}.
-Table~\ref{tab:properties} summarizes which voting properties Zeeperio aims to satisfy.
-\input{figures/properties.tex}
+Table~\ref{tab:properties} summarizes the Zeeperio's security properties in the voting context. Due to space, we defer the security proofs to Appendix~\ref{app:sec}. 
 
-Due to space, we defer the security proof to Appendix~\ref{app:sec}. Our security proof has two components.
-First, we show \emph{non-expansivity} over Eperio: given an Eperio transcript, an adversary
+The security proof has two components. First, we show \emph{non-expansivity} over Eperio: given an Eperio transcript, an adversary
 learns nothing additional from the Zeeperio transcript beyond what can be simulated, up to negligible
 probability. Second, we show integrity by relating acceptance of the main proof and the voter-check
 verification conditions to the integrity predicates of Basin et al.'s model~\cite{BDGR21}.
