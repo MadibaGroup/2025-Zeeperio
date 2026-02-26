@@ -418,16 +418,16 @@ Full encoding and decoding details and the contract implementation are provided 
 At a high level, Zeeperio preserves Eperio's privacy guarantees and provides succinct,
 universally verifiable evidence that the published tally is consistent with a committed election
 table satisfying the protocol constraints from Section~\ref{sec:constraints}.
-Table~\ref{tab:properties} summarizes the Zeeperio's security properties in the voting context. Due to space, we defer the security proofs to Appendix~\ref{app:sec}. 
+Table~\ref{tab:properties} summarizes Zeeperio's security properties in the voting context. Due to space, we defer the security proofs to Appendix~\ref{app:sec}. 
 
 The security proof has two components. First, we show \emph{non-expansivity} over Eperio: given an Eperio transcript, an adversary
 learns nothing additional from the Zeeperio transcript beyond what can be simulated, up to negligible
-probability. Second, we show integrity by relating acceptance of the main proof and the voter-check
+probability. Second, we show integrity by relating the acceptance of the main proof and the voter-check
 verification conditions to the integrity predicates of Basin et al.'s model~\cite{BDGR21}.
 
 
 \section{Conclusion}
-Zeeperio modernizes Eperio-style post-election audits by replacing conventional cut-and-choose commitments with modern succinct polynomial arguments that are verified on-chain. Our design introduces automated verification and constant-size proofs. Zeeperio considered the optically-scanned paper ballot setting as an initial starting point. Future work could look to extend this approach to the online voting setting, especially around the design challenge of maintaining coercion resistance in an unsupervised voting setting. 
+Zeeperio modernizes Eperio-style post-election audits by replacing conventional cut-and-choose commitments with succinct polynomial arguments verified on-chain. Our design introduces automated verification and constant-size proofs. Zeeperio considered the optically scanned paper ballot setting as an initial starting point. Future work could extend this approach to online voting, especially addressing the design challenge of maintaining coercion resistance in an unsupervised setting. 
 
 % \paragraph{Acknowledgements.} The authors thank the reviewers for their feedback. This work was supported by a National Science and Engineering Research Council of Canada (NSERC) Discovery grant.
 
