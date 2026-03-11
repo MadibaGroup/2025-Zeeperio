@@ -1,0 +1,435 @@
+% !TEX root = ../main.tex
+\section{Introduction}
+
+Decades of research on end-to-end verifiable (E2E-V) elections have shown that strong cryptographic guarantees can protect the integrity of governmental elections and the secrecy of voter ballots, even when conducted with paper ballots~\cite{HR16}. 
+In recent years, pilot projects and deployments of E2E-V platforms have also demonstrated that these systems are usable and scalable to an appropriate degree~\cite{AMPQ09,CCC+10,BBB+13,CRST15}. 
+Despite these efforts, some governments continue to conduct elections without meaningful verification or openness to scrutiny.
+
+%JC: removing this for now, more about realcryptik framing:
+%in which voter ballot selections and identities are stored together within the election service (see, e.g., Cardillo et al. \cite{cae19}).
+
+Within this context, a common refrain is that blockchain technology can solve the governmental voting problem. However, after many years of vaporware and defunct projects~\cite{KSM21,Ern25}, actual deployments have been small-scale and littered with security issues~\cite{SKW20,GG20}. We argue these projects tried to \textit{maximize} the role of smart contracts in the voting system. Unlike DAO voting, which is a sensible application of on-chain voting for a system that is already on-chain, governmental elections have a large real-world component that could include anything from paper ballots to polling stations to physical identities. Moving everything online, let alone on-chain, is controversial and introduces new security challenges like over-the-shoulder coercion, vote selling, denial of service, and the threat of malware on voters' personal devices. 
+
+In this paper, we consider a \textit{pragmatic} approach to blockchain voting. The core idea is to introduce or expand the role of blockchain for specific, narrowly-scoped security goals. We start with a well-known cryptographically secure E2E-V voting system called Scantegrity II~\cite{CCC+08}, which was the first of its kind deployed in a real-world election~\cite{CCC+10}. Blockchains already play a small role in Scantegrity II: for the 2011 municipal election in Takoma Park, USA, commitments to election data were put into Bitcoin's blockchain to unequivocally demonstrate they were made before the election began~\cite{CE12}.
+
+Scantegrity II produces a set of cryptographic proofs that the election result is correct, while preserving ballot secrecy for every voter~\cite{KTV10c,BDGR21}. Voters consult these proofs to ensure their ballots (cast and/or audited) are recorded correctly, and anyone can use the proofs to verify that the tally was computed correctly. Verifying a proof requires downloading the proof data (MBs) and the technical knowledge of cryptography to check it.
+
+Eperio~\cite{ECHA10} is a follow-up proposal to simplify the cryptography of Scantegrity II by making larger, aggregated commitments that could be implemented with file-based encryption, enabling more practical implementations of the proof verification using pre-existing and commonplace software. 
+For example, the paper demonstrated an implementation of the verifier using only the built-in features of Microsoft Excel. 
+The security of both Eperio and Scantegrity was studied in detail using formal methods in a CCS 2021 paper, and both were found to satisfy equivalent integrity and ballot secrecy properties~\cite{BDGR21}. 
+Like Scantegrity (and related schemes of the era), Eperio still required election authorities (EAs) to organize an independent and explicit proof-checking effort to ensure {\em someone} checked the proof at all. This paper explores whether the proof could be automatically checked by a smart contract, giving EAs automatic assurance that at least {\em someone} checked it. Here, that someone is the Ethereum network, which ties the validity of the election proof to the network's \$100+B USD market capitalization. 
+
+The design challenge of this work is to fit the proof within the highly restricted computational limits of the smart contract setting. While compact relative to other cryptographic voting systems, Scantegrity and Eperio proofs are still far too big to store on-chain, and tally verification is linear in the number of ballots. The contribution of this paper is {\em Zeeperio}, which provides Eperio-equivalent proofs using succinct (zk-SNARK) arguments. Both the proof size and verification time are constant in the number of ballots, and the overall efficiency now permits on-chain verification. 
+
+
+
+
+%In this paper, we contribute to a broader discussion the cryptographic voting community has been having for some years: do we compromise our ideals and offer watered-down systems that the industry might find more palatable if they offer tangible security advantages over the status quo? 
+%We relate this to the term \emph{realpolitik}, which describes statecraft based on pragmatic calculation rather than ideology, and propose \textit{realcryptik} to describe a similar pragmatic approach in the election verification context.
+%
+%Flavours of realcryptik already permeate the research literature. 
+%Despite opposition to internet voting, Helios~\cite{Adi08} is perhaps the most widely used E2E-V voting technology. 
+%While researchers argue that coercion resistance is essential for internet voting, Helios provides none. 
+%Scantegrity II~\cite{CCC+08} was the first E2E-V system to see governmental use. 
+%It is built around the compromise that, in a paper ballot system, it is acceptable for an optical scanner to learn how the voter voted, sidestepping the complex ballot mechanics of its predecessors to avoid this. 
+%In recent years, serious discussions have arisen around whether E2E-V should be largely abandoned in favor of risk-limiting audits. 
+%Should we affirm the use of ballot marking devices when we know most voters do not carefully verify their outputs~\cite{BMM+20}?
+%
+%We propose a different compromise in this paper: Allow election service providers (vendors) to continue collecting unencrypted ballot selections while introducing a measure of verifiability. 
+%For the election authorities (EAs), our approach continues to rely on legal protections implemented through procedures, i.e., without formal cryptographic secrecy protections and guarantees.
+
+%The research question of this paper is how to modify the cryptography of an E2E-V voting system to provide integrity without requiring the EA to maintain ballot secrecy (while still providing receipt-freeness otherwise). 
+%The simpler threat model allows us to streamline the cryptography. 
+%In particular, we can prove that encrypted (or committed, in our case) ballots are tallied correctly, rather than computing the tally under encryption. 
+%This shifts the protocol away from multiparty computation and threshold cryptography toward an all-encompassing zero-knowledge proof (ZKP). 
+%While ZKPs have been used in voting systems since their invention in the 1980s, we focus on modern succinct ZKPs called zk-SNARKs.
+
+
+
+\subsection{Contribution}
+
+Zeeperio is a modernization of the Eperio election-verification approach, replacing cut-and-choose full-open commitments with modern, succinct knowledge arguments for automated verification in a smart-contract setting:
+
+\begin{enumerate}
+ 	\item \textbf{Succinct universal verification:} Election constraints are encoded in a single polynomial interactive proof (PIOP) using a zk-SNARK approach from Plonk~\cite{GWC19} with a proof size and verification runtime constant in the number of ballots (for fixed template parameters, with only small $O(C)$ subchecks arising from per-ballot block constraints).
+ 	\item \textbf{Automatic verification:} The succinctness of Zeeperio arguments enables automatic verification in a smart contract setting, reducing the need for EAs to coordinate explicit independent verification efforts (as in Eperio).
+ 	\item \textbf{Implementation:} We implement the Zeeperio knowledge arguments and demonstrate their performance in an Ethereum smart contract, showing that an election with $\mathcal{B}=100{,}000$ ballots and $\mathcal{C}=5$ candidates can be verified on-chain for under $\$30\,$USD.
+ 	\item \textbf{Enhanced dispute resolution}: As a result of confirmation code commitments made within a single polynomial, Zeeperio improves the dispute-resolution process by enabling a succinct proof that a disputed code is incorrect without revealing any other codes or the voter’s selections.
+ \end{enumerate}
+ 
+\noindent Additionally, we clean up a few issues that were not fully resolved in Scantegrity II and Eperio. As pointed out by Basin \etal~\cite{BDGR21}, Eperio does not prove ballots were not overvoted; Zeeperio does (\S\ref{sec:tally}). As acknowledged by Essex \etal~\cite{ECHA10}, Eperio does not support Scantegrity II ballots; Zeeperio does (\S\ref{sec:receipt}). Scantegrity II~\cite{CCC+08} supports dispute resolution, but requires all confirmation codes on the ballot to be revealed. Zeeperio offers a simple proof of an incorrect code without revealing information about all codes (\S\ref{sec:dispute}).
+% \item As Basin et al.~\cite{BDGR21} point out, clash attacks~\cite{KTV12} are not explicitly addressed by Eperio. However, they apply to all major E2E-V voting systems and are mitigated through strict polling-place policies that specify which ballot is given to which voter.
+
+
+%----------------------------------------------------------------
+\section{Background and Related Work}
+
+\subsection{Scantegrity II and Eperio}
+
+\begin{figure}[t!]
+\begin{center}
+\includegraphics[clip, trim=0cm 15cm 0cm 10cm,width=0.9\textwidth]{figures/zeeperio.pdf}
+\caption{({\bf Left}) Scantegrity~II paper ballots. When marked, invisible ink reveals a hidden confirmation code for each selection. ({\bf Right}) State information (ballot, confirmation code, whether marked or audited, etc.) is encoded into a table. Properties of this table are proven in zero-knowledge as part of a public post-election audit of the election's correctness.  Eperio used a basic cut-and-choose approach involving openings of commitments to numerous independently row-wise shuffled table copies. Zeeperio replaces this method with a modern zk-SNARK, demonstrating that certain constraints hold for each column, enabling efficient verification in a smart contract setting.\label{fig:eperio}}
+\end{center}
+\end{figure}
+
+An end-to-end verifiable (E2E-V) voting protocol allows for: (i) an election authority to prove that an election tally is computed correctly without learning individual voter choices, and (ii) voters to check that their ballots are included unmodified in the tally without revealing how they voted to anyone else. Briefly, Scantegrity II is a voting system that uses paper ballots that can be counted by hand or counted with an optical scanner. Beside every candidate on every ballot is a short alphanumeric code printed in invisible ink. Voting for a candidate will reveal the code, which the voter can write down and take home as a receipt of their ballot (see Figure~\ref{fig:eperio}). The receipt does not prove how they voted, as no individuals know the correspondence between codes and candidates. However, this correspondence has been specified and cryptographically committed to before the election began, and after the election, commitments will be partially revealed to provide a soundness guarantee without revealing which voter voted for which candidate. The commitments have a specific structure, and Eperio's table-based commitments (a drop-in replacement for Scantegrity's switchboard structure) are shown in Figure~\ref{fig:eperio}. 
+
+%----------------------------------------------------------------
+
+\subsection{Succinct Proofs}
+
+While zero-knowledge proofs/arguments (ZKPs) date back to the 1980s~\cite{GMW86,BCC88}, classic ZKPs produce proofs that are at least linear in the size of the proof statement. 
+By contrast, succinct zero-knowledge arguments (SNARKs) are sublinear, with sizes typically logarithmic or constant. 
+A Polynomial Interactive Oracle Proof (PIOP) is a framework shared by several SNARKs~\cite{MBKM19,CHM+20,BFS20} where the prover specifies polynomials and is challenged to open them at random points. 
+PIOP does not say \textit{how} to make a SNARK; it is merely a generic framework. 
+
+To realize a PIOP, the prover must send a succinct representation of each polynomial to the verifier, which commits the prover to those polynomials. 
+When opening a polynomial, the verifier must be certain it is the opening of the same polynomial that was committed to. 
+PIOPs rely on a cryptographic primitive called a polynomial commitment scheme (PCS) to handle this. 
+The rest of the PIOP protocol does not use any cryptography. 
+A number of PCSs have been proposed; the most prominent are KZG (very short, based on bilinear pairings, requires a trusted setup) and (DEEP-)FRI (longer, based on hash functions, conjectured to be post-quantum secure, no trusted setup). 
+In Zeeperio, we use KZG~\cite{KZG10} because it integrates well with Ethereum.
+
+KZG uses a universal trusted setup: a secret value $\tau$ is chosen at random, used to compute a structured reference string (SRS) $(g^\tau, g^{\tau^2},g^{\tau^3},\ldots)$ in a pairing-friendly group and then erased. 
+Knowledge of $\tau$ after the setup is sufficient to fake KZG openings and forge false ZKP transcripts. 
+However, the setup can be run as an open participation multiparty computation, in which participants prove that their contributions are correct, and only one honest participant must forget $\tau$ for the SRS to be secure. 
+Ethereum ran an open trusted setup in 2023, which concluded with 140k+ contributions (security holds if at least one contributor was honest and deleted their secret). 
+A single SRS, such as this one, can be shared by anyone who wishes to make a KZG commitment.
+
+In practice, zk-SNARKs for a specific computation can be deployed in different ways: (a) written in a high-level language and compiled to VM instructions, (b) written in special markup languages and compiled into arithmetic circuits, or (c) written as a custom arithmetic circuit. 
+In each case, these representations are fed into a general-purpose (GPZKP) proof system for circuits or zkVMs. 
+Each level of abstraction adds overhead and costs for the prover. 
+Our approach is \emph{closer to the metal}. 
+Rather than using circuits or Plonk directly, we use the same building blocks to design a custom PIOP argument. For online voting, where voters prove ballot validity, GPZKPs are studied, and we note a customized ZKP (which Zeeperio uses) is expected to be faster~\cite{HKJR24}. 
+Closer to Zeeperio, another design for succinct proofs uses zk-{\em STARKs}, which do not have a trusted setup and are expected to have post-quantum security~\cite{HT25}. 
+However, because this work uses GPZKPs, Zeeperio's custom PIOP approach can prove counted-as-cast for an election with 5 candidates/100,000 ballots in under 5 hours (single core), compared with around 150 (single core) to 5000 (multicore) ballots.
+
+\subsection{Smart Contracts}
+
+Smart contracts are programs deployed on a blockchain, such as Ethereum. 
+The blockchain's consensus mechanism ensures functions execute correctly and updates the state accordingly. 
+In Zeeperio, a smart contract will accept an election proof and verify it, reporting whether it is correct or not. 
+Since smart contracts can implement arbitrary code, they can support cryptographic operations, though this approach is usually prohibitively expensive. 
+Ethereum offers cheaper \emph{precompiles} for pairing-based operations on the elliptic curve \altbn, which were introduced in EIPs 196 and 197.
+On Ethereum's testnet, support for curve \bls has been staged for future deployment, as have KZG-specific operations over \bls, using the aforementioned SRS.
+
+\section{Zeeperio}
+\label{sec:constraints} 
+
+In this paper, we pose Zeeperio in the context of optically-scanned paper ballots, which is a widely used voting method in the US and elsewhere. This distinguishes it from outright ``blockchain voting'' in that the various election activities (marking ballots, casting, counting, reporting, etc.) are largely preserved in the underlying method, with Zeeperio acting as an E2E-V add-on.
+
+A Zeeperio election consists of several phases: (1) an initial election setup, defining the table structure, generating confirmation codes, printing the paper ballots and initializing the proof, (2) printing of ballots, (3) voting, (4) constructing the off-chain proof component, (5) generating and publishing the on-chain smart contract, and (6) the election verification activities, which consist of voter-led receipt checks, auditing the confirmation codes on the printed ballots, resolving disputes between voters and the election authority. A description of these phases is given in Figure~\ref{fig:protocol-diagram}.
+
+We do not consider details of ballot printing with invisible ink (2) or the conventional voting phase (3). See Appendix~\ref{e2e-v-properties} for a review of E2E-V properties and terminology, and Appendix~\ref{app:vv} for a discussion of the off-chain verification activities (receipt checks, dispute resolution and print audits). Finally, Appendix~\ref{sec:eperio-exp} provides a summary of Eperio for additional background and context on the design motivation of Zeeperio. The main contribution of this paper pertains to the proofs and verification (i.e., phases 1 and 4-6), which we now describe.
+
+
+\subsection{Zeeperio constraints} 
+
+Zeeperio's approach involves proving multiple concurrent constraints about the election in zero-knowledge, with the combined validity of the individual constraints representing the overarching proof of the correctness of the election result. As an intuition about these constraints, consider a single contest in a conventional $k$-candidate plurality (i.e., vote for {\em one}) setting. There are $k$ constraints to prove: each of the $k$ ballot positions are marked or unmarked, and the total number of marked candidates is either zero or one. Additional constraints are required to demonstrate the ballot was cast-as-intended and counted-as-cast. Furthermore, these constraints are proven in zero-knowledge toward enforcing ballot secrecy properties like receipt-freeness and coercion resistance. Due to space, we do not review these properties here, referring the reader instead to Appendix~\ref{e2e-v-properties}.
+
+
+\paragraph{Election Parameters.}
+Let $\mathcal{B}$ be the number of printed ballots and $\mathcal{C}$ the number of candidates per ballot. 
+Let $\mathcal{P}=\mathcal{B}\mathcal{C}$ be the number of ballot positions. 
+Let $n$ be the padded column length (a power of two) with $n\ge \mathcal{P}$ (the need is explained below). 
+Let $\mathbb{F}_q$ be a finite field of size $q$. 
+A ballot has ID $b\in\{0,\dots,\mathcal{B}-1\}$ and occupies a \emph{block}: $I_b=\{\,b\mathcal{C},\,b\mathcal{C}+1,\,\dots,\,b\mathcal{C}+(\mathcal{C}-1)\,\}\subseteq\{0,\dots,n-1\}.$
+
+\paragraph{Walkthrough of a Zeeperio Constraint.}
+As shown in Figure~\ref{fig:eperio}, the mark column entries are all required to be either 0 or 1. 
+With ZKPs, we call this a \textit{constraint}. 
+Zeeperio consists of \constraints similar constraints that must all hold in any valid election table. 
+Here, we present a complete argument for a single constraint (denoted c2.2) to demonstrate how a PIOP works. 
+This constraint is adapted from~\cite{BFGW19}. 
+
+The mark column can be viewed as a one-dimensional array $A_\mathsf{mark}[i]$ of length $\mathcal{P}$. 
+The elements of the array are encoded as elements of $\mathbb{F}_q$, the exponent field of a pairing-friendly elliptic curve such as \altbn or \bls. 
+Cryptographically, the array $A_\mathsf{mark}[i]$ could hold any integer in $[0,q-1]$, but the constraint requires it to be further restricted to $[0,1]$ for a valid election table.
+
+To prove the constraint, the prover (election authority) sends to the verifier (smart contract) a succinct (one group element) commitment (hiding and binding) to the entire mark column $A_\mathsf{mark}[i]$. 
+Although vector commitments exist, in a PIOP the prover commits to $A_\mathsf{mark}[i]$ indirectly by first encoding the data from $A_\mathsf{mark}[i]$ into a univariate polynomial over $\mathbb{F}_q$ and then committing to this polynomial representation of $A_\mathsf{mark}[i]$ using a polynomial commitment scheme.
+
+There are several ways to encode vectors as polynomials, and we will focus on the method we use. 
+The prover chooses a set of x-coordinates, such as $\{0,1,2,3,\ldots\}$, called the evaluation domain $\mathcal{H}$. 
+It then takes the data from $A_\mathsf{mark}[i]$ and forms a set of points $\{(0,A_\mathsf{mark}[0]),(1,A_\mathsf{mark}[1]),\ldots\}$. 
+The prover interpolates a univariate polynomial through these points: $\mathsf{Mark}(X)$. 
+It commits to $\mathsf{Mark}(X)$ using the polynomial commitment scheme and sends the commitment to the verifier.
+
+Interpolation is computationally expensive for provers, so they use an optimization. 
+The evaluation domain is arbitrary and can be any set as long as the prover and verifier agree. 
+Let $\omega\in\mathbb{F}_q$ generate a multiplicative subgroup of size $n$. 
+Then set $H=\{\omega^0,\omega^1,\dots,\omega^{n-1}\}\subseteq \mathbb{F}_q$. 
+Doing so offers three advantages and one drawback. 
+Interpolating a polynomial over this domain can be accomplished in $\mathcal{O}(n \log n)$ instead of $\mathcal{O}(n^2)$. 
+Traversing the domain is easy: the next index is the current index multiplied by $\omega$, and because it is closed under multiplication, the \emph{next} element after the last element $\omega^{n-1}$ wraps back to the first element $\omega^{n-1}\cdot\omega=\omega^{n}=\omega^{0}$. 
+Finally, a polynomial that is 0 at each $X\in H$ has a simple closed form: $\mathsf{Z}_H(X)=X^n-1$. 
+The drawback is that the prover cannot use arrays of arbitrary length $\mathcal{P}$ and expect that an order $n$ subgroup will just exist. 
+The subgroups are based on the parameters of the elliptic curve, and curves like \altbn and \bls are designed to offer subgroups of sizes $\{2,2^2,2^3,2^4,\ldots\}$ up to $2^{28}$ for \altbn and $2^{32}$ for \bls.
+
+In Zeeperio, if we have a column of length $\mathcal{P}$, we will zero-pad it to the nearest power of 2. 
+Thus, $n$ is the padded column length (a power of two) with $n\ge \mathcal{P}$. 
+For this example constraint (the mark column is binary), the presence of zero padding does not affect the constraint. 
+However, for other constraints, we will have to explicitly handle the padding separately from the election table data. 
+
+At this point, the verifier holds a polynomial commitment to $\mathsf{Mark}(X)$, which we call $K_{\mathsf{Mark}}$. 
+How does the prover demonstrate that $\mathsf{Mark}(X)$ is binary? 
+The prover constructs another polynomial as follows: $V(X)\ :=\ \mathsf{Mark}(X)\bigl(\mathsf{Mark}(X)-1\bigr)$. 
+The prover commits to $V(X)$ and sends $K_{V}$ to the verifier. 
+If $\mathsf{Mark}(X)$ is binary for all $X\in H$, then $V(X)$ is zero for all $X\in H$. 
+If $\mathsf{Mark}(X)$ is not binary for at least one $X\in H$, then $V(X)$ is non-zero at that $X$. 
+We have converted the binary constraint on $\mathsf{Mark}(X)$ into the following two checks: (1) $V(X)$ is correctly constructed from $\mathsf{Mark}(X)$, and (2) $V(X)$ is zero for all $X\in H$. 
+A polynomial that is zero for all $X\in H$ is called a \textit{vanishing polynomial} (on $H$).
+%
+To prove that $V(X)$ is correctly constructed from $\mathsf{Mark}(X)$, the verifier has $K_{\mathsf{Mark}}$ and $K_{V}$. 
+The verifier will (or the prover, using the strong Fiat-Shamir heuristic) choose a random evaluation point $\zeta \notin H$. 
+Using the polynomial commitment scheme, the prover will open the polynomials at $\zeta$, sending $V(\zeta)$, $\mathsf{Mark}(\zeta)$, and the opening proofs for each to the verifier. 
+The verifier will check the opening proofs and check that $V(\zeta)\ :=\ \mathsf{Mark}(\zeta)\bigl(\mathsf{Mark}(\zeta)-1\bigr)$. 
+Just because the relation holds at $\zeta$, what does that say about it holding for each $X\in H$? 
+The answer is that it holds with overwhelming probability due to the Schwartz-Zippel lemma, which we do not review here.
+
+Next, the prover will demonstrate that $V(X)$ vanishes on $H$. 
+Recall that $\mathsf{Z}_H(X)=X^n-1$ is a vanishing polynomial on $H$. 
+The prover constructs another polynomial $Q(X):=V(X)/\mathsf{Z}_H(X)$, commits to $Q(X)$, and sends the commitment $K_{Q}$ to the verifier. 
+If and only if $V(X)$ is zero at every point of $H$, $\mathsf{Z}_H(X)$ divides $V(X)$ exactly, yielding a proper polynomial $Q(X)$; otherwise, $Q(X)$ is a rational function not reducible to a polynomial. 
+$Q(X):=V(X)/\mathsf{Z}_H(X)$ can be rearranged as $V(X)-Q(X)\cdot(X^n-1)=0$. 
+Using $\zeta$ from above, the prover sends $Q(\zeta)$ and its opening proof. 
+The verifier checks $V(\zeta)-Q(\zeta)\cdot(\zeta^n-1)=0$. 
+By Schwartz–Zippel, if this equality holds at a uniformly random $\zeta\notin H$, then, except with negligible probability, it holds as a polynomial identity, which implies that $V(X)$ vanishes on $H$. \qed
+
+\subsection{Zeeperio Constraints}
+
+Zeeperio consists of \constraints constraints. 
+Each constraint follows a similar pattern to the example constraint: a set of polynomials is committed to such that a relationship between them will be a vanishing polynomial if and only if the constraint is true. 
+Once the constraint is converted into a vanishing polynomial, proving the vanishing polynomial is constructed correctly and that it actually vanishes is identical to the process used above. 
+
+In fact, given a set of vanishing polynomials $\{V_1(X),V_2(X),\ldots,V_m(X)\}$ and their corresponding quotient polynomials, the checks can be batched into a single check. 
+The prover will form a \emph{super-polynomial} $\mathsf{Batch}(X)$ whose coefficients are the vanishing polynomials:
+
+$$
+\mathsf{Batch}(Y)=\sum_{i=1}^{m}Y^{i}\Bigl(V_i(X)-Q_i(X)\,\mathsf{Z}_H(X)\Bigr).
+$$
+
+\noindent  A polynomial with all coefficients 0 is a zero polynomial. 
+Therefore, the verifier (or prover via strong Fiat-Shamir) will choose a random $\zeta\in \mathbb{F}_q\notin H$ as before and set $X=\zeta$, which makes every coefficient 0 with overwhelming probability. 
+To check whether every coefficient is 0, it will also choose a random $\alpha\in\mathbb{F}_q$ and set $Y=\alpha$. 
+If every $V_i(X)$ vanishes, then $\mathsf{Batch}(Y)$ is a zero polynomial and: 
+$$
+\mathsf{Batch}(\alpha)=\sum_{i=1}^{m}\alpha^{i}\Bigl(V_i(\zeta)-Q_i(\zeta)\,\mathsf{Z}_H(\zeta)\Bigr)=0.
+$$
+
+\subsection{Public Polynomials}
+
+\input{figures/variables.tex}
+
+Zeeperio uses several public helper polynomials that depend only on the election \emph{shape} (e.g., $n$, $\mathcal{B}$, $\mathcal{C}$, and hence $\mathcal{P}=\mathcal{B}\mathcal{C}$), not on any voter choices or the contents of the committed columns. 
+They are enumerated in Table~\ref{tab:selectors}. 
+Some of these helpers are linear or superlinear in $n$ to construct (for example, explicit products or explicit sums of Lagrange basis polynomials). 
+This does not undermine Zeeperio's claims of succinctness: the pre-computation is offline, public, and independent of the witness. 
+In systems like Plonk, these polynomials are considered part of the \emph{verifying key}. 
+In practice, election administrators can standardize on a small set of template sizes, and these polynomials can be pre-computed once for each election template. 
+If an election uses fewer ballots or candidates than the template's maximum, the remaining rows are constrained to be empty: extra ballots are unused, and extra candidates receive zero votes, which is reflected directly in the published tally.
+
+\subsection{Election Specific Polynomials}
+
+The Eperio tables for an election consist of three (padded) columns, which are encoded as polynomials evaluated over $H$. We denote these polynomials $\mathsf{Code}(X)$, $\mathsf{Audit}(X)$, and $\mathsf{Mark}(X)$. Each index maps to a unique ballot ID and candidate, and the public template provides this mapping. The columns are sorted by ballot ID, then by candidate (see Figure~\ref{fig:eperio}). The final tally is a vector $\mathsf{Tally}[0..\mathcal{C}-1]\in\mathbb{F}_q^{\mathcal{C}}$.
+
+Across all constraints, we will use 5 additional \emph{helper} polynomials. We will introduce them as needed. They consist of two (additive, suffix) accumulator polynomials: $\mathsf{Acc}_{\mathsf{Audit}}(X)$ and $\mathsf{Acc}_{\mathsf{Mark}}(X)$, where $\mathsf{Acc}_{\mathsf{Audit}}(\omega^{i}) \;=\; \sum_{t=i}^{n-1} \mathsf{Audit}(\omega^{t})$; likewise for $\mathsf{Mark}(X)$. We also define a \emph{strided} accumulator $\mathsf{Acc}_{\mathsf{Vote}}(X)$, which we will describe in constraint 4. Finally, we define two block sum helper polynomials: $\mathsf{BlkSum}_{\mathsf{Audit}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Audit}(\omega^k X)$ and $\mathsf{BlkSum}_{\mathsf{Mark}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Mark}(\omega^k X)$.
+
+%\input{figures/constraints.tex}
+
+\subsection{Audit Constraints}
+\label{sec:audit}
+
+Due to limited space in the paper, we cannot fully explain each of the \constraints constraints. Instead, we provide some intuition for them. The audit constraints are:
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\footnotesize
+\begin{aligned}
+V_{c1.1}(X)\ &:=\ \mathsf{Audit}(X)\,\mathsf{Z}_{\mathsf{head}}(X)\\
+V_{c1.2}(X)\ &:=\ \mathsf{Audit}(X)\bigl(\mathsf{Audit}(X)-1\bigr) \\
+V_{c1.3}(X)\ &:=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)-\mathcal{C}\bigr) \\
+V_{c1.4}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)+\mathsf{Acc}_{\mathsf{Audit}}(\omega X)\bigr)\cdot(X-\omega^{n-1})\\
+V_{c1.5}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)\bigr)\cdot \mathsf{Mask}_{n-1}(X)\\
+V_{c1.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Sum}_{\mathsf{Audit}\times\mathcal{C}}\bigr)\cdot \mathsf{Mask}_{0}(X)
+\end{aligned}
+\]
+\end{mdframed}
+
+ The audit column is well-defined for an election if all padding bits are 0 (c1.1) and the column is otherwise binary (c1.2). Each ballot spans $\mathcal{C}$ positions, so the audit column should contain a contiguous block of $\mathcal{C}$ ones for an audited ballot and a block of $\mathcal{C}$ zeros for unaudited ballots. The mechanism computes a block-sum over each ballot, $\mathsf{BlkSum}_{\mathsf{Audit}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Audit}(\omega^k X)$, then restricts attention to ballot-start indices using $\mathsf{Sel}_{\mathsf{blk}}(X)$. For a well-formed audit column, the filtered block-sum is always either $0$ (not audited) or $\mathcal{C}$ (audited), and never an intermediate value. After choosing $\zeta$, in order to check $\mathsf{BlkSum}_{\mathsf{Audit}}(X)$ is well-formed, the verifier requires $\mathcal{C}$ opened points from $\mathsf{Audit}(\omega^0\zeta)$ to $\mathsf{Audit}(\omega^{\mathcal{C}-1}\zeta)$, so this check is linear in $\mathcal{C}$ (but more importantly, constant in $\mathcal{P}$ and $n$).
+
+The EA will assert the number of print audits in the election as the integer $\mathsf{Sum}_\mathsf{A}$. Since each print audit ballot contains a block of $\mathcal{C}$ 1's, the number of 1's in $A(X)$ must be $\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}=\mathsf{Sum}_\mathsf{A}\cdot\mathcal{C}$. To reason about the sum across a polynomial on $H$, many protocols use accumulator polynomials~\cite{GWC19,BFGW19}. $\mathsf{Acc}_{\mathsf{Audit}}(X)$ is intended to hold a running suffix-sum of the audit column down the domain order (including padding, which is forced to be $0$ by c1.1):
+
+$$
+\begin{aligned}
+\mathsf{Acc}_{\mathsf{Audit}}(\omega^{i}) &:= \mathsf{Audit}(\omega^{i}) + \mathsf{Acc}_{\mathsf{Audit}}(\omega^{i+1}) \ \ \text{for } i=0,1,\ldots,n-2,\\
+\mathsf{Acc}_{\mathsf{Audit}}(\omega^{n-1}) &:= \mathsf{Audit}(\omega^{n-1}).
+\end{aligned}
+$$
+
+ Constraint c1.4 and c1.5 check each line of this recurrence, respectively, guaranteeing that $\mathsf{Acc}_{\mathsf{Audit}}(X)$ is formed correctly. The first value in $\mathsf{Acc}_{\mathsf{Audit}}(X)$ holds the sum, so c1.6 ensures this value is equal to $\mathsf{Sum}_{\mathsf{A}\times\mathcal{C}}$. 
+
+%----------------------------------------------------------------
+\subsection{Mark Constraints}
+\label{sec:mark}
+
+The constraints on the mark column parallel the constraints on the audit column:
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{c2.1}(X)\ &:=\ \mathsf{Mark}(X)\,\mathsf{Z}_{\mathsf{head}}(X)\\
+V_{c2.2}(X)\ &:=\ \mathsf{Mark}(X)\bigl(\mathsf{Mark}(X)-1\bigr)\\
+V_{c2.3}(X)\ &:=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Mark}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Mark}}(X)-1\bigr)\\
+V_{c2.4}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Mark}}(\omega X)\bigr)\cdot(X-\omega^{n-1})\\
+V_{c2.5}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Mark}(X)\bigr)\cdot \mathsf{Mask}_{n-1}(X)\\
+V_{c2.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Sum}_{\mathsf{Mark}}\bigr)\cdot \mathsf{Mask}_{0}(X)\\
+\end{aligned}
+\]
+\end{mdframed}
+
+ The constraints are as follows: padding elements are zero (c2.1), column elements are binary (c2.2), and the total number of votes matches the sum announced by the EA $\mathsf{Sum}_{\mathsf{Mark}}$ (c2.4--c2.5). The main difference is constraint c2.3. For each ballot in the audit column (previous section), the ballot's block is either all 0 or all 1, summing to either 0 or $\mathcal{C}$. For the vote column (this section), each ballot block is either all 0 (not voted) or contains a single 1 (voted). As elements are binary (c2.2), the EA can demonstrate that the sum of each ballot block is either 0 or 1, by c2.3. We assume that over-voted ballots are rejected by the scanner or automatically converted into print-audit ballots.
+
+
+
+%----------------------------------------------------------------
+\subsection{Cross-Column Constraints}
+
+
+A final constraint demonstrates that no ballot is both voted and audited:
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{c3.1}(X)\ :=\ \mathsf{Audit}(X)\,\mathsf{Mark}(X)
+\end{aligned}
+\]
+\end{mdframed}
+
+ This constraint is straightforward: an unvoted ballot will have all 0's in its ballot block, while an unaudited ballot will have the same. Therefore, the Hadamard product (element-wise multiplication) of the audit column with the mark column will be 0 in every element if it is properly formed. In the malicious case, if a ballot is both voted and audited, at least one element of the ballot block will have 1 in both columns, and the product of the columns will not be 0 at that element; thus, $V_{c3.1}(X)$ will not vanish.
+
+
+%----------------------------------------------------------------
+\subsection{Tally Constraints}
+\label{sec:tally}
+
+The tally constraints are as follows:
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{c4.1}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Vote}}(\omega^{\mathcal{C}}X)\bigr)\cdot \mathsf{Mask}_{\mathsf{tail}}(X) \\
+V_{c4.2}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)\bigr)\cdot \frac{\mathsf{Z}_H(X)}{\mathsf{Mask}_{\mathsf{tail}}(X)}\\
+V_{c4.3,j}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[j]\bigr)\cdot \frac{\mathsf{Z}_H(X)}{X-\omega^{j}}
+\end{aligned}
+\]
+\end{mdframed}
+
+ The EA will announce the tally as a list of vote totals for each of the $\mathcal{C}$ candidates: $\mathsf{Tally}[j]$ for $j\in\{0,\ldots,\mathcal{C}-1\}$. The marks for candidate $i$ will be in every $i$-th element of $\mathsf{Mark}(X)$ over $H$. The EA will build an additive, suffix accumulator $\mathsf{Acc}_{\mathsf{Vote}}(X)$ however it will be \textit{strided}: 
+
+$$
+\mathsf{Acc}_{\mathsf{Vote}}(\omega^i)\ :=\ \sum_{t=0}^{\left\lfloor\frac{n-1-i}{\mathcal{C}}\right\rfloor}\mathsf{Mark}\!\left(\omega^{\,i+t\mathcal{C}}\right),
+\qquad i\in\{0,\ldots,n-1\}.
+$$
+
+\noindent  The result is that $\mathsf{Acc}{\mathsf{Vote}}(\omega^c)$ is equal the total number of marks appearing at indices congruent to $c \bmod \mathcal{C}$ across all ballots (and padding). Note that there is no assumption that $c | n$; the sums for some candidates may be one element longer than those for others. Constraint c4.1 demonstrates that the accumulator is built correctly, assuming it starts with the right values. Constraint c4.2 demonstrates that the starting values are correct. Constraint c4.3 shows that the published tally equals the sum of each candidate's votes. Constraint c4.3 is run $\mathcal{C}$ times, once for each candidate's total votes, which will be contained in the first $\mathcal{C}$ elements of  $\mathsf{Acc}{\mathsf{Vote}}(X)$ on $H$.
+ 
+ %JC: moving security to end of paper
+
+%\paragraph{Security Properties.}
+%A full security analysis of Zeeperio is deferred to the extended thesis version\footnote{Link withheld for anonymity.}, but we sketch how it reduces to standard components.
+%Prior work establishes Eperio’s end-to-end verifiability under its stated assumptions~\cite{ECHA10,BDGR21}.
+%PIOP-based SNARKs provide completeness, (knowledge) soundness, and (when required) zero knowledge for relations expressed as low-degree polynomial constraints that are checked via vanishing tests at random challenges~\cite{GWC19}.
+%Zeeperio uses this framework by encoding Eperio’s table semantics as polynomial identities over an evaluation domain.
+%
+%The remaining obligation is \emph{constraint faithfulness}: Zeeperio’s constraints must match Eperio’s validity conditions for tally correctness, voter inclusion, and dispute resolution.
+%We require (i) \emph{encoding soundness}: any accepted Zeeperio proof implies the existence of a table/witness satisfying Eperio validity; and (ii) \emph{encoding completeness}: any Eperio-valid instance yields a witness making all constraints vanish.
+%Given these, the polynomial commitment scheme and general SNARK security implies that a malicious prover cannot cause the contract to accept an outcome that violates Eperio’s rules, except with negligible probability.
+%In the thesis, we formalize Eperio validity and prove constraint faithfulness via lemmas mapping each Eperio check to the corresponding Zeeperio constraints.
+%We use KZG commitments and Fiat-Shamir in the random-oracle model, matching standard Plonk-style assumptions~\cite{GWC19,KZG10}.% = = = = = = = = = = = = = = = = = %
+
+% = = = = = = = = = = = = = = = = = %
+
+% \section{Voter Checks}
+% \label{sec:voter}
+% Eperio, like many voting systems, splits the E2E-V proof into two parts: a universal verifiable proof that the tally is correct, and a voter-verifiable proof that receipts are correct. All constraints from Section~\ref{sec:constraints} correspond to the former proof and this is what is verified on-chain with an Ethereum contract. For space reasons, we describe the voter-verifiable checks in Appendix~\ref{app:vv}. Voters use these checks on their receipts and their audited ballots. If a voter finds their receipt is recorded incorrectly, they can use the dispute resolution protocol to check the confirmation code they recorded against the committed ballot. 
+
+\section{Voter Checks}
+\label{sec:voter}
+Zeeperio splits E2E-V into (i) \emph{universal} evidence that the
+published tally is correct, and (ii) \emph{voter-verifiable} evidence that an individual voter’s receipt
+and audited ballot are consistent with the committed election data.
+All constraints from Section~\ref{sec:constraints} correspond to the former proof and this is what is verified on-chain with an Ethereum contract
+This section summarizes the voter-verifiable checks, and the full breakdown can be found in Appendix~\ref{app:vv}.
+
+\paragraph{Print-audit.}
+An auditor reveals a ballot ID, and the EA opens the committed
+audit/mark/code columns at the positions corresponding to that ballot.
+The verifier checks the openings against the public commitments, allowing the voter to confirm
+that the printed confirmation codes on the audited ballot match the committed table.
+
+\paragraph{Receipt-check.}
+Receipt-checks aim to let a voter confirm that their recorded selection is consistent with the committed
+table \emph{without revealing which candidate position was marked}.
+To do so, receipt-checks are answered on a \emph{secretly permuted} copy of the relevant columns.
+The EA proves once that the permuted columns are a permutation of the originals, and then for a given
+query returns a single-point opening showing that (i) the permuted ballot ID equals the voter’s ballot,
+(ii) the permuted mark is $1$, and (iii) the corresponding permuted code equals the voter’s receipt code.
+
+\paragraph{Dispute resolution.}
+If a voter claims their receipt was recorded incorrectly, they can invoke the dispute protocol to check the
+claimed confirmation code against the committed ballot.
+The EA produces a succinct non-membership proof that the disputed code does not appear among the $C$
+codes printed on that ballot, without revealing the other codes on the ballot.
+
+
+% = = = = = = = = = = = = = = = = = %
+\input{sections/protocol-diagram}
+% = = = = = = = = = = = = = = = = = %
+
+
+
+\section{Implementation and Performance}
+Zeeperio is implemented as an off-chain prover and an on-chain verifier.
+Benchmarks were obtained on an Apple MacBook Pro with an M3 Pro CPU and 18\,GB RAM, and gas costs were
+measured by deploying the verifier to the Sepolia testnet.
+Table~\ref{tab:eval-table2} reports proof sizes, proving time, and verification gas for the three proof kinds.\footnotemark
+\footnotetext{At an ETH price of \$3{,}000 USD, gas price of 1 Gwei, and using 1 Gwei $=10^{-9}$ ETH, the transaction fees for the proofs are $\sim\$15$, $\sim\$6$, and $\sim\$4$ respectively. The verifier contract is deployed on Sepolia at address \texttt{0x9DD45B0a9a2fFc81FA3f7cFf36a8B61f688078d3}; the verified source code is available on Etherscan.}
+
+\input{figures/evaluations.tex}
+
+\paragraph{Prototype.}
+The prover is written in Rust using the arkworks toolkit and the BN254 curve, and produces the three proofs from Sections~\ref{sec:constraints} and~\ref{sec:voter} by committing to witness polynomials
+with the hiding KZG variant.
+The on-chain verifier is implemented in Solidity using Foundry and relies on the BN254 precompiles from
+EIP-196 and EIP-197 to verify KZG opening equations directly, all without a SNARK verifying key.
+Proofs are submitted as a single ABI-encoded \texttt{bytes} blob containing commitments, openings, public inputs,
+and transcript scalars. Verification decodes the blob, recomputes Fiat-Shamir challenges, and performs one
+pairing check per opening point while batching multiple evaluations at the same point.
+Full encoding and decoding details and the contract implementation are provided in Appendix~\ref{app:implementation}.
+
+\section{Security Proof}
+\label{sec:security}
+
+\input{figures/properties.tex} 
+
+At a high level, Zeeperio preserves Eperio's privacy guarantees and provides succinct,
+universally verifiable evidence that the published tally is consistent with a committed election
+table satisfying the protocol constraints from Section~\ref{sec:constraints}.
+Table~\ref{tab:properties} summarizes Zeeperio's security properties in the voting context. Due to space, we defer the security proofs to Appendix~\ref{app:sec}. 
+
+The security proof has two components. First, we show \emph{non-expansivity} over Eperio: given an Eperio transcript, an adversary
+learns nothing additional from the Zeeperio transcript beyond what can be simulated, up to negligible
+probability. Second, we show integrity by relating the acceptance of the main proof and the voter-check
+verification conditions to the integrity predicates of Basin et al.'s model~\cite{BDGR21}.
+
+
+\section{Conclusion}
+Zeeperio modernizes Eperio-style post-election audits by replacing conventional cut-and-choose commitments with succinct polynomial arguments verified on-chain. Our design introduces automated verification and constant-size proofs. Zeeperio considered the optically scanned paper ballot setting as an initial starting point. Future work could extend this approach to online voting, especially addressing the design challenge of maintaining coercion resistance in an unsupervised setting. 
+
+% \paragraph{Acknowledgements.} The authors thank the reviewers for their feedback. This work was supported by a National Science and Engineering Research Council of Canada (NSERC) Discovery grant.
+
+
+
+

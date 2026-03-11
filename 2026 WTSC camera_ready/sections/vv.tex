@@ -1,0 +1,37 @@
+% !TEX root = ../main.tex
+
+% ====
+
+\section{Voter Checks in Zeeperio}
+\label{app:vv}
+
+\subsection{Print Audit}
+\label{sec:print}
+
+The voter provides ballot ID $b$, which determines the public index set $I_b={b\mathcal{C},\ldots,b\mathcal{C}+\mathcal{C}-1}$. The EA opens the committed polynomials $\mathsf{Audit}(X)$, $\mathsf{Mark}(X)$, and $\mathsf{Code}(X)$ at the $\mathcal{C}$ points ${\omega^i}_{i\in I_b}$ and returns those evaluations with opening proofs (for KZG, these can be batched in a single multipoint opening proof). 
+
+\subsection{Receipt Check}
+\label{sec:receipt}
+
+At a first glance, it might seem the EA can simply open $\mathsf{Mark}(X)$ and $\mathsf{Code}(X)$ for the voter's ballot ID $b$. However, since these polynomials are ordered by candidate, the index of the mark indicates the candidate the voter voted for. We analyzed three PIOP-friendly approaches to this, but for space considerations, we present only the best: using a permutation (briefly, the excluded alternatives are lookup arguments and a secret selector vector with summation). 
+
+First, the EA defines a public \emph{ballot-ID column} $\mathsf{BallotID}(X)$ that encodes the ballot identifier on every ballot position: for each ballot $b\in\{0,\dots,\mathcal{B}-1\}$ and each within-ballot offset $k\in\{0,\dots,\mathcal{C}-1\}$, we set $\mathsf{BallotID}(\omega^{b\mathcal{C}+k})=b$, and we set $\mathsf{BallotID}(\omega^i)=0$ on all padding indices $i\ge \mathcal{P}$. Next, the EA samples a secret permutation $\pi$ over $\{0,\dots,n-1\}$ and uses it to define permuted columns by $\mathsf{F}^{\pi}(\omega^i)=\mathsf{F}(\omega^{\pi(i)})$. The EA then commits once (pre-election or once-per-election) to the shuffled columns $\mathsf{BallotID}^{\pi}(X)$, $\mathsf{Code}^{\pi}(X)$, and $\mathsf{Mark}^{\pi}(X)$, and proves once that each shuffled column is a permutation of its corresponding source column under the \emph{same} secret permutation $\pi$. The permutation argument comes straight from the literature~\cite{GWC19}.\footnote{The only minor difference is that we are shuffling the random linear combination of three polynomials instead of two polynomials under the same permutation.}
+
+For a per-receipt query, the voter provides ballot ID $b$. The EA finds, privately, an index $t$ such that $\mathsf{BallotID}^{\pi}(\omega^t)=b$ and $\mathsf{Mark}^{\pi}(\omega^t)=1$, and it returns the receipt code $c:=\mathsf{Code}^{\pi}(\omega^t)$ together with a batched opening proof at the single point $\omega^t$ for the three committed polynomials $\mathsf{BallotID}^{\pi}(X)$, $\mathsf{Mark}^{\pi}(X)$, and $\mathsf{Code}^{\pi}(X)$. Revealing index $t$ is safe because $\pi$ is secret, so $t$ does not reveal the candidate-order position of the mark in the original (unshuffled) ballot block.
+
+\subsection{Dispute Resolution}
+\label{sec:dispute}
+
+If a receipt check returns a wrong confirmation code, it is possible that the EA switched the voter's vote to another candidate. However, the voter has proof of this: they know a different confirmation code that appears on the ballot. By contrast, a voter who wants to discredit an election result might claim spuriously that their confirmation code is incorrect (even though it is); however, they will not know a different valid confirmation on their ballot (beyond guessing)~\cite{CCC+08}.
+
+In a dispute, the voter provides a ballot ID $b$ and a disputed confirmation code $c\in\mathbb{F}_q$. The EA’s goal is to prove \emph{non-membership}: that $c$ does not appear anywhere among the $\mathcal{C}$ confirmation codes printed on ballot $b$, without revealing any of those codes. Let $I_b=\{b\mathcal{C},\ldots,b\mathcal{C}+(\mathcal{C}-1)\}$ denote the (public) index set of ballot $b$, and let $\mathsf{Mask}^{(b)}_{\mathsf{ballot}}(X)$ be the public $0/1$ mask that is $1$ on $I_b$ and $0$ elsewhere on $H$. If $c$ is a non-member, then $(\mathsf{Code}(\omega^i)-c)$ will be non-zero on each element in $I_b$. If and only if it is non-zero, an inverse element will exist such that $(\mathsf{Code}(\omega^i)-c) \cdot \mathsf{Inv}_b(\omega^i)=1$. The EA introduces an auxiliary polynomial of asserted inverses $\mathsf{Inv}_b(X)$ on $I_b$ and the constraint reduces the vanishing polynomial:
+
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{\mathsf{dispute}}(X)\ :=\ \bigl((\mathsf{Code}(X)-c)\cdot \mathsf{Inv}_b(X)-1\bigr)\cdot \mathsf{Mask}^{(b)}_{\mathsf{ballot}}(X)
+\end{aligned}
+\]
+\end{mdframed}
+
+ If $c$ does appear on the ballot, say at position $\kappa\in I_b$, the EA will not be able to put a value in $\mathsf{Inv}_b(\kappa)$ that makes $V_{\mathsf{dispute}}(X)$ vanish. 
