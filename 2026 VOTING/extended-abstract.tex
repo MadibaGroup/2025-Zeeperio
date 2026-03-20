@@ -1,0 +1,83 @@
+\documentclass[runningheads]{llncs}
+\bibliographystyle{splncs04}
+\usepackage[T1]{fontenc}
+\usepackage[misc]{ifsym}
+
+% = = = = = Packages = = = = = %
+
+\input{setup/packages}
+\input{setup/macros}
+
+\usepackage{booktabs}
+\usepackage{mdframed}
+\usepackage{xcolor}
+\definecolor{verylightpink}{RGB}{255,245,248}
+
+
+% = = = = = Title = = = = = %
+
+\begin{document}
+
+\title{The Realcryptik Design Paradigm for E2E-V Elections\\{\normalsize FC '26 Voting Panel Abstract}}
+\titlerunning{The Realcryptik Design Paradigm for E2E-V Elections}
+\author{Anonymized for review}
+\institute{}
+
+% % Uncomment for publication
+
+\author{
+	Aikam Malhotra\inst{1}\and 
+	Aleksander Essex\inst{1} \and 
+	Jeremy Clark\inst{2}
+	}
+
+\institute{
+	Western University, London, Canada \\ \email{\{amalho26,aessex\}@uwo.ca} \and
+	Concordia University, Montreal, Canada \\ \email{j.clark@concordia.ca} 
+	}
+
+
+\maketitle
+
+
+% = = = = = Abstract = = = = = %
+
+% \input{sections/abstract}
+% \keywords{E2E-V voting, zk-SNARKs, polynomial-IOPs, smart contracts}
+
+\section*{Problem Statement}
+Decades of research on end-to-end verifiable (E2E-V) elections have shown that strong cryptographic guarantees can protect the integrity of elections and the secrecy of voter ballots~\cite{HR16}. In recent years, pilot projects and deployments of E2E-V platforms have also demonstrated that these systems are usable and scalable~\cite{AMPQ09,CCC+10,BBB+13,CRST15}. 
+Despite these advances, some governments continue to conduct elections without meaningful verification or openness to scrutiny, in which ballot selections and identities are stored together within the election service (see, e.g., Cardillo et al. \cite{cae19}). This state of affairs represents the worst of both worlds---ballots are neither secret nor verifiable. Based on our extensive experience working directly with election officials in Canada, a pathway to full-on E2E-V adoption seems, unfortunately, still quite a distant goal.
+
+\section*{The realcryptik design philosophy}
+
+As a near-term compromise, we are faced with the question of how to design E2E-V-like systems that relax some (but not all) security guarantees to better align with existing legislation and the needs and priorities of election administrators making decisions about technology adoption.
+
+We relate this approach to the notion of \emph{realpolitik}, which describes statecraft based on pragmatic calculation rather than ideology. We propose the notion of \textit{realcryptik} to describe a similar approach in the real-world election verification context. Faced with the practical impossibility of attaining {\em all} traditional E2E-V guarantees combined with the current reality of {\em none}, the realcryptik approach is concerned with attaining {\em some}.
+
+In particular, we propose introducing verifiability to real-world elections while accepting limitations to ballot secrecy guarantees. Flavours of this verifiability/secrecy trade-off already permeate the research literature. For example, Helios~\cite{Adi08} is a well-known E2E-V approach to online voting that adds a verifiability component that preserves ballot secrecy from the public's view, but is well known to not offer either coercion-resistance nor receipt-freeness. Scantegrity II~\cite{CCC+08} was the first E2E-V system to see governmental use, but the ballot printer and optical-scan tabulator still learn the ballot-vote associations. Despite being examples realcryptik, however, neither has seen widespread adoption. 
+
+\section*{Realcryptik in the Canadian Election Context}
+
+Drawing from our 20 years of experience as well as (currently unpublished) structured interviews with Canadian municipal election officials, we are able to offer some insight as to why: Although E2E-V is an intriguing possibility for election officials, the added workload complexity is a barrier to adoption. As one official put it to us: ``It's too hard. Get rid of it.''
+
+Beyond the conceptual and protocol complexities of the cryptography itself (which cannot be easily addressed), two common operations were cited as being particularly procedurally arduous for these officials: (1) distributed key generation, and (2) recruiting and organizing independent verification of the cryptographic tally proofs, which have been (to date) a largely ad hoc, opt-in exercise.
+
+The first barrier can be addressed under the realcryptic approach by still providing E2E-V-like proofs with public-view cryptographic ballot secrecy guarantees but accepting a scenario that relaxes {\em distributed trust} guarantees in favour of procedural controls with single points of failure among entities delivering election services (e.g., vendors, scanners, ballot printers, etc.). This is the approach taken by Scantegrity and related projects. We will then outline a novel technological approach to overcoming the second barrier.
+
+\section*{Automated Proof Verification with Zeeperio}
+
+Eperio~\cite{ECHA10} is an E2E-V backend that simplified the cryptographic proofs of Scantegrity, offering a verifier that could be implemented within existing commodity software (such as Microsoft Excel). Eperio's security was studied in detail using formal methods in a CCS 2021 paper~\cite{BDGR21}. Like Scantegrity and related work, however, Eperio still required election officials to organize an independent and explicit verification effort to ensure {\em someone} checked the tally proof. We will outline a novel proposal for {\em Zeeperio}, which reduces the Eperio proof to a succinct (zk-SNARK) argument that is efficient enough to be run in a contemporary (e.g., Ethereum) smart contract with minimal involvement from election officials.
+
+With this approach, voters and candidates can still independently verify the tally proof (if they choose), but election officials do not recruit explicit independent auditors, with the validity of the proof being explicitly and automatically checked by the Ethereum network instead.
+
+\clearpage
+\bibliography{bib/pulp.bib}
+\end{document}
+
+
+
+
+
+
+

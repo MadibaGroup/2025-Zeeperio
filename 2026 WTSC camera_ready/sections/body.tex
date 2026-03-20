@@ -8,7 +8,7 @@ Despite these efforts, some governments continue to conduct elections without me
 %JC: removing this for now, more about realcryptik framing:
 %in which voter ballot selections and identities are stored together within the election service (see, e.g., Cardillo et al. \cite{cae19}).
 
-Within this context, a common refrain is that blockchain technology can solve the governmental voting problem. However, after many years of vapourware and defunct projects~\cite{KSM21,Ern25}, actual deployments have been small-scale and littered with security issues~\cite{SKW20,GG20}. We argue these projects tried to \textit{maximize} the role of smart contracts in the voting system. Unlike DAO voting, which is a sensible application of on-chain voting for a system that is already on-chain, governmental elections have a large real-world component that could include anything from paper ballots to polling stations to physical identities. Moving everything online, let alone on-chain, is controversial and introduces new security challenges like over-the-shoulder coercion, vote selling, denial of service, and the threat of malware on voters' personal devices. 
+Within this context, a common refrain is that blockchain technology can solve the governmental voting problem. However, after many years of vaporware and defunct projects~\cite{KSM21,Ern25}, actual deployments have been small-scale and littered with security issues~\cite{SKW20,GG20}. We argue these projects tried to \textit{maximize} the role of smart contracts in the voting system. Unlike DAO voting, which is a sensible application of on-chain voting for a system that is already on-chain, governmental elections have a large real-world component that could include anything from paper ballots to polling stations to physical identities. Moving everything online, let alone on-chain, is controversial and introduces new security challenges like over-the-shoulder coercion, vote selling, denial of service, and the threat of malware on voters' personal devices. 
 
 In this paper, we consider a \textit{pragmatic} approach to blockchain voting. The core idea is to introduce or expand the role of blockchain for specific, narrowly-scoped security goals. We start with a well-known cryptographically secure E2E-V voting system called Scantegrity II~\cite{CCC+08}, which was the first of its kind deployed in a real-world election~\cite{CCC+10}. Blockchains already play a small role in Scantegrity II: for the 2011 municipal election in Takoma Park, USA, commitments to election data were put into Bitcoin's blockchain to unequivocally demonstrate they were made before the election began~\cite{CE12}.
 
@@ -136,7 +136,7 @@ Let $n$ be the padded column length (a power of two) with $n\ge \mathcal{P}$ (th
 Let $\mathbb{F}_q$ be a finite field of size $q$. 
 A ballot has ID $b\in\{0,\dots,\mathcal{B}-1\}$ and occupies a \emph{block}: $I_b=\{\,b\mathcal{C},\,b\mathcal{C}+1,\,\dots,\,b\mathcal{C}+(\mathcal{C}-1)\,\}\subseteq\{0,\dots,n-1\}.$
 
-\paragraph{Walkthrough of a Zeeperio Constraint .}
+\paragraph{Walkthrough of a Zeeperio Constraint.}
 As shown in Figure~\ref{fig:eperio}, the mark column entries are all required to be either 0 or 1. 
 With ZKPs, we call this a \textit{constraint}. 
 Zeeperio consists of \constraints similar constraints that must all hold in any valid election table. 
@@ -395,13 +395,12 @@ Zeeperio is implemented as an off-chain prover and an on-chain verifier.
 Benchmarks were obtained on an Apple MacBook Pro with an M3 Pro CPU and 18\,GB RAM, and gas costs were
 measured by deploying the verifier to the Sepolia testnet.
 Table~\ref{tab:eval-table2} reports proof sizes, proving time, and verification gas for the three proof kinds.\footnotemark
-\footnotetext{At an ETH price of \$3{,}000, gas price of 2 Gwei, and $1$ Gwei $=10^{-9}$ ETH, the fees are
-$\sim\$15$, $\sim\$6$, and $\sim\$4$ respectively.}
+\footnotetext{At an ETH price of \$3{,}000 USD, gas price of 1 Gwei, and using 1 Gwei $=10^{-9}$ ETH, the transaction fees for the proofs are $\sim\$15$, $\sim\$6$, and $\sim\$4$ respectively. The verifier contract is deployed on Sepolia at address \texttt{0x9DD45B0a9a2fFc81FA3f7cFf36a8B61f688078d3}; the verified source code is available on Etherscan.}
 
 \input{figures/evaluations.tex}
 
 \paragraph{Prototype.}
-The prover is written in Rust using the arkworks toolkit and the BN254 curve, and produces the three proofs from Sections~\ref{sec:constraints} and~\ref{sec:voter} bycommitting to witness polynomials
+The prover is written in Rust using the arkworks toolkit and the BN254 curve, and produces the three proofs from Sections~\ref{sec:constraints} and~\ref{sec:voter} by committing to witness polynomials
 with the hiding KZG variant.
 The on-chain verifier is implemented in Solidity using Foundry and relies on the BN254 precompiles from
 EIP-196 and EIP-197 to verify KZG opening equations directly, all without a SNARK verifying key.
