@@ -1,0 +1,262 @@
+% Preamble (LNCS-compatible):
+% \usepackage{booktabs}
+% \usepackage{xcolor}
+% \usepackage{mdframed}
+% \definecolor{verylightpink}{HTML}{FFF5F8}
+% \mdfsetup{framemethod=tikz}
+
+%------------------------------------------------------------
+% Audit constraints (c1.*)
+%------------------------------------------------------------
+
+% !TEX root = ../main.tex
+
+\begin{table}[t]
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Audit column constraints (c1.*).}
+\label{tab:constraints-audit}
+\begin{tabular}{@{}p{0.98\linewidth}@{}}
+\toprule
+
+c1.1 Audit is zero-padded. For all $X\in H$: $\mathsf{Audit}(X)\cdot \mathsf{Z}_{\mathsf{head}}(X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+\begin{aligned}
+V_{c1.1}(X)\ &:=\ \mathsf{Audit}(X)\,\mathsf{Z}_{\mathsf{head}}(X)\\
+V_{c1.2}(X)\ &:=\ \mathsf{Audit}(X)\bigl(\mathsf{Audit}(X)-1\bigr) \\
+V_{c1.3}(X)\ &:=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)-\mathcal{C}\bigr) \\
+V_{c1.4}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)+\mathsf{Acc}_{\mathsf{Audit}}(\omega X)\bigr)\cdot(X-\omega^{n-1})\\
+V_{c1.5}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)\bigr)\cdot \mathsf{Mask}_{n-1}(X)\\
+V_{c1.6}(X)\ &:=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Sum}_{\mathsf{Audit}\times\mathcal{C}}\bigr)\cdot \mathsf{Mask}_{0}(X)
+\end{aligned}
+\]
+
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c1.2 Audit is binary. For all $X\in H$: $\mathsf{Audit}(X)\bigl(\mathsf{Audit}(X)-1\bigr)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c1.2}(X)\ :=\ \mathsf{Audit}(X)\bigl(\mathsf{Audit}(X)-1\bigr)
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c1.3 Audit is block-consistent: each ballot block is all-0 or all-1. For all $X\in H$:
+$\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)-\mathcal{C}\bigr)=0$,
+where $\mathsf{BlkSum}_{\mathsf{Audit}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Audit}(\omega^k X)$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c1.3}(X)\ :=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Audit}}(X)-\mathcal{C}\bigr)
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c1.4a Audit accumulator step (suffix sum). For all $X\in H\setminus\{\omega^{n-1}\}$:
+$\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)+\mathsf{Acc}_{\mathsf{Audit}}(\omega X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c1.4a}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)+\mathsf{Acc}_{\mathsf{Audit}}(\omega X)\bigr)\cdot(X-\omega^{n-1})
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c1.4b Audit accumulator base (last row). For $X=\omega^{n-1}$:
+$\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c1.4b}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Audit}(X)\bigr)\cdot \mathsf{Mask}_{n-1}(X)
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c1.4c Audit sum matches public count. For $X=\omega^0$:
+$\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Sum}_{\mathsf{Audit}\times\mathcal{C}}=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c1.4c}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Audit}}(X)-\mathsf{Sum}_{\mathsf{Audit}\times\mathcal{C}}\bigr)\cdot \mathsf{Mask}_{0}(X)
+\]
+\end{mdframed}
+\\[-2mm]
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+%------------------------------------------------------------
+% Mark constraints (c2.*)
+%------------------------------------------------------------
+\begin{table}[t]
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Mark column constraints (c2.*).}
+\label{tab:constraints-mark}
+\begin{tabular}{@{}p{0.98\linewidth}@{}}
+\toprule
+
+c2.1 Mark is zero-padded. For all $X\in H$: $\mathsf{Mark}(X)\cdot \mathsf{Z}_{\mathsf{head}}(X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c2.1}(X)\ :=\ \mathsf{Mark}(X)\,\mathsf{Z}_{\mathsf{head}}(X)
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c2.2 Mark is binary. For all $X\in H$: $\mathsf{Mark}(X)\bigl(\mathsf{Mark}(X)-1\bigr)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c2.2}(X)\ :=\ \mathsf{Mark}(X)\bigl(\mathsf{Mark}(X)-1\bigr)
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c2.3 Mark has at most one ‘1’ per ballot block. For all $X\in H$:
+$\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Mark}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Mark}}(X)-1\bigr)=0$,
+where $\mathsf{BlkSum}_{\mathsf{Mark}}(X)=\sum_{k=0}^{\mathcal{C}-1}\mathsf{Mark}(\omega^k X)$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c2.3}(X)\ :=\ \bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Mark}}(X)\bigr)\bigl(\mathsf{Sel}_{\mathsf{blk}}(X)\mathsf{BlkSum}_{\mathsf{Mark}}(X)-1\bigr)
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c2.4a Mark accumulator step (suffix sum). For all $X\in H\setminus\{\omega^{n-1}\}$:
+$\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Mark}}(\omega X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c2.4a}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Mark}}(\omega X)\bigr)\cdot(X-\omega^{n-1})
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c2.4b Mark accumulator base (last row). For $X=\omega^{n-1}$:
+$\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Mark}(X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c2.4b}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Mark}(X)\bigr)\cdot \mathsf{Mask}_{n-1}(X)
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c2.4c Mark sum matches public count. For $X=\omega^0$:
+$\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Sum}_{\mathsf{Mark}}=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c2.4c}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Mark}}(X)-\mathsf{Sum}_{\mathsf{Mark}}\bigr)\cdot \mathsf{Mask}_{0}(X)
+\]
+\end{mdframed}
+\\[-2mm]
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+%------------------------------------------------------------
+% Cross-column constraint (c3)
+%------------------------------------------------------------
+\begin{table}[t]
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Cross-column constraint (c3).}
+\label{tab:constraints-cross}
+\begin{tabular}{@{}p{0.98\linewidth}@{}}
+\toprule
+
+c3 No ballot is both audited and voted. For all $X\in H$: $\mathsf{Audit}(X)\cdot \mathsf{Mark}(X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c3}(X)\ :=\ \mathsf{Audit}(X)\,\mathsf{Mark}(X)
+\]
+\end{mdframed}
+\\[-2mm]
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+%------------------------------------------------------------
+% Tally constraints (c4.*)
+%------------------------------------------------------------
+\begin{table}[t]
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Tally constraints (c4.*).}
+\label{tab:constraints-tally}
+\begin{tabular}{@{}p{0.98\linewidth}@{}}
+\toprule
+
+c4.1 Strided vote-accumulator step (stride $\mathcal{C}$). For all
+$X\in H\setminus\{\omega^{n-1},\dots,\omega^{n-\mathcal{C}}\}$:
+$\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Vote}}(\omega^{\mathcal{C}}X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c4.1}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)+\mathsf{Acc}_{\mathsf{Vote}}(\omega^{\mathcal{C}}X)\bigr)\cdot \mathsf{Mask}_{\mathsf{tail}}(X)
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c4.2 Strided vote-accumulator tail base. For all
+$X\in\{\omega^{n-1},\dots,\omega^{n-\mathcal{C}}\}$:
+$\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c4.2}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Mark}(X)\bigr)\cdot \frac{\mathsf{Z}_H(X)}{\mathsf{Mask}_{\mathsf{tail}}(X)}
+\]
+\end{mdframed}
+\\[-2mm]
+\midrule
+
+c4.3 Tally readout. For each $c\in\{0,\dots,\mathcal{C}-1\}$, for $X=\omega^{c}$:
+$\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[c]=0$.
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
+\[
+V_{c4.3,c}(X)\ :=\ \bigl(\mathsf{Acc}_{\mathsf{Vote}}(X)-\mathsf{Tally}[c]\bigr)\cdot \frac{\mathsf{Z}_H(X)}{X-\omega^{c}}
+\]
+\end{mdframed}
+\\[-2mm]
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\section{Voter Checks}
+
+\subsection{Print Audit}
+
+%------------------------------------------------------------
+% Notation for voter checks (c5.*): print-audit, receipt, dispute
+%------------------------------------------------------------
+
+
+
+
+\subsection{Receipt Check}
+
+%------------------------------------------------------------
+% c5.2 Receipt check (shuffle-based)
+%------------------------------------------------------------
+
+
+%------------------------------------------------------------
+% c5.3 Dispute resolution (selector + equality flags)
+%------------------------------------------------------------
+
+\subsection{Dispute Resolution}
+

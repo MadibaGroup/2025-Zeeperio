@@ -1,0 +1,16 @@
+\begin{table}[t!]
+\centering
+\caption{Zeeperio benchmark with $\mathcal{B}$ = 100,000 ballots, $\mathcal{C}$ = 5 candidates, $\mathcal{P} = \mathcal{B}\mathcal{C} = 500,000$ positions, padding to $2^{20}$, and 10\% of ballots print audited. All measurements are from a single-core execution on standard hardware (M3 Pro).}
+\begin{tabular}{lccc}
+\hline
+\textbf{Metric} & \textbf{Main} & \textbf{Receipt} & \textbf{Dispute} \\
+\hline
+Proof generation (s) & 8,786 & 3,071 & 5,934 \\
+Commitments (\#) & 18 & 13 & 3 \\
+Opening points (\#) & 6 & 2 & 1 \\
+Calldata size (bytes) & 7,264 & 4,128 & 1,664 \\
+Gas used & 2,215,786 & 1,035,471 & 532,475 \\
+\hline
+\end{tabular}
+\label{tab:eval-table2}
+\end{table}

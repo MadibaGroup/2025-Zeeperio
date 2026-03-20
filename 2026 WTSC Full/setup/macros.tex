@@ -1,0 +1,108 @@
+% !TEX root = ../main.tex
+
+% = = = Editing
+\newcommand{\textblue}[1]{\textcolor{blue}{#1}}
+
+% = = = Latin Short-Forms
+\usepackage{xspace}
+\newcommand{\etal}{\textit{et al.}\xspace}
+\newcommand{\etc}{\textit{etc.}\xspace}
+\newcommand{\ie}{\textit{i.e.,}\xspace}
+\newcommand{\eg}{\textit{e.g.,}\xspace}
+\newcommand{\cf}{\textit{cf.}\xspace}
+\newcommand{\supra}{\textit{Supra}\xspace}
+\newcommand{\nee}{\textit{n\'ee}\xspace}
+\newcommand{\circa}{\textit{ca.}\xspace}
+\newcommand{\aka}{\textit{a.k.a.}\xspace}
+
+% = = = Math
+\newcommand{\lt}{$\rightarrow$\xspace}
+\newcommand{\tuple}[1]{\left \langle #1 \right \rangle}
+
+% = = = Crypto
+\newcommand{\Zp}{\mathbb{Z}^{*}_{p}}
+\newcommand{\Zq}{\mathbb{Z}_{q}}
+\newcommand{\Gq}{\mathbb{G}_{q}}
+\newcommand{\Enc}[1]{\mathsf{Enc}(#1)}
+\newcommand{\EncB}[1]{\llbracket #1 \rrbracket}
+\newcommand{\ReRand}[1]{\mathsf{ReRand}(#1)}
+\newcommand{\Hash}[1]{\mathcal{H}(#1)}
+\newcommand{\Sign}[1]{\mathsf{Sig}(#1)}
+\newcommand{\Comm}[1]{\mathsf{Comm}(#1)}
+\newcommand{\Open}[1]{\mathsf{Open}(#1)}
+
+% notation
+\newcommand{\prv}{\mathcal{P}} % prover
+\newcommand{\vrf}{\mathcal{V}} % verifier
+\newcommand{\assets}{\textbf{A}} % Assets
+\newcommand{\liab}{\textbf{L}} % the whole liability
+\newcommand{\gl}{\mathfrak{t}} % the group liability
+\newcommand{\gs}{g_s} % the generator in secp256k1 group
+\newcommand{\hs}{h_s} % another generator in secp256k1
+\newcommand{\gb}{g_b} % the generator in BLS12-381 group
+\newcommand{\hb}{h_b} % another generator in BLS12-381
+\newcommand{\cm}{\mathcal{C}} % polynomial commitment
+\newcommand{\bal}{\mathfrak{bal}} % balance
+\newcommand{\uid}{\mathfrak{uid}} % user identifier
+\newcommand{\hash}{\mathcal{H}} % hash function
+\newcommand{\ppt}{\text{p.p.t}} % probabilistic polynomial time
+\newcommand{\ps}{\textbf{C}_\texttt{secp}} % Pedersen commitment in secp256k1
+\newcommand{\pb}{\textbf{C}_\texttt{bls}} % Pedersen commitment in BLS12-381
+\newcommand{\orproof}{\lor} % OR proof
+\newcommand{\nkeys}{\kappa}
+\newcommand{\nusers}{\mu}
+\newcommand{\kzgzk}{\mathsf{KZG}_{zk}}
+\newcommand{\kzgzkprove}{\kzgzk.\mathsf{Prove}}
+\newcommand{\kzgzkverify}{\kzgzk.\mathsf{Verify}}
+\newcommand{\kzgcm}{\mathsf{KZG}_{cm}}
+\newcommand{\kzgcmprove}{\kzgcm.\mathsf{Prove}}
+\newcommand{\kzgcmverify}{\kzgcm.\mathsf{Verify}}
+
+\newcommand{\bls}{\texttt{bls12-381}\xspace}
+\newcommand{\altbn}{\texttt{alt-bn128}\xspace}
+\newcommand{\secp}{\texttt{secp256k1}\xspace}
+
+\newcommand{\constraints}{16\xspace}
+
+
+% = = = Systems
+\newcommand{\kw}[1]{\textsf{#1}}
+\newcommand{\Name}{\textsf{System Name}\xspace}
+
+
+% = = = Custom Environment
+
+\usepackage{booktabs}
+\usepackage{mdframed}
+\usepackage{xcolor}
+\definecolor{verylightpink}{RGB}{255,245,248}
+\definecolor{verylightblue}{RGB}{238,244,250}
+
+\newcommand{\BDGR}[1]{%
+\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt,nobreak=true]%
+\[
+\footnotesize
+\begin{aligned}
+#1
+\end{aligned}
+\]
+\end{mdframed}%
+}
+
+\newcommand{\vanishP}[1]{%
+{\begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightpink,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt,nobreak=true]%
+\[
+\footnotesize
+ \begin{aligned}
+#1
+ \end{aligned}
+\]
+\end{mdframed}%
+}
+}
+
+
+
+
+
+
