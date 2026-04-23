@@ -33,7 +33,7 @@ $\delta$-coercion-resistant with respect to the goal $\gamma_i$.
 Under this definition, it does not say ``Scantegrity II is coercion resistant'' writ large. Rather it says, ``Scantegrity II is coercion-resistant for specific family of voter goals $\gamma_i$.'' In general, a system may be proven coercion resistant for certain kinds of goals and not for other goals. For the authors' proof of Scantegrity II, they need a specific goal for the proof. The goal they use, $\gamma_i$, can be informally stated as: \textit{if the coercer’s demand is abstention, the voter abstaining is acceptable; otherwise, if the voter casts a vote, it should be for candidate $i$, regardless of which candidate the coercer instructs them to vote for.}
 
 
-\subsection{Replacing the Switchboard with Eperio} 
+\subsection{Replacing the Switchboard with Eperio}
 \label{sec:eperio-coercion}
 As mentioned, the verification back end in Scantegrity II is called the {\em Switchboard}. Eperio was introduced by its authors explicitly as a replacement for the Switchboard. Eperio tables play the same architectural role as the switchboard, while providing proofs that are asserted to be more human-understandable. The paper shows that an Eperio proof is simpler to implement (smaller data, fewer lines of code) than Switchboard proofs and can even be manually checked by a human verifier using a spreadsheet (such as Microsoft Excel) and simple operations.
 
@@ -45,18 +45,18 @@ We state as a conjecture, and without proof, that if the Switchboard is replaced
 \label{sec:coercion}
 \input{sections/privacy.tex}
 
-\subsection{Zeeperio is as Verifiable as Eperio} 
+\subsection{Zeeperio is as Verifiable as Eperio}
 \label{sec:verifiable}
 
-Basin \etal model Eperio using tables and SP-algebra (selection–projection table algebra) to state verification conditions and prove that these conditions imply integrity (and related) properties through pen-and-paper formal-methods proofs (as opposed to machine-checked verification). In this section, we show the equivalence of Zeeperio's constraints and their model, which we will call the BDGR model or just BDGR. 
+Basin \etal model Eperio using tables and SP-algebra (selection–projection table algebra) to state verification conditions and prove that these conditions imply integrity (and related) properties through pen-and-paper formal-methods proofs (as opposed to machine-checked verification). In this section, we show the equivalence of Zeeperio's constraints and their model, which we will call the BDGR model or just BDGR.
 
 The notation we use in the main body of our paper and the notation used by BDGR is largely distinct but sometimes a few symbols overlap. Rather than rewriting the BDGR model in our notation, we keep their notation for easier cross-referencing with their paper but we make it easier for the reader to know we are discussing BDGR by placing the main equations in blue boxes, while using pink boxes for Zeeperio.
 
 % Symbols used in the definition of $P_{\mathrm{con}}$.
 
-In BDGR, the election authority reveals a set of Eperio tables but shows only parts of the tables, never the entire table. The entires in the partial table that are unknown are marked with symbol $\bot$. Each artefact $P\in \mathcal{P}_{\mathrm{auth}}$ is in the set of everything published ($\mathcal{P}_{\mathrm{auth}}$). Iterating over each $P$, the model then iterates over every possible $T \in \mathcal{T}_\bot$ from the set of all tables (full or partial). If a table $T$ is consistent with the revealed $P$, which is to say it is the same in possibly permuted order as $P$ with $\bot$ symbols, it is collected. The intersection of all collected tables over each $P$ is denoted $\bigcap_{P\in \mathcal{P}_{\mathrm{auth}}}\{T\in\mathcal{T}_\bot|P\stackrel{\bot}{=}\pi_{\mathrm{sort}(P)}T\}$. 
+In BDGR, the election authority reveals a set of Eperio tables but shows only parts of the tables, never the entire table. The entires in the partial table that are unknown are marked with symbol $\bot$. Each artefact $P\in \mathcal{P}_{\mathrm{auth}}$ is in the set of everything published ($\mathcal{P}_{\mathrm{auth}}$). Iterating over each $P$, the model then iterates over every possible $T \in \mathcal{T}_\bot$ from the set of all tables (full or partial). If a table $T$ is consistent with the revealed $P$, which is to say it is the same in possibly permuted order as $P$ with $\bot$ symbols, it is collected. The intersection of all collected tables over each $P$ is denoted $\bigcap_{P\in \mathcal{P}_{\mathrm{auth}}}\{T\in\mathcal{T}_\bot|P\stackrel{\bot}{=}\pi_{\mathrm{sort}(P)}T\}$.
 
-In their notation, the set of tables that are consistent with the published tally $t$ is denoted $\mathrm{Ind}^{qu}_t(\pi_S\sigma_{M=1})$ which we will not unpack further here, referring the interested reader to their paper. Together, $\mathcal{P}_{\mathrm{con}}$ is a set of full Eperio tables that are consistent with both the tally and the data published in the audit trail. 
+In their notation, the set of tables that are consistent with the published tally $t$ is denoted $\mathrm{Ind}^{qu}_t(\pi_S\sigma_{M=1})$ which we will not unpack further here, referring the interested reader to their paper. Together, $\mathcal{P}_{\mathrm{con}}$ is a set of full Eperio tables that are consistent with both the tally and the data published in the audit trail.
 
 \begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
 \[
@@ -71,7 +71,7 @@ Everything a voter $v$ sees across an election is specified as their view of the
 
 The BDGR model defines an operation $\owedge$ that works like a key-based merge over a set of tables, allowing the input tables to have unknown entries $\bot$. The key Key specifies when two rows should be treated as the same row. The output $\owedge^{Key}(\cdot)$ is the set of possible tables that are consistent merges of the input tables. If the input tables contradict each other, the output set will be empty. Because merges may leave some information underdetermined, $\owedge^{Key}(\cdot)$ will likely contain many tables. The operator $\min$ is then used to extract the least-informative consistent merged tables. Eventually the model will argue that the min , to talk about a single election outcome, BDGR does not require a single merged table; instead it requires that all candidate tables consistent with the evidence yield the same tally.
 
-In an Eperio table, each row has a unique identifier under the key U (and each row corresponds to a specific markable region on a ballot). Using the unique identifier $U$ as a key, the minimum tables of the combined voter views are as follows. 
+In an Eperio table, each row has a unique identifier under the key U (and each row corresponds to a specific markable region on a ballot). Using the unique identifier $U$ as a key, the minimum tables of the combined voter views are as follows.
 
 \begin{mdframed}[linewidth=0.6pt,backgroundcolor=verylightblue,innerleftmargin=6pt,innerrightmargin=6pt,innertopmargin=4pt,innerbottommargin=4pt]
 \[
@@ -116,7 +116,7 @@ We now state the standard soundness guarantee for polynomial IOPs. There exists 
 \[
 \mathsf{Acc}(\mathrm{pub},\pi)\Rightarrow_{\epsilon}\exists w:\bigwedge_j \mathsf{Vanish}\!\left(V_{c_j}(X;\mathrm{pub},w)\right).
 \]
-In words, except with probability at most $\epsilon$, an accepted proof implies the existence of a witness $w$ for which all constraint polynomials vanish on $H$. Proof of this can be found in the Plonk paper~\cite{GWC19}, which also uses vanishing polynomials to prove knowledge of values that satisfy any arithmetic circuit (and this can be transformed into a general-purpose SNARK). While Zeeperio could be defined as a circuit and turned into a SNARK through Plonk, it is more efficient to define custom vanishing polynomials for Eperio directly, creating a special-purpose SNARK. 
+In words, except with probability at most $\epsilon$, an accepted proof implies the existence of a witness $w$ for which all constraint polynomials vanish on $H$. Proof of this can be found in the Plonk paper~\cite{GWC19}, which also uses vanishing polynomials to prove knowledge of values that satisfy any arithmetic circuit (and this can be transformed into a general-purpose SNARK). While Zeeperio could be defined as a circuit and turned into a SNARK through Plonk, it is more efficient to define custom vanishing polynomials for Eperio directly, creating a special-purpose SNARK.
 
 Next we turn our attention to showing that satisfying the Zeeperio constraints is strong enough to imply the BDGR verification predicates:
 \[
@@ -128,14 +128,14 @@ This implication is not cryptographic; it is a semantic correspondence argument.
 \BDGR{\psi_{0}&:=\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
 
 This predicate asserts that the tables in $\mathcal{P}_{\mathrm{auth}}$ can be merged consistently
-on the key $U$, that each published table satisfies its prescribed shape constraints, and all publications agree on any overlapping revealed column pairs 
+on the key $U$, that each published table satisfies its prescribed shape constraints, and all publications agree on any overlapping revealed column pairs
 
-In Zeeperio, the acceptance of $\Pi_{\mathrm{main}}$ implies the committed columns are consistent with a single induced table $E^Z$. 
-$\mathcal{P}_{\mathrm{auth}}^Z$ is obtained by projecting $E^Z$ onto the published columns, so any pair of publications that expose a common column-pair (either 
+In Zeeperio, the acceptance of $\Pi_{\mathrm{main}}$ implies the committed columns are consistent with a single induced table $E^Z$.
+$\mathcal{P}_{\mathrm{auth}}^Z$ is obtained by projecting $E^Z$ onto the published columns, so any pair of publications that expose a common column-pair (either
 $(U,M)$ or $(M,S)$) must agree on that overlap, since both are projections of the same $E^Z$.
 Additionally, the Section~3 constraints enforce the
 required well-formedness conditions, which supply the corresponding
-$\mathrm{shape}_P$ predicates. 
+$\mathrm{shape}_P$ predicates.
 Therefore, $\psi_0$ holds for Zeeperio.
 
 
@@ -148,17 +148,17 @@ In Zeeperio, a voter-facing view is accepted only together with a verifying open
 public commitments to the relevant committed columns. In a \emph{print-audit} check, the EA
 opens the committed columns at the ballot's indices. In a \emph{receipt-check}, it opens the shuffled committed
 columns at the voter’s index. By the binding property of the PCS, any accepted opening
-fixes the revealed values to the unique committed witness polynomials at those points. 
+fixes the revealed values to the unique committed witness polynomials at those points.
 Since acceptance of $\Pi_{\mathrm{main}}$ yields a consistent induced table $E^Z$ matching those commitments, every $(U,M)$ tuple
-revealed in an accepted voter view $R_v$ must belong to $\pi_{U,M}(E^Z)$. 
-Thus, $P^{UM}=\pi_{U,M}(E^Z)$, and therefore $\pi_{U,M}R_v \subseteq^{\#} \pi_{U,M}P^{UM}$ for all voters $v$. 
+revealed in an accepted voter view $R_v$ must belong to $\pi_{U,M}(E^Z)$.
+Thus, $P^{UM}=\pi_{U,M}(E^Z)$, and therefore $\pi_{U,M}R_v \subseteq^{\#} \pi_{U,M}P^{UM}$ for all voters $v$.
 
 \BDGR{\psi_{\mathrm{print\text{-}audit}}&:=\owedge^{\{U\}}\bigl(\{\pi_{U,S}(R)\mid R\in\mathrm{Views}_{audit}\}\bigr)\cap\owedge^{\{U\}}(\mathcal{P}_{\mathrm{auth}})\cap\bigcap_{P\in\mathcal{P}_{\mathrm{auth}}}\mathrm{shape}_{P}\neq\emptyset}
 
 The print-audit predicate requires that all print-audit disclosures (projected to $(U,S)$) are mutually consistent under key $U$, and consistent with $\mathcal{P}_{\mathrm{auth}}$ and its \emph{shapes}.
 For Zeeperio’s print-audit check, the EA opens the committed polynomials at the $C$ indices of ballot $b$ and returns those evaluations with valid opening proofs.
 The binding property of the PCS implies the opened values are exactly those of the committed witness table $E^Z$ at those $U$-positions.
-Since the candidate labelling $S$ is determined by the public ballot structure, the tuples disclosed by the print-audit view determine a $(U,S)$-projection that must match $\pi_{U,S}(E^Z)$ on the opened rows. 
+Since the candidate labelling $S$ is determined by the public ballot structure, the tuples disclosed by the print-audit view determine a $(U,S)$-projection that must match $\pi_{U,S}(E^Z)$ on the opened rows.
 Thus all such $\pi_{U,S}(R)$ are consistent with each other under key $U$, and consistent with $P_{\mathrm{auth}}^{Z}$.
 Finally, the constraints from (Section 3) give the required \emph{shape} conditions.
 
@@ -168,7 +168,7 @@ The tally predicate requires the announced tally table $t$ to be consistent with
 The constraints introduced in (Section 3.4, 3.5) enforce that the mark column is well-formed for each ballot, and no ballot is both audited and voted.
 Then the tally constraints build an accumulator that sums over the marks per candidate, and enforce equality to the published per-candidate totals $\mathrm{Tally}[j]$.
 On the induced table $E^Z$, the multiset of $S$-labels in rows with $M=1$ has exactly $\mathrm{Tally}[j]$ occurrences of each candidate $j$.
-This is exactly the BDGR requirement that the announced tally $t$ agrees with $\pi_S\sigma_{M=1}$ under the constraints. 
+This is exactly the BDGR requirement that the announced tally $t$ agrees with $\pi_S\sigma_{M=1}$ under the constraints.
 
 \BDGR{\psi_{\mathrm{unique}}&:=\owedge^{\{U\}}\bigl(\{\pi_{V,U}R\mid R\in\mathrm{Views}\}\bigr)\neq\emptyset}
 
@@ -176,14 +176,14 @@ The \emph{unique} predicate defines if we take every voter-facing view $R$ and k
 columns $(V,U)$, then all of these partial tables can be \emph{merged consistently} on the key $U$.
 
 Zeeperio binds voter-facing queries to the publicly defined ballot ID column.
-For ballot $b$ and the $k$ positions within a ballot, $\mathrm{ballot-ID}(\omega^{bC+k})=b$, with padding set to $0$. 
+For ballot $b$ and the $k$ positions within a ballot, $\mathrm{ballot-ID}(\omega^{bC+k})=b$, with padding set to $0$.
 Additionally, any accepted voter check from (Section 4) is accepted only if the disclosed values open correctly against the committed columns.
 Therefore, any accepted view is cryptographically consistent with a single committed election instance.
 Since the election uses distinct ballot identifiers per voter, these bindings ensure that different voters’ $(V,U)$ disclosures do not conflict under key $U$, so the merge is non-empty.
 
 \BDGR{\psi_{\mathrm{no\text{-}stuffing}}&:=\forall P\in\mathcal{P}_{\mathrm{auth}}:\#\sigma_{M=1}\pi_{M}P=\#\sigma_{M=1}\pi_{M}V}
 $\quad\text{where }V=\min\bigl(\owedge^{\{U\}}(Views)\bigr).$ This predicate is asserting an \emph{equality of counts}.
-It states that $P_{\mathrm{auth}}^{Z}$ contains \emph{no more} marked rows than are accounted for by the merged voter views. 
+It states that $P_{\mathrm{auth}}^{Z}$ contains \emph{no more} marked rows than are accounted for by the merged voter views.
 Therefore, the EA cannot \emph{stuff} extra votes into the authenticated data without it being reflected in voter-facing evidence.
 
 \vanishP{
@@ -193,5 +193,3 @@ Therefore, the EA cannot \emph{stuff} extra votes into the authenticated data wi
 
 
 We prove Zeeperio's constraints imply Basin's predicates. Basin \etal prove that if these predicates hold, then the security definition $\phi$ provided in Definition~\ref{def:bdgr} above is satisfied. \qed
-
-
