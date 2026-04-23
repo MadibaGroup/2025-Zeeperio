@@ -3,9 +3,15 @@
 \usepackage[T1]{fontenc}
 \usepackage[misc]{ifsym}
 
-\usepackage{fullpage}
 \usepackage{hyperref}
-
+\hypersetup{
+  hidelinks,
+  breaklinks=true,
+  bookmarksnumbered=true,
+  pdfauthor={},
+  pdftitle={},
+  pdfkeywords={},
+}
 % = = = = = Packages = = = = = %
 
 \input{setup/packages}
@@ -17,19 +23,18 @@
 
 \begin{document}
 
-\title{Zeeperio: Verifying Governmental Elections with Ethereum}
-\subtitle{(Full Paper\footnote{This version expands and provides full appendices for the conference paper appearing at the \textit{10th Workshop on Trusted Smart Contracts (WTSC)} at \textit{Financial Cryptography and Data Security: FC 2026 International Workshops}. })}
+\title{Zeeperio: Verifying Governmental Elections with Ethereum\thanks{A full version of this paper is available at \url{https://eprint.iacr.org/2026/565}}}
 
 
 \author{
-	Aikamdeep Malhotra\inst{1}\orcidID{0009-0001-1682-9281} \and 
-	Aleksander Essex\inst{1}\orcidID{0000-0002-0228-0371} \and 
+	Aikamdeep Malhotra\inst{1}\orcidID{0009-0001-1682-9281} \and
+	Aleksander Essex\inst{1}\orcidID{0000-0002-0228-0371} \and
 	Jeremy Clark\inst{2}\orcidID{0000-0002-3533-5965}
 	}
 
 \institute{
 	Western University, Canada \\ \email{\{amalho26,aessex\}@uwo.ca} \and
-	Concordia University, Canada \\ \email{j.clark@concordia.ca} 
+	Concordia University, Canada \\ \email{j.clark@concordia.ca}
 	}
 
 \authorrunning{A. Malhotra, A. Essex and J. Clark}
@@ -49,7 +54,7 @@
 
 % = = = = = Acknowledgements  =  =  =  =  = = %
 
-\subsubsection*{Acknowledgements.} We thank the reviewers who helped to improve our paper.  A. Essex acknowledges support for this research through an NSERC Discovery grant. J. Clark acknowledges support for this research project from (i) the National Sciences and Engineering Research Council (NSERC), Raymond Chabot Grant Thornton, and Catallaxy Industrial Research Chair in Blockchain Technologies, (ii) the AMF (Autorité des Marchés Financiers), and (iii) NSERC through a Discovery Grant. 
+\subsubsection*{Acknowledgements.} We thank the reviewers who helped to improve our paper.  A. Essex acknowledges support for this research through an NSERC Discovery grant. J. Clark acknowledges support for this research project from (i) the National Sciences and Engineering Research Council (NSERC), Raymond Chabot Grant Thornton, and Catallaxy Industrial Research Chair in Blockchain Technologies, (ii) the AMF (Autorité des Marchés Financiers), and (iii) NSERC through a Discovery Grant.
 
 % = = = = = Bibliography = = = = = %
 
@@ -66,10 +71,3 @@
 %\input{sections/vv}
 \input{sections/proof}
 \end{document}
-
-
-
-
-
-
-
