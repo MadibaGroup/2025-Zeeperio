@@ -367,9 +367,12 @@ V_{\mathsf{dispute}}(X)\ :=\ \bigl((\mathsf{Code}(X)-c)\cdot \mathsf{Inv}_b(X)-1
 
 The prover is written in Rust using the arkworks toolkit and the BN254 curve, and produces the three proofs from Sections~\ref{sec:constraints} and~\ref{sec:voter} by committing to witness polynomials with the hiding KZG variant. Multiple evaluations at the same opening point are batched into a single KZG witness via a random scalar $\gamma$, yielding one pairing check per opening point on-chain.
 
-The on-chain verifier is implemented in Solidity using Foundry, relying on the BN254 precompiles from EIP-196 and EIP-197.
-It exposes three entrypoints---\texttt{verifyMain},
-\texttt{verifyReceipt}, and \texttt{verifyDispute}---each decoding a single ABI-encoded \texttt{bytes} blob containing commitments, openings, public inputs, and transcript scalars. The verifier recomputes Fiat--Shamir challenges via SHA-256, then performs one KZG pairing check per opening point. No SNARK verifying key is required. We deployed to the Sepolia testnet; deployment on Ethereum mainnet requires no protocol changes as the BN254 precompiles are available on both networks. Full implementation details, including calldata layout and ABI decoding, are given in the \href{https://eprint.iacr.org/2026/565}{full paper} and the source code.\footnote{\url{https://github.com/MadibaGroup/2025-Zeeperio}}
+The on-chain verifier is implemented in Solidity using Foundry, relying on the BN254 precompiles from EIP-196 and EIP-197. It exposes three entrypoints---\texttt{verifyMain},
+\texttt{verifyReceipt}, and \texttt{verifyDispute}---each decoding a single ABI-encoded \texttt{bytes} blob containing commitments, openings, public inputs, and transcript scalars. The verifier recomputes Fiat--Shamir challenges via SHA-256, then performs one KZG pairing check per opening point. No SNARK verifying key is required. We deployed to the Sepolia testnet; deployment on Ethereum mainnet requires no protocol changes as the BN254 precompiles are available on both networks.
+
+\input{figures/evaluations.tex}
+
+Table~\ref{tab:eval-table2} reports proof sizes, proving time, and verification gas for the three proofs. Full implementation details, including calldata layout and ABI decoding, are given in the \href{https://eprint.iacr.org/2026/565}{full paper} and the source code.\footnote{\url{https://github.com/MadibaGroup/2025-Zeeperio}}
 
 % (AE, April 23, 2026): Removed the full-paper text below and replaced with shorter summary above.
 
@@ -478,7 +481,6 @@ It exposes three entrypoints---\texttt{verifyMain},
 \section{Security Proof}
 \label{sec:security}
 
-\input{figures/properties.tex}
 
 At a high level, Zeeperio preserves Eperio's privacy guarantees and provides succinct,
 universally verifiable evidence that the published tally is consistent with a committed election
@@ -490,6 +492,7 @@ learns nothing additional from the Zeeperio transcript beyond what can be simula
 probability. Second, we show integrity by relating the acceptance of the main proof and the voter-check
 verification conditions to the integrity predicates of Basin et al.'s model~\cite{BDGR21}.
 
+\input{figures/properties.tex}
 
 \section{Conclusion}
 Zeeperio modernizes Eperio-style post-election audits by replacing conventional cut-and-choose commitments with succinct polynomial arguments verified on-chain. Our design introduces automated verification and constant-size proofs. Zeeperio considered the optically scanned paper ballot setting as an initial starting point. Future work could extend this approach to online voting, especially addressing the design challenge of maintaining coercion resistance in an unsupervised setting.
