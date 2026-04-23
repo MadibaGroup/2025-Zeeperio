@@ -1,24 +1,10 @@
 % !TEX root = ../main.tex
 \begin{abstract}
 
-Scantegrity II became the first governmental election run with a cryptographic end-to-end election verification (E2E-V) protocol. 
-E2E-V protocols allow the public to verify proofs that the election was executed correctly, but participation in this important process is largely left as an opt-in, ad hoc exercise. 
+Scantegrity II became the first governmental election run with a cryptographic end-to-end election verification (E2E-V) protocol.
+E2E-V protocols allow the public to verify proofs that the election was executed correctly, but participation in this important process is largely left as an opt-in, ad hoc exercise.
 We present \textsc{Zeeperio}, a special purpose zk-SNARK argument (built with custom arithmetization) that can issue proofs for Scantegrity elections that can be verified automatically via smart contracts for inexpensive on-chain verification.
-%Zeeperio enables routine and automatic election proof verification.
 A Zeeperio verification contract running on Ethereum costs under $\$30\,$USD (at time of writing) per election (and the cost is constant in the number of ballots).
-By not relying on general purpose zk-SNARK toolkits, like circuit or zkVM compilers, Zeeperio's tailor-made argument offers multiple order-of-magnitude improvements to prover efficiency over implementations from the research literature. For example, Zeeperio requires under $5$ hours on a commodity laptop for an election with $100{,}000$ ballots to produce a proof in the kilobyte range. 
-
-
-% only other succinct voting system in the literature. 
-
-
-%Zeeperio improves on the state-of-the-art linear-complexity through a novel, succinct argument with constant-size proofs in the number of ballots, and 
-
-
-% toward making 
-%Zeeperio is 
-%We implemented Zeeperio and tested it on an election with $100{,}000$ ballots and $5$ candidates. Additionally, we demonstrated verification on Ethereum Sepolia testnet for under $\$30\,$USD (at time of writing)\footnote{Cost calculated from gas totals in Table~\ref{tab:eval-table2} using $\mathrm{gas}=2\,$Gwei, $\mathrm{ETH}=\$3{,}000\,$USD, and $1~\mathrm{Gwei}=10^{-9}$ ETH.}, using precompiles introduced in EIPs 196 and 197. 
-%By comparison to a leading STARK-based implementation, which required proofs in the megabyte range for $32{,}000$ ballots and prover time of $13{,}409$ core-minutes, Zeeperio's proof for $100{,}000$ ballots measures in the kilobyte range and was completed in under $5$ hours on a MacBook Pro (M3 Pro, 18 GB RAM). 
-%These orders-of-magnitude improvements to performance directly translate to lower transaction costs and improved on-chain scalability for larger elections, toward making routine, automated election verification an interesting and practical possibility.
+By not relying on general purpose zk-SNARK toolkits, like circuit or zkVM compilers, Zeeperio's tailor-made argument offers multiple order-of-magnitude improvements to prover efficiency over implementations from the research literature. For example, Zeeperio requires under $5$ hours on a commodity laptop for an election with $100{,}000$ ballots to produce a proof in the kilobyte range.
 
 \end{abstract}
