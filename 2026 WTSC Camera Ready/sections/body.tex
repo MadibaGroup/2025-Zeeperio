@@ -75,9 +75,14 @@ In practice, zk-SNARKs for a specific computation can be deployed in different w
 In each case, these representations are fed into a general-purpose (GPZKP) proof system for circuits or zkVMs.
 Each level of abstraction adds overhead and costs for the prover.
 Our approach is \emph{closer to the metal}.
-Rather than using circuits or Plonk directly, we use the same building blocks to design a custom PIOP argument. For online voting, where voters prove ballot validity, GPZKPs are studied, and we note a customized ZKP (which Zeeperio uses) is expected to be faster~\cite{HKJR24}.
-Closer to Zeeperio, another design for succinct proofs uses zk-{\em STARKs}, which do not have a trusted setup and are expected to have post-quantum security~\cite{HT25}.
-However, because this work uses GPZKPs, Zeeperio's custom PIOP approach can prove counted-as-cast for an election with 5 candidates/100,000 ballots in under 5 hours (single core), compared with around 150 (single core) to 5000 (multicore) ballots.
+Rather than using circuits or Plonk directly, we use the same building blocks to design a custom PIOP argument in which the protocol itself is encoded into the arithmetization. For online voting, where voters prove ballot validity, GPZKPs have been studied; we note that a ZKP based on a custom arithmetization, as in Zeeperio, is expected to be faster~\cite{HKJR24}.
+
+Closer to Zeeperio, another design for succinct election proofs uses zk-{\em STARKs}, which require no trusted setup and are expected to provide post-quantum security~\cite{HT25}. However, that work uses GPZKPs, whereas Zeeperio uses a custom arithmetization. As a result, Zeeperio can prove counted-as-cast for an election with 5 candidates/100,000 ballots in under 5 hours (single core), compared with around 150 (single core) to 5000 (multicore) ballots.
+
+
+
+
+
 
 \subsection{Smart Contracts}
 
